@@ -1,11 +1,14 @@
 /**::::::::
  * Created by siemen on 05/06/2017.
  */
+"use strict";
 const express = require("express");
 const http = require("http");
 const io = require("socket.io");
 
 var app = express();
+
+// TODO remove this line if we don't use ejs
 app.set('view engine', 'ejs');
 
 app.get('/', function (req, res, next) {
@@ -26,11 +29,9 @@ serverSocket.on('connection', function(socket){
         console.log("question Received");
         socket.emit("questionAsked", data);
         socket.broadcast.emit("questionAsked", data);
-
     });
-
-
 });
+
 httpServer.listen(8080, function(){
     console.log("Webserver running at port 8080")
 });
