@@ -13,9 +13,14 @@
 // db.thread.find()
 // db.thread.remove()
 
+
 let mongoDBModule = (function () {
     const mongo = require('mongodb');
     const MongoClient = mongo.MongoClient;
+
+    const Thread = require("./thread.js").Thread;
+    const Answer = require("./answer.js").Answer;
+    const VoteAble = require("./voteAble.js").VoteAble;
 
     // TODO security?
     const dbConf = {
@@ -56,7 +61,7 @@ let mongoDBModule = (function () {
                         .then(res => {
                             console.log("Collection created");
                             db.close();
-                            resolve();
+                            resolve(res);
                         });
                 });
         });
@@ -82,12 +87,12 @@ let mongoDBModule = (function () {
                 .then(db => {
                     db.collection(dbConf.collections.thread).insertOne(thread)
                         .catch(err => {
-                            console.log("Failed to add thread (" + thread + ") to collection + ("
+                            console.log("Failed to add thread (" + thread.question + ") to collection + ("
                                 + dbConf.collections.thread + ")");
                             reject(err);
                         })
                         .then(res => {
-                            console.log("Added thread");
+                            console.log("Added thread (" + thread.question + ")");
                             db.close();
                             resolve(res);
                         });
@@ -105,43 +110,55 @@ let mongoDBModule = (function () {
                             console.log("Failed to query all threads from (" + dbConf.collections.thread + ")");
                             reject(err);
                         })
-                        .then(threads => {
+                        .then(res => {
                             db.close();
+                            let threads = [];
+                            res.forEach(item => {
+                                threads.push(new Thread(item.question, item.answers, item.upVotes, item.downVotes));
+                            });
                             resolve(threads)
                         });
                 });
         });
     };
 
-    // TODO getThreadById might not be usefull
-    let getThreadById = function (id) {
+    // TODO refactor
+    let addAnswerToThread = function (threadQuestion, answer) {
         return new Promise(function (resolve, reject) {
             openConnection()
                 .catch(err => reject(err))
                 .then(db => {
-                    let query = {_id: id};
-                    db.collection(dbConf.collections.thread).find(query).toArray()
+                    getThreadByQuestion(threadQuestion)
                         .catch(err => reject(err))
-                        .then(data => {
-                            db.close();
-                            resolve(data)
+                        .then(thread => {
+                            if (thread.isAnswerUnique(answer)) {
+                                thread.addNewAnswer(answer);
+                                let query = {question: thread.question};
+                                db.collection(dbConf.collections.thread).updateOne(query, thread)
+                                    .catch(err => reject(err))
+                                    .then((res) => {
+                                        db.close();
+                                        resolve(res);
+                                    });
+                            } else {
+                                reject("Answer is not unique");
+                            }
                         });
                 });
         });
     };
 
-    // TODO write this
-    let updateThreadById = function (data) {
+    let getThreadByQuestion = function (question) {
         return new Promise(function (resolve, reject) {
             openConnection()
                 .catch(err => reject(err))
                 .then(db => {
-                    let query = {_id: data.threadId};
-                    db.collection(dbConf.collections.thread).updateOne(query, data)
+                    let query = {question: question};
+                    db.collection(dbConf.collections.thread).find(query).toArray()
                         .catch(err => reject(err))
-                        .then(() => {
-                            console.log("Thread(" + data.threadId + ") updated" + data);
-                            resolve();
+                        .then(res => {
+                            db.close();
+                            resolve(new Thread(res[0].question, res[0].answers, res[0].upVotes, res[0].downVotes));
                         });
                 });
         });
@@ -153,8 +170,8 @@ let mongoDBModule = (function () {
         dropDB,
         addThread,
         getAllThreads,
-        getThreadById,
-        updateThreadById
+        getThreadByQuestion,
+        addAnswerToThread
     };
 
     return publicStuff;

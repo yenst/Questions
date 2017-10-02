@@ -7,6 +7,9 @@ const http = require("http");
 const io = require("socket.io");
 
 const mongoDB = require("./js/mongo.js").mongoDBModule;
+const Thread = require("./js/thread.js").Thread;
+const Answer = require("./js/answer.js").Answer;
+const VoteAble = require("./js/voteAble.js").VoteAble;
 
 var app = express();
 
@@ -21,38 +24,72 @@ app.use(express.static('public'));
 
 const httpServer = http.createServer(app);
 
-let serverSocketModule = (function(){
+// let ThreadManager = (function(){
+//     let getThreadById = function(){
+//
+//     };
+//
+//     let getAnswerById = function(){
+//
+//     };
+//
+//     let publicStuff = {
+//         incrementThreadUpVotes: function(thread_id){
+//
+//         },
+//         incrementThreadDownVotes: function(thread_id){
+//
+//         },
+//         incrementAnswerUpVotes: function(answer_id, thread_id){
+//
+//         },
+//         incrementAnswerDownVotes: function(answer_id, thread_id){
+//
+//         },
+//     };
+//
+//
+//     return publicStuff;
+// })();
+
+let serverSocketModule = (function () {
     const serverSocket = io(httpServer);
     let emits = {
         addedNewThread: "newThread",
-        addedNewAnswer: "newAnswer"
+        addedNewAnswer: "newAnswer",
+        CurrentThreads: "CurrentThreads"
     };
     let receives = {
-        questionSend: "questionSend",
+        OpenNewThread: "OpenNewThread",
         questionAnswered: "questionAnswered"
     };
 
-    let init = function(){
-        serverSocket.on('connection', function(socket){
-            console.log("Received connection (" + socket.id + ")");
-            socket.on(receives.questionSend, function(data){
-                console.log("Question received(" + data.question + ")");
-                mongoDB.addThread(data)
-                //TODO .catch(err => ...)
-                    .then(res => {
-                        data.threadId = res.insertedId;
-                        socket.emit(emits.addedNewThread, data);
-                        socket.broadcast.emit(emits.addedNewThread, data);
-                    });
-            }).on(receives.questionAnswered, function(data){
-                console.log("Question(" + data.threadId + " answered(" + data.answer + ")");
-                mongoDB.updateThreadById(data)
-                    //TODO .catch(err => ...);
-                    .then(() => {
-                        socket.emit(emits.addedNewAnswer, data);
-                        socket.broadcast.emit(emits.addedNewAnswer, data);
-                    });
-            });
+    let init = function () {
+        serverSocket.on('connection', function (socket) {
+            mongoDB.getAllThreads()
+                .catch(err => {throw err})
+                .then(threads => {
+                    socket.emit(emits.CurrentThreads, threads);
+                });
+
+            socket.on(receives.OpenNewThread, function (data) {
+                let newThread = new Thread(data.question);
+
+                socket.emit(emits.addedNewThread, newThread);
+                socket.broadcast.emit(emits.addedNewThread, newThread);
+
+                mongoDB.addThread(newThread)
+                    .catch(err => {throw err})
+                    .then(res => {});
+            }).on(receives.questionAnswered, function (data) {
+                    mongoDB.addAnswerToThread(data.question, data.answer)
+                        .catch(err => {throw err})
+                        .then((res) => {
+                            console.log("Added answer (" + data.answer + ") to thread (" + data.question + ")");
+                            socket.emit(emits.addedNewAnswer, data);
+                            socket.broadcast.emit(emits.addedNewAnswer, data);
+                        });
+                });
         });
     };
 
@@ -61,6 +98,6 @@ let serverSocketModule = (function(){
     };
 })();
 serverSocketModule.init();
-httpServer.listen(8080, function(){
+httpServer.listen(8080, function () {
     console.log("Webserver running at port 8080")
 });
