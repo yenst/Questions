@@ -3,8 +3,8 @@
 const VoteAble = require("./voteAble.js").VoteAble;
 const Answer = require("./answer.js").Answer;
 
-let Thread = function(question, answers, upVotes, downVotes){
-    VoteAble.call(this, upVotes, downVotes);
+let Thread = function(question, answers, upVotes){
+    VoteAble.call(this, upVotes);
     this.question = question;
     this.answers = (answers === undefined) ? [] : answers;
     this.isAnswerUnique = function(answerToCheck){

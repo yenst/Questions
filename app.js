@@ -52,23 +52,38 @@ const httpServer = http.createServer(app);
 //     return publicStuff;
 // })();
 
+// TODO keep a list of current threads in memory?
 let serverSocketModule = (function () {
     const serverSocket = io(httpServer);
     let emits = {
-        addedNewThread: "newThread",
-        addedNewAnswer: "newAnswer",
-        CurrentThreads: "CurrentThreads"
+        addedNewThread: "1",
+        addedNewAnswer: "2",
+        CurrentThreads: "3",
+        AnswerUpVotesChanged: "4",
+        AnswerDownVotesChanged: "5",
+        ThreadDownVotesChanged: "6",
+        ThreadUpVotesChanged: "7"
     };
     let receives = {
-        OpenNewThread: "OpenNewThread",
-        questionAnswered: "questionAnswered"
+        OpenNewThread: "a",
+        questionAnswered: "b",
+        increaseAnswerUpVotes: "c",
+        decrementAnswerUpVotes: "d",
+        increaseThreadUpVotes: "e",
+        decrementThreadUpVotes: "f"
     };
 
     let init = function () {
         serverSocket.on('connection', function (socket) {
             mongoDB.getAllThreads()
-                .catch(err => {throw err})
+                .catch(err => {
+                    throw err
+                })
                 .then(threads => {
+                    // TODO refactor this sort
+                    threads.sort(function(a, b){
+                        return b.upVotes-a.upVotes;
+                    });
                     socket.emit(emits.CurrentThreads, threads);
                 });
 
@@ -79,17 +94,46 @@ let serverSocketModule = (function () {
                 socket.broadcast.emit(emits.addedNewThread, newThread);
 
                 mongoDB.addThread(newThread)
-                    .catch(err => {throw err})
+                    .catch(err => {
+                        throw err
+                    })
                     .then(res => {});
             }).on(receives.questionAnswered, function (data) {
-                    mongoDB.addAnswerToThread(data.question, data.answer)
-                        .catch(err => {throw err})
-                        .then((res) => {
-                            console.log("Added answer (" + data.answer + ") to thread (" + data.question + ")");
-                            socket.emit(emits.addedNewAnswer, data);
-                            socket.broadcast.emit(emits.addedNewAnswer, data);
-                        });
-                });
+                let newAnswer = new Answer(data.answer);
+                mongoDB.addAnswerToThread(data.question, newAnswer.answer)
+                    .catch(err => {
+                        throw err
+                    })
+                    .then(() => {
+                        console.log("Added answer (" + newAnswer.answer + ") to thread (" + data.question + ")");
+                        let dataToSend = {
+                            question: data.question,
+                            answer: newAnswer
+                        };
+                        socket.emit(emits.addedNewAnswer, dataToSend);
+                        socket.broadcast.emit(emits.addedNewAnswer, dataToSend);
+                    });
+            }).on(receives.increaseThreadUpVotes, function (question) {
+                // TODO refactoring everything with voting
+                mongoDB.increaseThreadUpVotes(question)
+                    .catch(err => {
+                        throw err
+                    })
+                    .then(() => {
+                        mongoDB.getAllThreads()
+                            .catch(err => {
+                                throw err
+                            })
+                            .then(threads => {
+                                // TODO refactor this sort
+                                threads.sort(function(a, b){
+                                    return b.upVotes-a.upVotes;
+                                });
+                                socket.emit(emits.CurrentThreads, threads);
+                                socket.broadcast.emit(emits.CurrentThreads, threads);
+                            });
+                    });
+            });
         });
     };
 

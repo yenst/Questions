@@ -87,9 +87,7 @@ let mongoDBModule = (function () {
                 .then(db => {
                     db.collection(dbConf.collections.thread).insertOne(thread)
                         .catch(err => {
-                            console.log("Failed to add thread (" + thread.question + ") to collection + ("
-                                + dbConf.collections.thread + ")");
-                            reject(err);
+                            reject("Failed to add thread (" + thread.question + ") to collection + (" + dbConf.collections.thread + ")");
                         })
                         .then(res => {
                             console.log("Added thread (" + thread.question + ")");
@@ -114,7 +112,7 @@ let mongoDBModule = (function () {
                             db.close();
                             let threads = [];
                             res.forEach(item => {
-                                threads.push(new Thread(item.question, item.answers, item.upVotes, item.downVotes));
+                                threads.push(new Thread(item.question, item.answers, item.upVotes));
                             });
                             resolve(threads)
                         });
@@ -133,16 +131,28 @@ let mongoDBModule = (function () {
                         .then(thread => {
                             if (thread.isAnswerUnique(answer)) {
                                 thread.addNewAnswer(answer);
-                                let query = {question: thread.question};
-                                db.collection(dbConf.collections.thread).updateOne(query, thread)
+                                updateThreadByQuestion(thread)
                                     .catch(err => reject(err))
-                                    .then((res) => {
-                                        db.close();
-                                        resolve(res);
-                                    });
+                                    .then( () => resolve());
                             } else {
                                 reject("Answer is not unique");
                             }
+                        });
+                });
+        });
+    };
+
+    let updateThreadByQuestion = function(thread){
+        return new Promise(function(resolve, reject){
+            openConnection()
+                .catch(err => reject(err))
+                .then(db => {
+                    let query = {question: thread.question};
+                    db.collection(dbConf.collections.thread).updateOne(query, thread)
+                        .catch(err => reject(err))
+                        .then( (res) => {
+                            db.close();
+                            resolve(res);
                         });
                 });
         });
@@ -158,20 +168,37 @@ let mongoDBModule = (function () {
                         .catch(err => reject(err))
                         .then(res => {
                             db.close();
-                            resolve(new Thread(res[0].question, res[0].answers, res[0].upVotes, res[0].downVotes));
+                            resolve(new Thread(res[0].question, res[0].answers, res[0].upVotes));
                         });
                 });
         });
     };
 
-    // TODO look what stuff needs to be public
+    // TODO refactor all of voting functions
+    let increaseThreadUpVotes = function(question){
+        return new Promise(function (resolve, reject) {
+            getThreadByQuestion(question)
+                .catch(err => reject(err))
+                .then(thread => {
+                    thread.incrementUpVotes();
+                    updateThreadByQuestion(thread)
+                        .catch(err => reject(err))
+                        .then( () => {
+                            let currentUpVotes = thread.upVotes;
+                            resolve(currentUpVotes);
+                        });
+                });
+        });
+    };
+
     let publicStuff = {
         createDB,
         dropDB,
         addThread,
         getAllThreads,
         getThreadByQuestion,
-        addAnswerToThread
+        addAnswerToThread,
+        increaseThreadUpVotes
     };
 
     return publicStuff;

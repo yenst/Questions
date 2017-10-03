@@ -2,8 +2,8 @@
 
 const VoteAble = require("./voteAble.js").VoteAble;
 
-let Answer = function(answer, upVotes, downVotes){
-    VoteAble.call(this, upVotes, downVotes);
+let Answer = function(answer, upVotes){
+    VoteAble.call(this, upVotes);
     this.answer = answer;
 };
 
