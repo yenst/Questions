@@ -140,16 +140,16 @@ let serverSocketModule = (function () {
     };
 })();
 
-let helperFunctions = {
-    sortByUpVotes: function(arrayOfThreads){
-        arrayOfThreads.sort( (a,b) => {
-            return b.upVotes-a.upVotes;
-        });
-        return arrayOfThreads;
-    },
-};
+    let helperFunctions = {
+        sortByUpVotes: function(arrayOfThreads){
+            arrayOfThreads.sort( (a,b) => {
+                return b.upVotes-a.upVotes;
+            });
+            return arrayOfThreads;
+        },
+    };
 
-serverSocketModule.init();
-httpServer.listen(8080, function () {
-    console.log("Webserver running at port 8080")
-});
+    serverSocketModule.init();
+    httpServer.listen(8080, function () {
+        console.log("Webserver running at port 8080")
+    });
