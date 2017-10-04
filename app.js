@@ -77,14 +77,12 @@ let serverSocketModule = (function () {
         serverSocket.on('connection', function (socket) {
             mongoDB.getAllThreads()
                 .catch(err => {
+                    // TODO handle errors
                     throw err
                 })
                 .then(threads => {
-                    // TODO refactor this sort
-                    threads.sort(function(a, b){
-                        return b.upVotes-a.upVotes;
-                    });
-                    socket.emit(emits.CurrentThreads, threads);
+                    let sortedThreads = helperFunctions.sortByUpVotes(threads);
+                    socket.emit(emits.CurrentThreads, sortedThreads);
                 });
 
             socket.on(receives.OpenNewThread, function (data) {
@@ -126,7 +124,7 @@ let serverSocketModule = (function () {
                             })
                             .then(threads => {
                                 // TODO refactor this sort
-
+                                let sortedThreads = helperFunctions.sortByUpVotes(threads);
                                 socket.emit(emits.CurrentThreads, threads);
                                 socket.broadcast.emit(emits.CurrentThreads, threads);
                             });

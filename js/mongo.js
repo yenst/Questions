@@ -10,8 +10,8 @@
 
 // HANDY COMMANDS
 // --------------
-// db.thread.find()
-// db.thread.remove()
+// db.thread.find().pretty()
+// db.thread.remove({})
 
 
 let mongoDBModule = (function () {
@@ -77,10 +77,10 @@ let mongoDBModule = (function () {
             openConnection().catch(err => reject(err)).then(db => {
                 getAllThreads().catch(err => reject(err)).then(threads => {
                     let arr = threads.find(thread => {return thread.question === threadToAdd.question});
-                    if(arr.length > 0){
+                    if(arr){
                         reject("The question has already been asked!");
                     } else {
-                        db.collection(dbConf.collections.thread).insertOne(thread).catch(err => {
+                        db.collection(dbConf.collections.thread).insertOne(threadToAdd).catch(err => {
                             console.log(err);
                             reject("Failed to add thread (" + threadToAdd.question + ") to collection + (" + dbConf.collections.thread + ")");
                         }).then(res => {
