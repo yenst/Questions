@@ -10,8 +10,8 @@
 
 // HANDY COMMANDS
 // --------------
-// db.thread.find()
-// db.thread.remove()
+// db.thread.find().pretty()
+// db.thread.remove({})
 
 
 let mongoDBModule = (function () {
