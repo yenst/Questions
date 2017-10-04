@@ -8,8 +8,8 @@ let Thread = function(question, answers, upVotes){
     this.question = question;
     this.answers = (answers === undefined) ? [] : answers;
     this.isAnswerUnique = function(answerToCheck){
-        let filteredAnswers = this.answers.filter(answer => answer.answer === answerToCheck);
-        return filteredAnswers.length === 0;
+        let filteredAnswers = this.answers.find(answer => answer.answer === answerToCheck);
+        return !!filteredAnswers; // true als bestaat anders false
     };
     this.addNewAnswer = function(answer){
         this.answers.push(new Answer(answer));
