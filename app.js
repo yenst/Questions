@@ -126,9 +126,7 @@ let serverSocketModule = (function () {
                             })
                             .then(threads => {
                                 // TODO refactor this sort
-                                threads.sort(function(a, b){
-                                    return b.upVotes-a.upVotes;
-                                });
+
                                 socket.emit(emits.CurrentThreads, threads);
                                 socket.broadcast.emit(emits.CurrentThreads, threads);
                             });
@@ -141,6 +139,16 @@ let serverSocketModule = (function () {
         init
     };
 })();
+
+let helperFunctions = {
+    sortByUpVotes: function(arrayOfThreads){
+        arrayOfThreads.sort( (a,b) => {
+            return b.upVotes-a.upVotes;
+        });
+        return arrayOfThreads;
+    },
+};
+
 serverSocketModule.init();
 httpServer.listen(8080, function () {
     console.log("Webserver running at port 8080")
