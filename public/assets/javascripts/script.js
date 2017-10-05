@@ -99,6 +99,9 @@ let socketModule = (function () {
 let gInterface = (function () {
     let createThreadContainer = function (thread) {
         return $(
+
+
+
             "<li class='thread'>" +
             "<div class='questionWrap'>" +
             "<p class='question'>" + thread.question + "</p>" +
@@ -107,6 +110,7 @@ let gInterface = (function () {
             "<form class=answerForm action='#'>" +
             "<input type='text' name='answer' autocomplete=\"off\"> " +
             "<input type='submit' value='Answer'/>" +
+
             "</form>" +
             "<ul class='answers'></ul>" +
             "</li>"

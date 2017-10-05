@@ -1,2 +1,43 @@
 @import url("./reset.css");
 
+
+.container{
+    width:100%;
+}
+
+
+.question{
+    width:80%;
+    float:left;
+}
+
+
+.btnAnswer{
+    width:20%;
+    float:left;
+}
+
+.component_updown{
+    width:100%;
+}
+
+.up_number_down{
+    text-align:center;
+}
+
+
+.question_title{
+    font-size: 1.2rem;
+}
+
+.thread{
+margin-bottom: 20px;
+}
+
+#questionForm{
+    margin-bottom:20px;
+}
+
+.questionHeading{
+    margin-bottom:15px;
+}

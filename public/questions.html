@@ -11,19 +11,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link type="text/css" rel="stylesheet" href="assets/css/screen.css"/>
+    <link rel="stylesheet" href="lib/css/bootstrap.min.css">
 </head>
 
 <body>
 <header></header>
-<section>
+
+
+<section class="container">
     <form action="#" id="questionForm">
-        <input type="text" name="question" placeholder="Your question" autocomplete="off"/>
-        <input type="submit" value="Ask"/>
+        <input class="col-10"  type="text" name="question" placeholder="Your question" autocomplete="off"/>
+        <input class="col-2" type="submit" value="Ask"/>
     </form>
+
     <ul id="threads"></ul>
+
 </section>
 <footer></footer>
 
+
+<script src="lib/js/bootstrap.min.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="assets/javascripts/script.js"></script>
