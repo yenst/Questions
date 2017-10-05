@@ -4,25 +4,27 @@ $(function() {
   gInterface.init();
 });
 
-let socketModule = (function() {
-  let socket;
-  let receives = {
-    addedNewThread: "1",
-    addedNewAnswer: "2",
-    CurrentThreads: "3",
-    AnswerUpVotesChanged: "4",
-    AnswerDownVotesChanged: "5",
-    ThreadDownVotesChanged: "6",
-    ThreadUpVotesChanged: "7"
-  };
-  let emits = {
-    OpenNewThread: "a",
-    questionAnswered: "b",
-    incrementAnswerUpVotes: "c",
-    decrementAnswerUpVotes: "d",
-    incrementThreadUpVotes: "e",
-    decrementThreadUpVotes: "f"
-  };
+let socketModule = (function () {
+    let socket;
+    let receives = {
+        addedNewThread: "1",
+        addedNewAnswer: "2",
+        CurrentThreads: "3",
+        AnswerUpVotesChanged: "4",
+        AnswerDownVotesChanged: "5",
+        ThreadDownVotesChanged: "6",
+        ThreadUpVotesChanged: "7",
+        makeGreen : "8"
+    };
+    let emits = {
+        OpenNewThread: "a",
+        questionAnswered: "b",
+        incrementAnswerUpVotes: "c",
+        decrementAnswerUpVotes: "d",
+        incrementThreadUpVotes: "e",
+        decrementThreadUpVotes: "f",
+        questionApproved: "g"
+    };
 
   let handleNewThread = function(data) {
     gInterface.addThread(data);
@@ -36,16 +38,20 @@ let socketModule = (function() {
     gInterface.refreshThreads(data);
   };
 
-  //------------- \\
-  // PUBLIC STUFF \\
-  //------------- \\
-  let init = function() {
-    socket = io();
-    socket
-      .on(receives.addedNewThread, handleNewThread)
-      .on(receives.addedNewAnswer, handleNewAnswer)
-      .on(receives.CurrentThreads, handleCurrentThreads);
-  };
+    let handleMakeGreen = function (data) {
+        // TODO make green
+    };
+
+    //------------- \\
+    // PUBLIC STUFF \\
+    //------------- \\
+    let init = function () {
+        socket = io();
+        socket.on(receives.addedNewThread, handleNewThread)
+            .on(receives.addedNewAnswer, handleNewAnswer)
+            .on(receives.CurrentThreads, handleCurrentThreads)
+            .on(receives.makeGreen, handleMakeGreen);
+    };
 
   let sendNewQuestion = function(question) {
     let data = {
@@ -62,9 +68,18 @@ let socketModule = (function() {
     socket.emit(emits.questionAnswered, data);
   };
 
-  let incrementThreadUpVotes = function(question) {
-    socket.emit(emits.incrementThreadUpVotes, question);
-  };
+    let sendApprovedAnswer = function(question, answer){
+        let data= {
+            question :question,
+            answer: answer,
+            isApproved : true
+        };
+        socket.emit(emits.questionApproved,data);
+    };
+
+    let incrementThreadUpVotes = function (question) {
+        socket.emit(emits.incrementThreadUpVotes, question);
+    };
 
   let decrementThreadUpVotes = function(question) {
     socket.emit(emits.decrementThreadUpVotes, question);
@@ -86,15 +101,16 @@ let socketModule = (function() {
     socket.emit(emits.decrementAnswerUpVotes, data);
   };
 
-  return {
-    init,
-    sendNewQuestion,
-    sendNewAnswer,
-    incrementThreadUpVotes,
-    decrementThreadUpVotes,
-    incrementAnswerUpVotes,
-    decrementAnswerUpVotes
-  };
+    return {
+        init,
+        sendNewQuestion,
+        sendNewAnswer,
+        incrementThreadUpVotes,
+        decrementThreadUpVotes,
+        incrementAnswerUpVotes,
+        decrementAnswerUpVotes,
+        sendApprovedAnswer
+    };
 })();
 
 let gInterface = (function() {
@@ -158,63 +174,52 @@ let gInterface = (function() {
     socketModule.incrementThreadUpVotes(question);
   };
 
-  let downVoteThread = function(button) {
-    let $questionWrapper = $(button).parent();
-    if ($questionWrapper.find("span.threadUpVotes").text() > 0) {
-      let question = $questionWrapper.find(".question").text();
-      socketModule.decrementThreadUpVotes(question);
-    } else {
-      // TODO show error: can't decrement upvotes bellow 0
-    }
-  };
+    let downVoteThread = function(button){
+        let $questionWrapper = $(button).parent().parent();
+        if($questionWrapper.find("span.threadUpVotes").text() > 0){
+            let question = $questionWrapper.find(".question").text();
+            socketModule.decrementThreadUpVotes(question);
+        } else {
+            // TODO show error: can't decrement upvotes bellow 0
+        }
+    };
 
-  let upVoteAnswer = function(button) {
-    let question = $(button)
-      .parent()
-      .parent()
-      .parent()
-      .find(".question")
-      .text();
-    let answer = $(button)
-      .parent()
-      .find(".answer")
-      .text();
-    socketModule.incrementAnswerUpVotes(question, answer);
-  };
+    let upVoteAnswer = function(button){
+        let question = $(button).parent().parent().parent().parent().find(".question").text();
+        let answer = $(button).parent().parent().find(".answer").text();
+        socketModule.incrementAnswerUpVotes(question, answer);
+    };
 
-  let downVoteAnswer = function(button) {
-    let $answerWrapper = $(button).parent();
-    if ($answerWrapper.find("span.answerUpVotes").text() > 0) {
-      let question = $answerWrapper
-        .parent()
-        .parent()
-        .find(".question")
-        .text();
-      let answer = $answerWrapper.find(".answer").text();
-      socketModule.decrementAnswerUpVotes(question, answer);
-    } else {
-      // TODO show error: can't decrement upvotes bellow 0
-    }
-  };
+    let downVoteAnswer = function(button){
+        let $answerWrapper = $(button).parent().parent();
+        if($answerWrapper.find("span.answerUpVotes").text() > 0){
+            let question = $answerWrapper.parent().parent().find(".question").text();
+            let answer = $answerWrapper.find(".answer").text();
+            socketModule.decrementAnswerUpVotes(question, answer);
+        } else {
+            // TODO show error: can't decrement upvotes bellow 0
+        }
+    };
 
-  let init = function() {
-    $("#questionForm").on("submit", function(e) {
-      e.preventDefault();
-      let $questionInput = $("#questionForm").find('input[name="question"]');
-      socketModule.sendNewQuestion($questionInput.val());
-      $questionInput.val("");
-    });
-    $("#threads").on("submit", $(".answerForm"), function(e) {
-      e.preventDefault();
-      let $answer = $(e.target).find("input[name='answer']");
-      let question = $(e.target)
-        .parent()
-        .find(".question")
-        .text();
-      socketModule.sendNewAnswer(question, $answer.val());
-      $answer.val("");
-    });
-  };
+    let init = function () {
+        $("#questionForm").on('submit', function (e) {
+            e.preventDefault();
+            let $questionInput = $('#questionForm').find('input[name="question"]');
+            socketModule.sendNewQuestion($questionInput.val());
+            $questionInput.val("");
+        });
+        $("#threads").on('submit', $(".answerForm"), function (e) {
+            e.preventDefault();
+            let $answer = $(e.target).find("input[name='answer']");
+            let question = $(e.target).parent().find(".question").text();
+            socketModule.sendNewAnswer(question, $answer.val());
+            $answer.val("");
+        }).on('change','.approve', function(){
+            let $answer = $(this).parent().find(".answer").text();
+            let question = $(this).parent().parent().parent().find(".question").text();
+            socketModule.sendApprovedAnswer(question, $answer);
+        });
+    };
 
   let addThread = function(thread) {
     let $li = createThreadContainer(thread);
