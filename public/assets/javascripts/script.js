@@ -94,14 +94,14 @@ let socketModule = (function () {
 let gInterface = (function () {
     let createThreadContainer = function (thread) {
         return $(
-            "<li id='thread'>" +
+            "<li id='thread' class='thread'>" +
             "<div class='questionHeading'>" +
-            "<p id='question'>" + thread.question + "</p>" +
-            "<button id='upVoteThread' onclick='gInterface.upVoteThread(this)'>+</button><span id='threadUpVotes'>" + thread.upVotes + "</span><button id='downVoteThread'>-</button>" +
-            "</div>" +
-            "<form id=answerForm action='#'>" +
-            "<input type='text' id='answer' autocomplete=\"off\"> " +
-            "<input type='submit' value='Answer'/>" +
+            //Todo id hier is duplicate als je meerdere questions maakt
+            "<div class='votes_and_question row'><div class='up_number_down col-2'><button class='component_updown' id='upVoteThread' onclick='gInterface.upVoteThread(this)'>+</button><span id='threadUpVotes' class='upvotes_amount component_updown'>" + thread.upVotes + "</span><button id='downVoteThread' class='component_updown'>-</button>" +
+            "</div><p class='col-10 question_title' id='question'>" + thread.question + "</p></div></div>" +
+            "<form id=answerForm class='row' action='#'>" +
+            "<input type='text' id='answer' class='col-10' autocomplete=\"off\"> " +
+            "<input type='submit' class='col-2' value='Answer'/>" +
             "</form>" +
             "<ul id='answers'></ul>" +
             "</li>"
