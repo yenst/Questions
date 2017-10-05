@@ -20,6 +20,10 @@ app.get('/', function (req, res, next) {
     res.redirect('/questions.html')
 });
 
+app.get('/teacher',function(req,res,next){
+    res.redirect('/questions.html?t=1')
+});
+
 app.use(express.static('public'));
 
 const httpServer = http.createServer(app);
