@@ -11,56 +11,19 @@ const Thread = require("./js/thread.js").Thread;
 const Answer = require("./js/answer.js").Answer;
 const VoteAble = require("./js/voteAble.js").VoteAble;
 
-var title ="";
-
 var app = express();
 
 // TODO remove this line if we don't use ejs
 app.set('view engine', 'ejs');
 
-app.get('/', function (req, res) {
-    title = "Questions";
-    res.render('pages/index', {title:title});
-});
-
-app.get('/teachers', function (req, res, next) {
-    title= "Approve the answers";
-    res.render('pages/index', {title:title})
+app.get('/', function (req, res, next) {
+    res.redirect('/questions.html')
 });
 
 app.use(express.static('public'));
 
 const httpServer = http.createServer(app);
 
-// let ThreadManager = (function(){
-//     let getThreadById = function(){
-//
-//     };
-//
-//     let getAnswerById = function(){
-//
-//     };
-//
-//     let publicStuff = {
-//         incrementThreadUpVotes: function(thread_id){
-//
-//         },
-//         incrementThreadDownVotes: function(thread_id){
-//
-//         },
-//         incrementAnswerUpVotes: function(answer_id, thread_id){
-//
-//         },
-//         incrementAnswerDownVotes: function(answer_id, thread_id){
-//
-//         },
-//     };
-//
-//
-//     return publicStuff;
-// })();
-
-// TODO keep a list of current threads in memory?
 let serverSocketModule = (function () {
     const serverSocket = io(httpServer);
     let emits = {
@@ -75,27 +38,49 @@ let serverSocketModule = (function () {
     let receives = {
         OpenNewThread: "a",
         questionAnswered: "b",
-        increaseAnswerUpVotes: "c",
+        incrementAnswerUpVotes: "c",
         decrementAnswerUpVotes: "d",
-        increaseThreadUpVotes: "e",
+        incrementThreadUpVotes: "e",
         decrementThreadUpVotes: "f"
     };
 
+    let refreshCurrentThreads = function (socket) {
+        mongoDB.getAllThreads().catch(err => {
+            throw err
+        }).then(threads => {
+            let sortedThreads = helperFunctions.sortByUpVotes(threads);
+            socket.emit(emits.CurrentThreads, threads);
+            socket.broadcast.emit(emits.CurrentThreads, threads);
+        });
+    };
+
+    //------------- \\
+    // PUBLIC STUFF \\
+    //------------- \\
+    // TODO handle errors from db here
     let init = function () {
         serverSocket.on('connection', function (socket) {
+            mongoDB.getAllThreads()
+                .catch(err => {
+                    throw err
+                })
+                .then(threads => {
+                    let sortedThreads = helperFunctions.sortByUpVotes(threads);
+                    socket.emit(emits.CurrentThreads, sortedThreads);
+                });
+
             socket.on(receives.OpenNewThread, function (data) {
                 let newThread = new Thread(data.question);
-
-                socket.emit(emits.addedNewThread, newThread);
-                socket.broadcast.emit(emits.addedNewThread, newThread);
-
-
 
                 mongoDB.addThread(newThread)
                     .catch(err => {
                         throw err
                     })
-                    .then(res => {});
+                    .then(res => {
+                        console.log("Added thread (" + newThread.question + ")");
+                        socket.emit(emits.addedNewThread, newThread);
+                        socket.broadcast.emit(emits.addedNewThread, newThread);
+                    });
             }).on(receives.questionAnswered, function (data) {
                 let newAnswer = new Answer(data.answer);
                 mongoDB.addAnswerToThread(data.question, newAnswer.answer)
@@ -111,58 +96,55 @@ let serverSocketModule = (function () {
                         socket.emit(emits.addedNewAnswer, dataToSend);
                         socket.broadcast.emit(emits.addedNewAnswer, dataToSend);
                     });
-            }).on(receives.increaseThreadUpVotes, function (question) {
-                // TODO refactoring everything with voting
-                mongoDB.increaseThreadUpVotes(question)
-                    .catch(err => {
-                        throw err
-                    })
-                    .then(() => {
-                        mongoDB.getAllThreads()
-                            .catch(err => {
-                                throw err
-                            })
-                            .then(threads => {
-                                // TODO refactor this sort
-
-                                socket.emit(emits.CurrentThreads, threads);
-                                socket.broadcast.emit(emits.CurrentThreads, threads);
-                            });
-                    });
+            }).on(receives.incrementThreadUpVotes, function (question) {
+                mongoDB.incrementThreadUpVotes(question).catch(err => {
+                    throw err
+                }).then((updatedThread) => {
+                    console.log("Thread (" + updatedThread.question + ") up voted to (" + updatedThread.upVotes + ")");
+                    refreshCurrentThreads(socket);
+                });
+            }).on(receives.decrementThreadUpVotes, function (question) {
+                mongoDB.decrementThreadUpVotes(question).catch(err => {
+                    throw err
+                }).then((updatedThread) => {
+                    console.log("Thread (" + updatedThread.question + ") down voted to (" + updatedThread.upVotes + ")");
+                    refreshCurrentThreads(socket);
+                });
+            }).on(receives.incrementAnswerUpVotes, function (data) {
+                // TODO Link this to front-end + test
+                mongoDB.incrementAnswerUpVotes(data.question, data.answer).catch(err => {
+                    throw err
+                }).then((updatedAnswer) => {
+                    console.log("Answer (" + updatedAnswer.answer + ") up voted to (" + updatedAnswer.upVotes + ") in thread (" + data.question + ")");
+                    refreshCurrentThreads(socket);
+                });
+            }).on(receives.decrementAnswerUpVotes, function (data) {
+                // TODO Link this to front-end + test
+                mongoDB.decrementAnswerUpVotes(data.question, data.answer).catch(err => {
+                    throw err
+                }).then((updatedAnswer) => {
+                    console.log("Answer (" + updatedAnswer.answer + ") up voted to (" + updatedAnswer.upVotes + ") in thread (" + data.question + ")");
+                    refreshCurrentThreads(socket);
+                });
             });
         });
     };
-
-
 
     return {
         init
     };
 })();
 
-    let helperFunctions = {
-        sortByUpVotes: function(arrayOfThreads){
-            arrayOfThreads.sort( (a,b) => {
-                return b.upVotes-a.upVotes;
-            });
-            return arrayOfThreads;
-        },
-        loadAllQuestions: function(){
-            mongoDB.getAllThreads()
-                .catch(err => {
-                    throw err
-                })
-                .then(threads => {
-                    // TODO refactor this sort
-                    threads.sort(function(a, b){
-                        return b.upVotes-a.upVotes;
-                    });
-                    return threads;
-                });
-        }
-    };
+let helperFunctions = {
+    sortByUpVotes: function (arrayOfVoteAbleObjects) {
+        arrayOfVoteAbleObjects.sort((a, b) => {
+            return b.upVotes - a.upVotes;
+        });
+        return arrayOfVoteAbleObjects;
+    },
+};
 
-    serverSocketModule.init();
-    httpServer.listen(8080, function () {
-        console.log("Webserver running at port 8080")
-    });
+serverSocketModule.init();
+httpServer.listen(8080, function () {
+    console.log("Webserver running at port 8080")
+});

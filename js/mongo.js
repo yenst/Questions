@@ -10,8 +10,8 @@
 
 // HANDY COMMANDS
 // --------------
-// db.thread.find()
-// db.thread.remove()
+// db.thread.find().pretty()
+// db.thread.remove({})
 
 
 let mongoDBModule = (function () {
@@ -43,7 +43,34 @@ let mongoDBModule = (function () {
         });
     };
 
-    // TODO create db's?
+    let getThreadByQuestion = function (threadQuestion) {
+        return new Promise(function (resolve, reject) {
+            openConnection().catch(err => reject(err)).then(db => {
+                let query = {question: threadQuestion};
+                db.collection(dbConf.collections.thread).find(query).toArray().catch(err => reject(err)).then(res => {
+                    db.close();
+                    resolve(new Thread(res[0].question, res[0].answers, res[0].upVotes));
+                });
+            });
+        });
+    };
+
+    let updateThreadByQuestion = function (thread) {
+        return new Promise(function (resolve, reject) {
+            openConnection().catch(err => reject(err)).then(db => {
+                let query = {question: thread.question};
+                db.collection(dbConf.collections.thread).updateOne(query, thread).catch(err => reject(err)).then((res) => {
+                    db.close();
+                    resolve(res);
+                });
+            });
+        });
+    };
+
+    //------------- \\
+    // PUBLIC STUFF \\
+    //------------- \\
+    // TODO create db automatic?
     // create DB + collections(tables)
     let createDB = function () {
         return new Promise(function (resolve, reject) {
@@ -61,7 +88,7 @@ let mongoDBModule = (function () {
         });
     };
 
-    // TODO drop db's?
+    // TODO drop db automatic?
     let dropDB = function () {
         return new Promise(function (resolve, reject) {
             openConnection().catch(err => reject(err)).then(db => {
@@ -76,15 +103,15 @@ let mongoDBModule = (function () {
         return new Promise(function (resolve, reject) {
             openConnection().catch(err => reject(err)).then(db => {
                 getAllThreads().catch(err => reject(err)).then(threads => {
-                    let arr = threads.find(thread => {return thread.question === threadToAdd.question});
-                    if(arr.length > 0){
-                        reject("The question has already been asked!");
+                    let arr = threads.find(thread => {
+                        return thread.question === threadToAdd.question
+                    });
+                    if (arr) {
+                        reject("The question (" + threadToAdd.question + ") has already been asked!");
                     } else {
-                        db.collection(dbConf.collections.thread).insertOne(thread).catch(err => {
-                            console.log(err);
+                        db.collection(dbConf.collections.thread).insertOne(threadToAdd).catch(err => {
                             reject("Failed to add thread (" + threadToAdd.question + ") to collection + (" + dbConf.collections.thread + ")");
                         }).then(res => {
-                            console.log("Added thread (" + threadToAdd.question + ")");
                             db.close();
                             resolve(res);
                         });
@@ -111,16 +138,13 @@ let mongoDBModule = (function () {
         });
     };
 
-    // TODO refactor
     let addAnswerToThread = function (threadQuestion, answer) {
         return new Promise(function (resolve, reject) {
             openConnection().catch(err => reject(err)).then(db => {
                 getThreadByQuestion(threadQuestion).catch(err => reject(err)).then(thread => {
                     if (thread.isAnswerUnique(answer)) {
                         thread.addNewAnswer(answer);
-                        updateThreadByQuestion(thread)
-                            .catch(err => reject(err))
-                            .then(() => resolve());
+                        updateThreadByQuestion(thread).catch(err => reject(err)).then(() => resolve());
                     } else {
                         reject("Answer is not unique");
                     }
@@ -129,66 +153,73 @@ let mongoDBModule = (function () {
         });
     };
 
-    let updateThreadByQuestion = function (thread) {
+    let incrementThreadUpVotes = function (threadQuestion) {
         return new Promise(function (resolve, reject) {
-            openConnection()
-                .catch(err => reject(err))
-                .then(db => {
-                    let query = {question: thread.question};
-                    db.collection(dbConf.collections.thread).updateOne(query, thread)
-                        .catch(err => reject(err))
-                        .then((res) => {
-                            db.close();
-                            resolve(res);
+            getThreadByQuestion(threadQuestion).catch(err => reject(err)).then(thread => {
+                thread.incrementUpVotes();
+                updateThreadByQuestion(thread).catch(err => reject(err)).then(() => {
+                        resolve(thread);
+                    });
+            });
+        });
+    };
+
+    let decrementThreadUpVotes = function (threadQuestion) {
+        return new Promise(function (resolve, reject) {
+            getThreadByQuestion(threadQuestion).catch(err => reject(err)).then(thread => {
+                    thread.decrementUpVotes();
+                    updateThreadByQuestion(thread).catch(err => reject(err)).then(() => {
+                            resolve(thread);
                         });
                 });
         });
     };
 
-    let getThreadByQuestion = function (question) {
+    let incrementAnswerUpVotes = function (threadQuestion, answer) {
         return new Promise(function (resolve, reject) {
-            openConnection()
-                .catch(err => reject(err))
-                .then(db => {
-                    let query = {question: question};
-                    db.collection(dbConf.collections.thread).find(query).toArray()
-                        .catch(err => reject(err))
-                        .then(res => {
-                            db.close();
-                            resolve(new Thread(res[0].question, res[0].answers, res[0].upVotes));
-                        });
-                });
+            getThreadByQuestion(threadQuestion).catch(err => reject(err)).then(thread => {
+                let findAnswerObject = function(answerObject){
+                    return answerObject.answer === answer;
+                };
+                let obj = thread.answers.find(findAnswerObject);
+                let upVotedAnswerObject = new Answer(obj.answer, obj.upVotes);
+                let upVotedAnswerIndex = thread.answers.findIndex(findAnswerObject);
+                upVotedAnswerObject.incrementUpVotes();
+                thread.answers[upVotedAnswerIndex] = upVotedAnswerObject;
+                updateThreadByQuestion(thread);
+                resolve(upVotedAnswerObject);
+            });
         });
     };
 
-    // TODO refactor all of voting functions
-    let increaseThreadUpVotes = function (question) {
+    let decrementAnswerUpVotes = function (threadQuestion, answer) {
         return new Promise(function (resolve, reject) {
-            getThreadByQuestion(question)
-                .catch(err => reject(err))
-                .then(thread => {
-                    thread.incrementUpVotes();
-                    updateThreadByQuestion(thread)
-                        .catch(err => reject(err))
-                        .then(() => {
-                            let currentUpVotes = thread.upVotes;
-                            resolve(currentUpVotes);
-                        });
-                });
+            getThreadByQuestion(threadQuestion).catch(err => reject(err)).then(thread => {
+                let findAnswerObject = function(answerObject){
+                    return answerObject.answer === answer;
+                };
+                let obj = thread.answers.find(findAnswerObject);
+                let downVotedAnswerObject = new Answer(obj.answer, obj.upVotes);
+                let downVotedAnswerIndex = thread.answers.findIndex(findAnswerObject);
+                downVotedAnswerObject.decrementUpVotes();
+                thread.answers[downVotedAnswerIndex] = downVotedAnswerObject;
+                updateThreadByQuestion(thread);
+                resolve(downVotedAnswerObject);
+            });
         });
     };
 
-    let publicStuff = {
+    return {
         createDB,
         dropDB,
         addThread,
         getAllThreads,
-        getThreadByQuestion,
         addAnswerToThread,
-        increaseThreadUpVotes
+        incrementThreadUpVotes,
+        decrementThreadUpVotes,
+        incrementAnswerUpVotes,
+        decrementAnswerUpVotes
     };
-
-    return publicStuff;
 })();
 
 module.exports = {
