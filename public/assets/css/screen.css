@@ -23,15 +23,20 @@
 
 .up_number_down{
     text-align:center;
+
 }
 
 
-.question_title{
-    font-size: 1.2rem;
+.question{
+    font-size: 1.5rem;
 }
 
 .thread{
 margin-bottom: 20px;
+}
+
+.questionWrap{
+    margin-bottom:15px;
 }
 
 #questionForm{
@@ -40,4 +45,13 @@ margin-bottom: 20px;
 
 .questionHeading{
     margin-bottom:15px;
+}
+
+.answers{
+    margin-bottom:20px;
+}
+
+.answerWrap{
+    margin-bottom:10px;
+
 }
