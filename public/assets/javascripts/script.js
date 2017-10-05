@@ -14,7 +14,6 @@ let socketModule = (function () {
         AnswerDownVotesChanged: "5",
         ThreadDownVotesChanged: "6",
         ThreadUpVotesChanged: "7",
-        toggleApproved: "8"
     };
     let emits = {
         OpenNewThread: "a",
@@ -38,9 +37,7 @@ let socketModule = (function () {
         gInterface.refreshThreads(data);
     };
 
-    let handleToggleApproved = function (data) {
-        gInterface.toggleApproved(data.question, data.answer);
-    };
+
 
     //------------- \\
     // PUBLIC STUFF \\
@@ -49,8 +46,7 @@ let socketModule = (function () {
         socket = io();
         socket.on(receives.addedNewThread, handleNewThread)
             .on(receives.addedNewAnswer, handleNewAnswer)
-            .on(receives.CurrentThreads, handleCurrentThreads)
-            .on(receives.toggleApproved, handleToggleApproved);
+            .on(receives.CurrentThreads, handleCurrentThreads);
     };
 
     let sendNewQuestion = function (question) {
@@ -141,7 +137,8 @@ let gInterface = (function () {
             $approveAnswerButton = "<button class='col-2 .approve' onclick='gInterface.approveAnswer(this)'><i class='fa fa-star' aria-hidden='true'></i></button>";
         }
 
-        return $(
+
+         let $li =$(
             "<li class='answerWrap row' >" +
             "<div class='up_number_down col-2'><button class='upVoteAnswer component_updown' onclick='gInterface.upVoteAnswer(this)'><i class='fa fa-chevron-up' aria-hidden='true'></i></button><span class='answerUpVotes component_updown'>" +
             answerObject.upVotes +
@@ -150,8 +147,12 @@ let gInterface = (function () {
             answerObject.answer +
             "</p>" +
             $approveAnswerButton +
-            "</li>"
-        );
+            "</li>");
+
+        if (answerObject.isApproved === true){
+            $li.addClass("approved");
+        }
+        return $li;
     };
 
     //------------- \\
@@ -185,7 +186,7 @@ let gInterface = (function () {
             let answer = $answerWrapper.find(".answer").text();
             socketModule.decrementAnswerUpVotes(question, answer);
         } else {
-            // TODO show error: can't decrement upvotes bellow 0
+            // TODO show error: can't decrement upvotes below 0
         }
     };
 
@@ -231,9 +232,9 @@ let gInterface = (function () {
         $("#threads").find(".question:contains('" + question + "')").parent().parent().find(".answers").append($li);
     };
 
-    let toggleApproved = function(question, answer){
+    /*let toggleApproved = function(question, answer){
         $("#threads").find(".question:contains('" + question + "')").parent().parent().find(".answer:contains('" + answer + "')").parent().toggleClass("approved");
-    };
+    };*/
 
     return {
         init,
@@ -245,6 +246,5 @@ let gInterface = (function () {
         upVoteAnswer,
         downVoteAnswer,
         approveAnswer,
-        toggleApproved
     };
 })();
