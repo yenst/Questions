@@ -11,7 +11,7 @@ const Thread = require("./js/thread.js").Thread;
 const Answer = require("./js/answer.js").Answer;
 const VoteAble = require("./js/voteAble.js").VoteAble;
 
-var app = express();
+const app = express();
 
 // TODO remove this line if we don't use ejs
 app.set('view engine', 'ejs');
@@ -47,7 +47,7 @@ let serverSocketModule = (function () {
         decrementAnswerUpVotes: "d",
         incrementThreadUpVotes: "e",
         decrementThreadUpVotes: "f",
-        questionApproved: "g"
+        answerApproved: "g"
     };
 
     let refreshCurrentThreads = function (socket) {
@@ -58,8 +58,8 @@ let serverSocketModule = (function () {
             threads.forEach(thread => {
                 thread.answers = helperFunctions.sortByUpVotes(thread.answers);
             });
-            socket.emit(emits.CurrentThreads, threads);
-            socket.broadcast.emit(emits.CurrentThreads, threads);
+            socket.emit(emits.CurrentThreads, sortedThreads);
+            socket.broadcast.emit(emits.CurrentThreads, sortedThreads);
         });
     };
 
@@ -135,7 +135,7 @@ let serverSocketModule = (function () {
                     console.log("Answer (" + updatedAnswer.answer + ") up voted to (" + updatedAnswer.upVotes + ") in thread (" + data.question + ")");
                     refreshCurrentThreads(socket);
                 });
-            }).on(receives.questionApproved, function(data){
+            }).on(receives.answerApproved, function(data){
                 mongoDB.approveAnswer(data.question, data.answer).catch(err => {
                     throw err
                 }).then((thread) => {

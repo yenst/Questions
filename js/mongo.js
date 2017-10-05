@@ -140,15 +140,13 @@ let mongoDBModule = (function () {
 
     let addAnswerToThread = function (threadQuestion, answer) {
         return new Promise(function (resolve, reject) {
-            openConnection().catch(err => reject(err)).then(db => {
-                getThreadByQuestion(threadQuestion).catch(err => reject(err)).then(thread => {
-                    if (thread.isAnswerUnique(answer)) {
-                        thread.addNewAnswer(answer);
-                        updateThreadByQuestion(thread).catch(err => reject(err)).then(() => resolve());
-                    } else {
-                        reject("Answer is not unique");
-                    }
-                });
+            getThreadByQuestion(threadQuestion).catch(err => reject(err)).then(thread => {
+                if (thread.isAnswerUnique(answer)) {
+                    thread.addNewAnswer(answer);
+                    updateThreadByQuestion(thread).catch(err => reject(err)).then(() => resolve());
+                } else {
+                    reject("Answer is not unique");
+                }
             });
         });
     };
@@ -158,8 +156,8 @@ let mongoDBModule = (function () {
             getThreadByQuestion(threadQuestion).catch(err => reject(err)).then(thread => {
                 thread.incrementUpVotes();
                 updateThreadByQuestion(thread).catch(err => reject(err)).then(() => {
-                        resolve(thread);
-                    });
+                    resolve(thread);
+                });
             });
         });
     };
@@ -167,18 +165,18 @@ let mongoDBModule = (function () {
     let decrementThreadUpVotes = function (threadQuestion) {
         return new Promise(function (resolve, reject) {
             getThreadByQuestion(threadQuestion).catch(err => reject(err)).then(thread => {
-                    thread.decrementUpVotes();
-                    updateThreadByQuestion(thread).catch(err => reject(err)).then(() => {
-                            resolve(thread);
-                        });
+                thread.decrementUpVotes();
+                updateThreadByQuestion(thread).catch(err => reject(err)).then(() => {
+                    resolve(thread);
                 });
+            });
         });
     };
 
     let incrementAnswerUpVotes = function (threadQuestion, answer) {
         return new Promise(function (resolve, reject) {
             getThreadByQuestion(threadQuestion).catch(err => reject(err)).then(thread => {
-                let findAnswerObject = function(answerObject){
+                let findAnswerObject = function (answerObject) {
                     return answerObject.answer === answer;
                 };
                 let obj = thread.answers.find(findAnswerObject);
@@ -195,7 +193,7 @@ let mongoDBModule = (function () {
     let decrementAnswerUpVotes = function (threadQuestion, answer) {
         return new Promise(function (resolve, reject) {
             getThreadByQuestion(threadQuestion).catch(err => reject(err)).then(thread => {
-                let findAnswerObject = function(answerObject){
+                let findAnswerObject = function (answerObject) {
                     return answerObject.answer === answer;
                 };
                 let obj = thread.answers.find(findAnswerObject);
@@ -209,6 +207,23 @@ let mongoDBModule = (function () {
         });
     };
 
+    let approveAnswer = function (threadQuestion, answer) {
+        return new Promise(function (resolve, reject) {
+            getThreadByQuestion(threadQuestion).catch(err => reject(err)).then(thread => {
+                let findAnswerObject = function (answerObject) {
+                    return answerObject.answer === answer;
+                };
+                let obj = thread.answers.find(findAnswerObject);
+                let approvedAnswer = new Answer(obj.answer, obj.upVotes, obj.isApproved);
+                let approvedAnswerIndex = thread.answers.findIndex(findAnswerObject);
+                approvedAnswer.changeIsApproved();
+                thread.answers[approvedAnswerIndex] = approvedAnswer;
+                updateThreadByQuestion(thread);
+                resolve(thread);
+            });
+        });
+    };
+
     return {
         createDB,
         dropDB,
@@ -218,7 +233,8 @@ let mongoDBModule = (function () {
         incrementThreadUpVotes,
         decrementThreadUpVotes,
         incrementAnswerUpVotes,
-        decrementAnswerUpVotes
+        decrementAnswerUpVotes,
+        approveAnswer
     };
 })();
 
