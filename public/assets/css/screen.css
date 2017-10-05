@@ -55,5 +55,11 @@ padding:30px;
 
 .answerWrap{
     margin-bottom:10px;
+    padding:5px;
+
+}
+
+.approved{
+    background-color: #7fb922;
 
 }
