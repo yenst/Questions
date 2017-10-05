@@ -5,6 +5,12 @@ let VoteAble = function(upVotes){
     this.incrementUpVotes = function(){
         this.upVotes++;
     };
+    this.decrementUpVotes = function(){
+        let newValue = this.upVotes - 1;
+        if(newValue >= 0){
+            this.upVotes = newValue;
+        }
+    };
 };
 
 module.exports = {

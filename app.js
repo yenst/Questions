@@ -24,35 +24,6 @@ app.use(express.static('public'));
 
 const httpServer = http.createServer(app);
 
-// let ThreadManager = (function(){
-//     let getThreadById = function(){
-//
-//     };
-//
-//     let getAnswerById = function(){
-//
-//     };
-//
-//     let publicStuff = {
-//         incrementThreadUpVotes: function(thread_id){
-//
-//         },
-//         incrementThreadDownVotes: function(thread_id){
-//
-//         },
-//         incrementAnswerUpVotes: function(answer_id, thread_id){
-//
-//         },
-//         incrementAnswerDownVotes: function(answer_id, thread_id){
-//
-//         },
-//     };
-//
-//
-//     return publicStuff;
-// })();
-
-// TODO keep a list of current threads in memory?
 let serverSocketModule = (function () {
     const serverSocket = io(httpServer);
     let emits = {
@@ -67,17 +38,30 @@ let serverSocketModule = (function () {
     let receives = {
         OpenNewThread: "a",
         questionAnswered: "b",
-        increaseAnswerUpVotes: "c",
+        incrementAnswerUpVotes: "c",
         decrementAnswerUpVotes: "d",
-        increaseThreadUpVotes: "e",
+        incrementThreadUpVotes: "e",
         decrementThreadUpVotes: "f"
     };
 
+    let refreshCurrentThreads = function (socket) {
+        mongoDB.getAllThreads().catch(err => {
+            throw err
+        }).then(threads => {
+            let sortedThreads = helperFunctions.sortByUpVotes(threads);
+            socket.emit(emits.CurrentThreads, threads);
+            socket.broadcast.emit(emits.CurrentThreads, threads);
+        });
+    };
+
+    //------------- \\
+    // PUBLIC STUFF \\
+    //------------- \\
+    // TODO handle errors from db here
     let init = function () {
         serverSocket.on('connection', function (socket) {
             mongoDB.getAllThreads()
                 .catch(err => {
-                    // TODO handle errors
                     throw err
                 })
                 .then(threads => {
@@ -88,14 +72,15 @@ let serverSocketModule = (function () {
             socket.on(receives.OpenNewThread, function (data) {
                 let newThread = new Thread(data.question);
 
-                socket.emit(emits.addedNewThread, newThread);
-                socket.broadcast.emit(emits.addedNewThread, newThread);
-
                 mongoDB.addThread(newThread)
                     .catch(err => {
                         throw err
                     })
-                    .then(res => {});
+                    .then(res => {
+                        console.log("Added thread (" + newThread.question + ")");
+                        socket.emit(emits.addedNewThread, newThread);
+                        socket.broadcast.emit(emits.addedNewThread, newThread);
+                    });
             }).on(receives.questionAnswered, function (data) {
                 let newAnswer = new Answer(data.answer);
                 mongoDB.addAnswerToThread(data.question, newAnswer.answer)
@@ -111,24 +96,36 @@ let serverSocketModule = (function () {
                         socket.emit(emits.addedNewAnswer, dataToSend);
                         socket.broadcast.emit(emits.addedNewAnswer, dataToSend);
                     });
-            }).on(receives.increaseThreadUpVotes, function (question) {
-                // TODO refactoring everything with voting
-                mongoDB.increaseThreadUpVotes(question)
-                    .catch(err => {
-                        throw err
-                    })
-                    .then(() => {
-                        mongoDB.getAllThreads()
-                            .catch(err => {
-                                throw err
-                            })
-                            .then(threads => {
-                                // TODO refactor this sort
-                                let sortedThreads = helperFunctions.sortByUpVotes(threads);
-                                socket.emit(emits.CurrentThreads, threads);
-                                socket.broadcast.emit(emits.CurrentThreads, threads);
-                            });
-                    });
+            }).on(receives.incrementThreadUpVotes, function (question) {
+                mongoDB.incrementThreadUpVotes(question).catch(err => {
+                    throw err
+                }).then((updatedThread) => {
+                    console.log("Thread (" + updatedThread.question + ") up voted to (" + updatedThread.upVotes + ")");
+                    refreshCurrentThreads(socket);
+                });
+            }).on(receives.decrementThreadUpVotes, function (question) {
+                mongoDB.decrementThreadUpVotes(question).catch(err => {
+                    throw err
+                }).then((updatedThread) => {
+                    console.log("Thread (" + updatedThread.question + ") down voted to (" + updatedThread.upVotes + ")");
+                    refreshCurrentThreads(socket);
+                });
+            }).on(receives.incrementAnswerUpVotes, function (data) {
+                // TODO Link this to front-end + test
+                mongoDB.incrementAnswerUpVotes(data.question, data.answer).catch(err => {
+                    throw err
+                }).then((updatedAnswer) => {
+                    console.log("Answer (" + updatedAnswer.answer + ") up voted to (" + updatedAnswer.upVotes + ") in thread (" + data.question + ")");
+                    refreshCurrentThreads(socket);
+                });
+            }).on(receives.decrementAnswerUpVotes, function (data) {
+                // TODO Link this to front-end + test
+                mongoDB.decrementAnswerUpVotes(data.question, data.answer).catch(err => {
+                    throw err
+                }).then((updatedAnswer) => {
+                    console.log("Answer (" + updatedAnswer.answer + ") up voted to (" + updatedAnswer.upVotes + ") in thread (" + data.question + ")");
+                    refreshCurrentThreads(socket);
+                });
             });
         });
     };
@@ -139,11 +136,11 @@ let serverSocketModule = (function () {
 })();
 
 let helperFunctions = {
-    sortByUpVotes: function(arrayOfThreads){
-        arrayOfThreads.sort( (a,b) => {
-            return b.upVotes-a.upVotes;
+    sortByUpVotes: function (arrayOfVoteAbleObjects) {
+        arrayOfVoteAbleObjects.sort((a, b) => {
+            return b.upVotes - a.upVotes;
         });
-        return arrayOfThreads;
+        return arrayOfVoteAbleObjects;
     },
 };
 
