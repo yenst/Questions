@@ -13,7 +13,8 @@ let socketModule = (function () {
         AnswerUpVotesChanged: "4",
         AnswerDownVotesChanged: "5",
         ThreadDownVotesChanged: "6",
-        ThreadUpVotesChanged: "7"
+        ThreadUpVotesChanged: "7",
+        makeGreen : "8"
     };
     let emits = {
         OpenNewThread: "a",
@@ -21,7 +22,8 @@ let socketModule = (function () {
         incrementAnswerUpVotes: "c",
         decrementAnswerUpVotes: "d",
         incrementThreadUpVotes: "e",
-        decrementThreadUpVotes: "f"
+        decrementThreadUpVotes: "f",
+        questionApproved: "g"
     };
 
     let handleNewThread = function (data) {
@@ -36,6 +38,10 @@ let socketModule = (function () {
         gInterface.refreshThreads(data);
     };
 
+    let handleMakeGreen = function (data) {
+        // TODO make green
+    };
+
     //------------- \\
     // PUBLIC STUFF \\
     //------------- \\
@@ -43,7 +49,8 @@ let socketModule = (function () {
         socket = io();
         socket.on(receives.addedNewThread, handleNewThread)
             .on(receives.addedNewAnswer, handleNewAnswer)
-            .on(receives.CurrentThreads, handleCurrentThreads);
+            .on(receives.CurrentThreads, handleCurrentThreads)
+            .on(receives.makeGreen, handleMakeGreen);
     };
 
     let sendNewQuestion = function (question) {
@@ -59,6 +66,15 @@ let socketModule = (function () {
             answer: answer
         };
         socket.emit(emits.questionAnswered, data);
+    };
+
+    let sendApprovedAnswer = function(question, answer){
+        let data= {
+            question :question,
+            answer: answer,
+            isApproved : true
+        };
+        socket.emit(emits.questionApproved,data);
     };
 
     let incrementThreadUpVotes = function (question) {
@@ -92,16 +108,14 @@ let socketModule = (function () {
         incrementThreadUpVotes,
         decrementThreadUpVotes,
         incrementAnswerUpVotes,
-        decrementAnswerUpVotes
+        decrementAnswerUpVotes,
+        sendApprovedAnswer
     };
 })();
 
 let gInterface = (function () {
     let createThreadContainer = function (thread) {
         return $(
-
-
-
             "<li class='thread'>" +
             "<div class='questionWrap row'>" +
             
@@ -122,8 +136,15 @@ let gInterface = (function () {
     let createAnswerContainer = function (answerObject) {
         return $(
             "<li class='answerWrap row' >" +
-            
-            "<div class='up_number_down col-2'><button class='upVoteAnswer component_updown' onclick='gInterface.upVoteAnswer(this)'><i class='fa fa-chevron-up' aria-hidden='true'></i></button><span class='answerUpVotes component_updown'>" + answerObject.upVotes + "</span><button class='downVoteAnswer component_updown' onclick='gInterface.downVoteAnswer(this)'><i class='fa fa-chevron-down' aria-hidden='true'></i></button></div>" +
+            "<div class='up_number_down col-2'>" +
+            "<button class='upVoteAnswer component_updown' onclick='gInterface.upVoteAnswer(this)'>" +
+            "<i class='fa fa-chevron-up' aria-hidden='true'></i>" +
+            "</button>" +
+            "<span class='answerUpVotes component_updown'>" + answerObject.upVotes + "</span>" +
+            "<button class='downVoteAnswer component_updown' onclick='gInterface.downVoteAnswer(this)'>" +
+            "<i class='fa fa-chevron-down' aria-hidden='true'></i>" +
+            "</button>" +
+            "</div>" +
             "<p class='answer col-10'>" + answerObject.answer + "</p>" +
             "</li>"
         );
@@ -133,12 +154,12 @@ let gInterface = (function () {
     // PUBLIC STUFF \\
     //------------- \\
     let upVoteThread = function(button){
-        let question = $(button).parent().find(".question").text();
+        let question = $(button).parent().parent().find(".question").text();
         socketModule.incrementThreadUpVotes(question);
     };
 
     let downVoteThread = function(button){
-        let $questionWrapper = $(button).parent();
+        let $questionWrapper = $(button).parent().parent();
         if($questionWrapper.find("span.threadUpVotes").text() > 0){
             let question = $questionWrapper.find(".question").text();
             socketModule.decrementThreadUpVotes(question);
@@ -148,13 +169,13 @@ let gInterface = (function () {
     };
 
     let upVoteAnswer = function(button){
-        let question = $(button).parent().parent().parent().find(".question").text();
-        let answer = $(button).parent().find(".answer").text();
+        let question = $(button).parent().parent().parent().parent().find(".question").text();
+        let answer = $(button).parent().parent().find(".answer").text();
         socketModule.incrementAnswerUpVotes(question, answer);
     };
 
     let downVoteAnswer = function(button){
-        let $answerWrapper = $(button).parent();
+        let $answerWrapper = $(button).parent().parent();
         if($answerWrapper.find("span.answerUpVotes").text() > 0){
             let question = $answerWrapper.parent().parent().find(".question").text();
             let answer = $answerWrapper.find(".answer").text();
@@ -177,6 +198,10 @@ let gInterface = (function () {
             let question = $(e.target).parent().find(".question").text();
             socketModule.sendNewAnswer(question, $answer.val());
             $answer.val("");
+        }).on('change','.approve', function(){
+            let $answer = $(this).parent().find(".answer").text();
+            let question = $(this).parent().parent().parent().find(".question").text();
+            socketModule.sendApprovedAnswer(question, $answer);
         });
     };
 

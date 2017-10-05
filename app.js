@@ -33,7 +33,8 @@ let serverSocketModule = (function () {
         AnswerUpVotesChanged: "4",
         AnswerDownVotesChanged: "5",
         ThreadDownVotesChanged: "6",
-        ThreadUpVotesChanged: "7"
+        ThreadUpVotesChanged: "7",
+        makeGreen : "8"
     };
     let receives = {
         OpenNewThread: "a",
@@ -41,7 +42,8 @@ let serverSocketModule = (function () {
         incrementAnswerUpVotes: "c",
         decrementAnswerUpVotes: "d",
         incrementThreadUpVotes: "e",
-        decrementThreadUpVotes: "f"
+        decrementThreadUpVotes: "f",
+        questionApproved: "g"
     };
 
     let refreshCurrentThreads = function (socket) {
@@ -49,6 +51,9 @@ let serverSocketModule = (function () {
             throw err
         }).then(threads => {
             let sortedThreads = helperFunctions.sortByUpVotes(threads);
+            threads.forEach(thread => {
+                thread.answers = helperFunctions.sortByUpVotes(thread.answers);
+            });
             socket.emit(emits.CurrentThreads, threads);
             socket.broadcast.emit(emits.CurrentThreads, threads);
         });
@@ -126,6 +131,17 @@ let serverSocketModule = (function () {
                     console.log("Answer (" + updatedAnswer.answer + ") up voted to (" + updatedAnswer.upVotes + ") in thread (" + data.question + ")");
                     refreshCurrentThreads(socket);
                 });
+            }).on(receives.questionApproved, function(data){
+                mongoDB.approveAnswer(data.question, data.answer).catch(err => {
+                    throw err
+                }).then((thread) => {
+                    let dataToSend = {
+                        question: thread.question,
+                        answer: data.answer
+                    };
+                    socket.emit(emits.makeGreen, dataToSend);
+                    socket.broadcast.emit(emits.makeGreen, dataToSend);
+                })
             });
         });
     };
