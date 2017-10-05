@@ -11,13 +11,21 @@ const Thread = require("./js/thread.js").Thread;
 const Answer = require("./js/answer.js").Answer;
 const VoteAble = require("./js/voteAble.js").VoteAble;
 
+var title ="";
+
 var app = express();
 
 // TODO remove this line if we don't use ejs
 app.set('view engine', 'ejs');
 
-app.get('/', function (req, res, next) {
-    res.redirect('/questions.html')
+app.get('/', function (req, res) {
+    title = "Questions";
+    res.render('pages/index', {title:title});
+});
+
+app.get('/teachers', function (req, res, next) {
+    title= "Approve the answers";
+    res.render('pages/index', {title:title})
 });
 
 app.use(express.static('public'));
@@ -75,23 +83,13 @@ let serverSocketModule = (function () {
 
     let init = function () {
         serverSocket.on('connection', function (socket) {
-            mongoDB.getAllThreads()
-                .catch(err => {
-                    throw err
-                })
-                .then(threads => {
-                    // TODO refactor this sort
-                    threads.sort(function(a, b){
-                        return b.upVotes-a.upVotes;
-                    });
-                    socket.emit(emits.CurrentThreads, threads);
-                });
-
             socket.on(receives.OpenNewThread, function (data) {
                 let newThread = new Thread(data.question);
 
                 socket.emit(emits.addedNewThread, newThread);
                 socket.broadcast.emit(emits.addedNewThread, newThread);
+
+
 
                 mongoDB.addThread(newThread)
                     .catch(err => {
@@ -135,6 +133,8 @@ let serverSocketModule = (function () {
         });
     };
 
+
+
     return {
         init
     };
@@ -147,6 +147,19 @@ let serverSocketModule = (function () {
             });
             return arrayOfThreads;
         },
+        loadAllQuestions: function(){
+            mongoDB.getAllThreads()
+                .catch(err => {
+                    throw err
+                })
+                .then(threads => {
+                    // TODO refactor this sort
+                    threads.sort(function(a, b){
+                        return b.upVotes-a.upVotes;
+                    });
+                    return threads;
+                });
+        }
     };
 
     serverSocketModule.init();

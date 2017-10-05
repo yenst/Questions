@@ -1,6 +1,6 @@
 "use strict";
 $(function () {
-    gInterface.init();
+    //gInterface.init();
     socketModule.init();
 });
 
@@ -25,7 +25,7 @@ let socketModule = (function () {
     };
 
     let handleNewThread = function (data) {
-        gInterface.addThread(data)
+        //res.render('pages/index', {title:"test"});
     };
 
     let handleNewAnswer = function (data) {
@@ -33,7 +33,7 @@ let socketModule = (function () {
     };
 
     let handleCurrentThreads = function (data) {
-        gInterface.refreshThreads(data);
+        res.render('pages/index', {title:"test"});
     };
 
     // public stuff
@@ -43,6 +43,19 @@ let socketModule = (function () {
         socket.on(receives.addedNewThread, handleNewThread)
             .on(receives.addedNewAnswer, handleNewAnswer)
             .on(receives.CurrentThreads, handleCurrentThreads);
+
+        $("#questionForm").on('submit', function (e) {
+            e.preventDefault();
+            let $questionInput = $('#questionForm').find('#question');
+            socketModule.sendNewQuestion($questionInput.val());
+            $questionInput.val("");
+        });
+        $("#threads").on('submit', $("#answerForm"), function (e) {
+            e.preventDefault();
+            let $answer = $(e.target).find("input#answer");
+            socketModule.sendNewAnswer($(e.target).parent().find("#question").text(), $answer.val());
+            $answer.val("");
+        });
     };
 
     let sendNewQuestion = function (question) {
@@ -91,20 +104,20 @@ let socketModule = (function () {
     };
 })();
 
-let gInterface = (function () {
+/*let gInterface = (function () {
     let createThreadContainer = function (thread) {
         return $(
             "<li id='thread'>" +
-            "<div class='questionHeading'>" +
-            "<p id='question'>" + thread.question + "</p>" +
-            "<button id='upVoteThread' onclick='gInterface.upVoteThread(this)'>+</button><span id='threadUpVotes'>" + thread.upVotes + "</span><button id='downVoteThread'>-</button>" +
-            "</div>" +
-            "<form id=answerForm action='#'>" +
-            "<input type='text' id='answer' autocomplete=\"off\"> " +
-            "<input type='submit' value='Answer'/>" +
-            "</form>" +
-            "<ul id='answers'></ul>" +
-            "</li>"
+        "<div class='questionHeading'>" +
+        "<p id='question'>" + thread.question + "</p>" +
+        "<button id='upVoteThread' onclick='gInterface.upVoteThread(this)'>+</button><span id='threadUpVotes'>" + thread.upVotes + "</span><button id='downVoteThread'>-</button>" +
+        "</div>" +
+        "<form id=answerForm action='#'>" +
+        "<input type='text' id='answer' autocomplete=\"off\"> " +
+        "<input type='submit' value='Answer'/>" +
+        "</form>" +
+        "<ul id='answers'></ul>" +
+        "</li>"
         );
     };
 
@@ -140,18 +153,7 @@ let gInterface = (function () {
     };
 
     let init = function () {
-        $("#questionForm").on('submit', function (e) {
-            e.preventDefault();
-            let $questionInput = $('#questionForm').find('#question');
-            socketModule.sendNewQuestion($questionInput.val());
-            $questionInput.val("");
-        });
-        $("#threads").on('submit', $("#answerForm"), function (e) {
-            e.preventDefault();
-            let $answer = $(e.target).find("input#answer");
-            socketModule.sendNewAnswer($(e.target).parent().find("#question").text(), $answer.val());
-            $answer.val("");
-        });
+
     };
 
     let addThread = function (thread) {
@@ -182,4 +184,4 @@ let gInterface = (function () {
         upVoteThread
     }
 
-})();
+})();*/
