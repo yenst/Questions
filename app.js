@@ -5,6 +5,7 @@
 const express = require("express");
 const http = require("http");
 const io = require("socket.io");
+const sanitizer = require('sanitizer');
 
 const mongoDB = require("./js/mongo.js").mongoDBModule;
 const Thread = require("./js/thread.js").Thread;
@@ -78,7 +79,7 @@ let serverSocketModule = (function () {
                 });
 
             socket.on(receives.OpenNewThread, function (data) {
-                let newThread = new Thread(data.question);
+                let newThread = new Thread(sanitizer.escape(data.question));
 
                 mongoDB.addThread(newThread)
                     .catch(err => {
@@ -90,7 +91,8 @@ let serverSocketModule = (function () {
                         socket.broadcast.emit(emits.addedNewThread, newThread);
                     });
             }).on(receives.questionAnswered, function (data) {
-                let newAnswer = new Answer(data.answer);
+
+                let newAnswer = new Answer(sanitizer.escape(data.answer));
                 mongoDB.addAnswerToThread(data.question, newAnswer.answer)
                     .catch(err => {
                         throw err

@@ -201,7 +201,8 @@ let gInterface = (function () {
         $("#questionForm").on('submit', function (e) {
             e.preventDefault();
             let $questionInput = $('#questionForm').find('input[name="question"]');
-            socketModule.sendNewQuestion($questionInput.val());
+            let question = $questionInput.val();
+            socketModule.sendNewQuestion(question);
             $questionInput.val("");
         });
         $("#threads").on('submit', $(".answerForm"), function (e) {

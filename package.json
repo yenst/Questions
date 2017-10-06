@@ -13,6 +13,7 @@
     "express": "^4.16.0",
     "http": "0.0.0",
     "mongodb": "^2.2.31",
+    "sanitizer": "^0.1.3",
     "socket.io": "^2.0.3",
     "tooltip.js": "^1.1.5"
   }
