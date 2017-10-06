@@ -14,6 +14,9 @@ let socketModule = (function () {
         AnswerDownVotesChanged: "5",
         ThreadDownVotesChanged: "6",
         ThreadUpVotesChanged: "7",
+        updateAnswerVotes: "8",
+        updateQuestionVotes: "9"
+
     };
     let emits = {
         OpenNewThread: "a",
@@ -46,7 +49,10 @@ let socketModule = (function () {
         socket = io();
         socket.on(receives.addedNewThread, handleNewThread)
             .on(receives.addedNewAnswer, handleNewAnswer)
-            .on(receives.CurrentThreads, handleCurrentThreads);
+            .on(receives.CurrentThreads, handleCurrentThreads)
+            .on(receives.updateAnswerVotes, gInterface.updateAnswerVotes)
+            .on(receives.updateQuestionVotes, gInterface.updateQuestionVotes);
+
     };
 
     let sendNewQuestion = function (question) {
@@ -234,6 +240,15 @@ let gInterface = (function () {
         $("#threads").find(".question:contains('" + question + "')").parent().parent().find(".answers").append($li);
     };
 
+    let updateQuestionVotes = function(data){
+
+        $("#threads").find(".question:contains('" + data.question + "')").parent().find(".threadUpVotes").html(data.votes);
+
+    };
+
+    let updateAnswerVotes = function(data){
+        $("#threads").find(".question:contains('" + data.question + "')").parent().parent().find(".answer:contains('" + data.answer + "')").parent().find(".answerUpVotes").html(data.votes);
+    };
 
     return {
         init,
@@ -245,5 +260,7 @@ let gInterface = (function () {
         upVoteAnswer,
         downVoteAnswer,
         approveAnswer,
+        updateAnswerVotes,
+        updateQuestionVotes
     };
 })();
