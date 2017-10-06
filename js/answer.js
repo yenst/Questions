@@ -8,6 +8,7 @@ let Answer = function(answer, upVotes, isApproved){
     this.isApproved = (isApproved !== undefined) ? isApproved : false;
     this.changeIsApproved = function(){
         this.isApproved = !this.isApproved;
+
     };
 };
 

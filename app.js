@@ -38,7 +38,6 @@ let serverSocketModule = (function () {
         AnswerDownVotesChanged: "5",
         ThreadDownVotesChanged: "6",
         ThreadUpVotesChanged: "7",
-        makeGreen : "8"
     };
     let receives = {
         OpenNewThread: "a",
