@@ -143,8 +143,7 @@ let serverSocketModule = (function () {
                         question: thread.question,
                         answer: data.answer
                     };
-                    socket.emit(emits.makeGreen, dataToSend);
-                    socket.broadcast.emit(emits.makeGreen, dataToSend);
+                    refreshCurrentThreads(socket);
                 })
             });
         });

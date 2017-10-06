@@ -180,7 +180,7 @@ let mongoDBModule = (function () {
                     return answerObject.answer === answer;
                 };
                 let obj = thread.answers.find(findAnswerObject);
-                let upVotedAnswerObject = new Answer(obj.answer, obj.upVotes);
+                let upVotedAnswerObject = new Answer(obj.answer, obj.upVotes, obj.isApproved);
                 let upVotedAnswerIndex = thread.answers.findIndex(findAnswerObject);
                 upVotedAnswerObject.incrementUpVotes();
                 thread.answers[upVotedAnswerIndex] = upVotedAnswerObject;
@@ -197,7 +197,7 @@ let mongoDBModule = (function () {
                     return answerObject.answer === answer;
                 };
                 let obj = thread.answers.find(findAnswerObject);
-                let downVotedAnswerObject = new Answer(obj.answer, obj.upVotes);
+                let downVotedAnswerObject = new Answer(obj.answer, obj.upVotes, obj.isApproved);
                 let downVotedAnswerIndex = thread.answers.findIndex(findAnswerObject);
                 downVotedAnswerObject.decrementUpVotes();
                 thread.answers[downVotedAnswerIndex] = downVotedAnswerObject;

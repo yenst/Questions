@@ -141,7 +141,7 @@ let gInterface = (function () {
             $approveAnswerButton = "<button class='col-2 .approve' onclick='gInterface.approveAnswer(this)'><i class='fa fa-star' aria-hidden='true'></i></button>";
         }
 
-        return $(
+        let $li =$(
             "<li class='answerWrap row' >" +
             "<div class='up_number_down col-2'><button class='upVoteAnswer component_updown' onclick='gInterface.upVoteAnswer(this)'><i class='fa fa-chevron-up' aria-hidden='true'></i></button><span class='answerUpVotes component_updown'>" +
             answerObject.upVotes +
@@ -150,8 +150,12 @@ let gInterface = (function () {
             answerObject.answer +
             "</p>" +
             $approveAnswerButton +
-            "</li>"
-        );
+            "</li>");
+
+        if (answerObject.isApproved === true){
+            $li.addClass("approved");
+        }
+        return $li;
     };
 
     //------------- \\
