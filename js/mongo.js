@@ -180,7 +180,7 @@ let mongoDBModule = (function () {
                     return answerObject.answer === answer;
                 };
                 let obj = thread.answers.find(findAnswerObject);
-                console.log(obj.isApproved);
+
                 let upVotedAnswerObject = new Answer(obj.answer, obj.upVotes, obj.isApproved);
                 let upVotedAnswerIndex = thread.answers.findIndex(findAnswerObject);
                 upVotedAnswerObject.incrementUpVotes();

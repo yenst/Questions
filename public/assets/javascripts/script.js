@@ -138,7 +138,8 @@ let gInterface = (function () {
         }
 
 
-         let $li =$(
+        let $li =$(
+
             "<li class='answerWrap row' >" +
             "<div class='up_number_down col-2'><button class='upVoteAnswer component_updown' onclick='gInterface.upVoteAnswer(this)'><i class='fa fa-chevron-up' aria-hidden='true'></i></button><span class='answerUpVotes component_updown'>" +
             answerObject.upVotes +
