@@ -2,15 +2,13 @@
 
 const VoteAble = require("./voteAble.js").VoteAble;
 
-let Answer = function(answer, upVotes){
+let Answer = function(answer, upVotes, isApproved){
     VoteAble.call(this, upVotes);
     this.answer = answer;
+    this.isApproved = (isApproved !== undefined) ? isApproved : false;
     this.changeIsApproved = function(){
-        if(isApproved){
-            this.isApproved = false;
-        }else{
-            this.isApproved= true;
-        }
+        this.isApproved = !this.isApproved;
+
     };
 };
 
