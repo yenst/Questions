@@ -232,9 +232,6 @@ let gInterface = (function () {
         $("#threads").find(".question:contains('" + question + "')").parent().parent().find(".answers").append($li);
     };
 
-    /*let toggleApproved = function(question, answer){
-        $("#threads").find(".question:contains('" + question + "')").parent().parent().find(".answer:contains('" + answer + "')").parent().toggleClass("approved");
-    };*/
 
     return {
         init,
