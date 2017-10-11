@@ -196,7 +196,7 @@ let gInterface = (function () {
         $("#questionForm").on('submit', function (e) {
             e.preventDefault();
             let $questionInput = $('#questionForm').find('input[name="question"]');
-            let question = $questionInput.val();
+            let question = $questionInput.val().replace(/</g, "&lt;").replace(/>/g, "&gt;");
             socketModule.sendNewQuestion(question);
             $("#threads").append(createThreadContainer(question, 0));
             $questionInput.val("");
@@ -206,7 +206,7 @@ let gInterface = (function () {
             let $answer = $(e.target).find("input[name='answer']");
             let question = $(e.target).parent().find(".question").text();
             socketModule.sendNewAnswer(question, $answer.val());
-            $(e.target).parent().find(".answers").append(createAnswerContainer($answer.val(), 0, false));
+            $(e.target).parent().find(".answers").append(createAnswerContainer($answer.val().replace(/</g, "&lt;").replace(/>/g, "&gt;"), 0, false));
             $answer.val("");
         });
     };
