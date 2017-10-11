@@ -29,11 +29,11 @@ let socketModule = (function () {
     };
 
     let handleNewThread = function (data) {
-        gInterface.addThread(data);
+        gInterface.addThread(data.question, data.upVotes, data.answerList);
     };
 
     let handleNewAnswer = function (data) {
-        gInterface.addAnswerToThread(data.question, data.answerObject.answer, data.answerObject.upVotes, data.answerObject.isApproved);
+        gInterface.addAnswerToThread(data.question, data.answer, data.upVotes, data.isApproved);
     };
 
     let handleCurrentThreads = function (data) {
@@ -154,6 +154,14 @@ let gInterface = (function () {
         return $li;
     };
 
+    let checkQuestionMark = function (question) {
+        let checkedQuestion = question;
+        if (!question.endsWith("?")) {
+            checkedQuestion += "?";
+        }
+        return checkedQuestion
+    };
+
     //------------- \\
     // PUBLIC STUFF \\
     //------------- \\
@@ -200,7 +208,7 @@ let gInterface = (function () {
         $("#questionForm").on('submit', function (e) {
             e.preventDefault();
             let $questionInput = $('#questionForm').find('input[name="question"]');
-            let question = $questionInput.val();
+            let question = checkQuestionMark($questionInput.val());
             socketModule.sendNewQuestion(question);
             $("#threads").append(createThreadContainer(question.replace(/</g, "&lt;").replace(/>/g, "&gt;"), 0));
             $questionInput.val("");
@@ -215,9 +223,9 @@ let gInterface = (function () {
         });
     };
 
-    let addThread = function (thread) {
-        let $li = createThreadContainer(thread.question, thread.upVotes);
-        thread.answers.forEach(answerObject => {
+    let addThread = function (question, upVotes, answerList) {
+        let $li = createThreadContainer(question, upVotes);
+        answerList.forEach(answerObject => {
             $li.find(".answers").append(createAnswerContainer(answerObject.answer, answerObject.upVotes, answerObject.isApproved));
         });
         $("#threads").append($li);
@@ -226,7 +234,7 @@ let gInterface = (function () {
     let refreshThreads = function (newThreadList) {
         $("#threads").html("");
         newThreadList.forEach(thread => {
-            addThread(thread);
+            addThread(thread.question, thread.upVotes, thread.answers);
         });
     };
 

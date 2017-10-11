@@ -45,6 +45,8 @@ padding:30px;
 
 .questionWrap{
     margin-bottom:15px;
+    border-bottom: 1px solid #6c757d;
+    padding-bottom: 10px;
 }
 
 #questionForm{
