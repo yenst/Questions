@@ -93,7 +93,7 @@ let serverSocketModule = (function () {
                         socket.broadcast.emit(emits.addedNewAnswer, dataToSend);
                     });
             }).on(receives.incrementThreadUpVotes, function (question) {
-                mongoDB.incrementThreadUpVotes(question).catch(err => {
+                mongoDB.incrementThreadUpVotes(sanitizer.escape(question)).catch(err => {
                     throw err
                 }).then((updatedThread) => {
                     let dataToSend = {
@@ -104,7 +104,7 @@ let serverSocketModule = (function () {
                     socket.broadcast.emit(emits.updateQuestionVotes, dataToSend);
                 });
             }).on(receives.decrementThreadUpVotes, function (question) {
-                mongoDB.decrementThreadUpVotes(question).catch(err => {
+                mongoDB.decrementThreadUpVotes(sanitizer.escape(question)).catch(err => {
                     throw err
                 }).then((updatedThread) => {
                     let dataToSend = {
@@ -115,12 +115,14 @@ let serverSocketModule = (function () {
                     socket.broadcast.emit(emits.updateQuestionVotes, dataToSend);
                 });
             }).on(receives.incrementAnswerUpVotes, function (data) {
-                mongoDB.incrementAnswerUpVotes(data.question, data.answer).catch(err => {
+                let question = sanitizer.escape(data.question);
+                let answer = sanitizer.escape(data.answer);
+                mongoDB.incrementAnswerUpVotes(question, answer).catch(err => {
                     throw err
                 }).then((updatedAnswer) => {
                     let dataToSend = {
-                        question : data.question,
-                        answer : data.answer,
+                        question : question,
+                        answer : answer,
                         votes: updatedAnswer.upVotes
                     };
                     socket.emit(emits.updateAnswerVotes, dataToSend);
@@ -128,12 +130,14 @@ let serverSocketModule = (function () {
 
                 });
             }).on(receives.decrementAnswerUpVotes, function (data) {
-                mongoDB.decrementAnswerUpVotes(data.question, data.answer).catch(err => {
+                let question = sanitizer.escape(data.question);
+                let answer = sanitizer.escape(data.answer);
+                mongoDB.decrementAnswerUpVotes(question, answer).catch(err => {
                     throw err
                 }).then((updatedAnswer) => {
                     let dataToSend = {
-                        question : data.question,
-                        answer : data.answer,
+                        question : question,
+                        answer : answer,
                         votes: updatedAnswer.upVotes
                     };
                     socket.emit(emits.updateAnswerVotes, dataToSend);
