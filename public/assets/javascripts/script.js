@@ -40,7 +40,7 @@ let socketModule = (function () {
         gInterface.refreshThreads(data);
     };
 
-    let handleApprovedAnswerState = function(data){
+    let handleApprovedAnswerState = function (data) {
         gInterface.changeApprovedAnswerState(data.question, data.answer);
     };
 
@@ -119,7 +119,7 @@ let gInterface = (function () {
             "<li class='thread'>" +
             "<div class='questionWrap row'>" +
             "<div class='up_number_down col-2'> <button  class='upVoteThread component_updown' onclick='gInterface.upVoteThread(this)'><i class='fa fa-chevron-up' aria-hidden='true'></i></button>" +
-            "<span class='threadUpVotes component_updown'>" + upVotes +"</span>" +
+            "<span class='threadUpVotes component_updown'>" + upVotes + "</span>" +
             "<button  class='downVoteThread component_updown' onclick='gInterface.downVoteThread(this)'><i class='fa fa-chevron-down' aria-hidden='true'></i></button></div>" +
             "<p class='question col-10'>" + question + "</p>" +
             "</div>" +
@@ -135,19 +135,23 @@ let gInterface = (function () {
     const url = new URL(document.URL);
     const teacher = url.searchParams.get("t");
     let createAnswerContainer = function (answer, upVotes, isApproved) {
-        let li = "<li class='answerWrap row' >" +
+        let $li = $("<li class='answerWrap row' >" +
             "<div class='up_number_down col-2'><button  class='upVoteAnswer component_updown' onclick='gInterface.upVoteAnswer(this)'><i class='fa fa-chevron-up' aria-hidden='true'></i></button>" +
             "<span class='answerUpVotes component_updown'>" + upVotes + "</span>" +
             "<button   class='downVoteAnswer component_updown' onclick='gInterface.downVoteAnswer(this)'><i class='fa fa-chevron-down' aria-hidden='true'></i></button>" +
             "</div>" +
-            "<p class='answer col-8'>" + answer + "</p>";
+            "<p class='answer col-8'>" + answer + "</p>" +
+            "</li>");
 
         if (teacher === "1") {
-            li += "<button class='col-2 .approve' onclick='gInterface.approveAnswer(this)'><i class='fa fa-star' aria-hidden='true'></i></button>";
+            $li.append("<button class='col-2 .approve' onclick='gInterface.approveAnswer(this)'><i class='fa fa-star' aria-hidden='true'></i></button>");
         }
 
-        li += "</li>";
-        return $(li);
+        if (isApproved) {
+            $li.addClass("approved");
+        }
+
+        return $li;
     };
 
     //------------- \\
@@ -231,15 +235,15 @@ let gInterface = (function () {
         $("#threads").find(".question:contains('" + question + "')").parent().parent().find(".answers").append($li);
     };
 
-    let changeApprovedAnswerState = function(question, answer){
+    let changeApprovedAnswerState = function (question, answer) {
         $("#threads").find(".question:contains('" + question + "')").parent().parent().find(".answers").find(".answer:contains('" + answer + "')").parent().toggleClass("approved");
     };
 
-    let updateQuestionVotes = function(data){
+    let updateQuestionVotes = function (data) {
         $("#threads").find(".question:contains('" + data.question + "')").parent().find(".threadUpVotes").html(data.votes);
     };
 
-    let updateAnswerVotes = function(data){
+    let updateAnswerVotes = function (data) {
         $("#threads").find(".question:contains('" + data.question + "')").parent().parent().find(".answer:contains('" + data.answer + "')").parent().find(".answerUpVotes").html(data.votes);
     };
 
