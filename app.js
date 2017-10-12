@@ -6,23 +6,63 @@ const express = require("express");
 const http = require("http");
 const io = require("socket.io");
 const sanitizer = require('sanitizer');
+const passport = require('passport');
+const session = require('express-session');
+
+
 
 const mongoDB = require("./js/mongo.js").mongoDBModule;
 const Thread = require("./js/thread.js").Thread;
 const Answer = require("./js/answer.js").Answer;
 const VoteAble = require("./js/voteAble.js").VoteAble;
+const Login = require("./js/login.js").Login;
+const auth = require('./js/auth');
 
 const app = express();
+const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+
+passport.use(new GoogleStrategy({
+ clientID: '320429270103-9hls0ae1q34g6j3tav7dkr6k9lq7ie0a.apps.googleusercontent.com',
+ clientSecret: 'a-EvkBiEu3UUr8KbKjWsxxRL',
+ callbackURL: 'http://127.0.0.1:8080/auth/google/callback'},
+ function(req,accessToken,refreshToken,profile,done){
+     done(null,profile);
+
+ }
+ 
+));
+
+app.use(express.static('public'));
+
+
+app.use(session({secret: 'questions'}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser(function(user,done){
+    done(null, user)
+});
+
+passport.deserializeUser(function(user,done){
+ done(null,user)
+});
 
 app.get('/', function (req, res, next) {
     res.redirect('/questions.html')
 });
 
+app.get('/login',function(req,res,next){
+    
+
+});
+
+app.use('/auth',auth);
+
 app.get('/teacher',function(req,res,next){
     res.redirect('/questions.html?t=1')
 });
 
-app.use(express.static('public'));
+
 
 const httpServer = http.createServer(app);
 

@@ -18,6 +18,7 @@ let mongoDBModule = (function () {
     const mongo = require('mongodb');
     const MongoClient = mongo.MongoClient;
 
+
     const Thread = require("./thread.js").Thread;
     const Answer = require("./answer.js").Answer;
     const VoteAble = require("./voteAble.js").VoteAble;
