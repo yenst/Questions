@@ -34,6 +34,7 @@ passport.use(new GoogleStrategy({
 
 app.use(express.static('public'));
 
+app.set('view engine', 'ejs');
 
 app.use(session({secret: 'questions'}));
 app.use(passport.initialize());
@@ -48,7 +49,17 @@ passport.deserializeUser(function(user,done){
 });
 
 app.get('/', function (req, res, next) {
-    res.redirect('/questions.html')
+    
+    if (req.user === undefined){
+        res.render('questions.ejs',{user:{name:"",email:"",},loginText: ''});
+        
+    }
+    else{
+        var userinfo = {name:req.user.displayName,email:req.user.emails[0].value};
+        console.log(userinfo);
+        res.render('questions.ejs',{user:userinfo,loginText: 'logged in as '});
+        
+    }
 });
 
 app.get('/login',function(req,res,next){
@@ -58,8 +69,13 @@ app.get('/login',function(req,res,next){
 
 app.use('/auth',auth);
 
+
+
 app.get('/teacher',function(req,res,next){
-    res.redirect('/questions.html?t=1')
+
+    //login stuff atm
+    
+    
 });
 
 
@@ -78,7 +94,8 @@ let serverSocketModule = (function () {
         ThreadUpVotesChanged: "7",
         approvedAnswerStateChanged: "8",
         updateAnswerVotes: "9",
-        updateQuestionVotes: "10"
+        updateQuestionVotes: "10",
+        loggedInSession:11
     };
     let receives = {
         OpenNewThread: "a",

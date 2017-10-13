@@ -16,7 +16,8 @@ let socketModule = (function () {
         // ThreadUpVotesChanged: "7",
         approvedAnswerStateChanged: "8",
         updateAnswerVotes: "9",
-        updateQuestionVotes: "10"
+        updateQuestionVotes: "10",
+        loggedInSession:"11"
     };
     let emits = {
         OpenNewThread: "a",
@@ -44,6 +45,10 @@ let socketModule = (function () {
         gInterface.changeApprovedAnswerState(data.question, data.answer);
     };
 
+    let handleLogInSession = function(data){
+
+    };
+
     //------------- \\
     // PUBLIC STUFF \\
     //------------- \\
@@ -54,7 +59,8 @@ let socketModule = (function () {
             .on(receives.CurrentThreads, handleCurrentThreads)
             .on(receives.approvedAnswerStateChanged, handleApprovedAnswerState)
             .on(receives.updateAnswerVotes, gInterface.updateAnswerVotes)
-            .on(receives.updateQuestionVotes, gInterface.updateQuestionVotes);
+            .on(receives.updateQuestionVotes, gInterface.updateQuestionVotes)
+            .on(receives.loggedInSession,  handleLogInSession);
     };
 
     let sendNewQuestion = function (question) {
