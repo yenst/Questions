@@ -88,14 +88,20 @@ let serverSocketModule = (function () {
                     throw err
                 }).then(() => {
                     console.log("Added answer (" + data.answer + ") to thread (" + data.question + ")");
-                    let dataToSend = {
-                        question: data.question,
-                        isApproved: false,
-                        answer: answer,
-                        upVotes: 0
-                    };
-                    // socket.emit(emits.addedNewAnswer, dataToSend);
-                    socket.broadcast.emit(emits.addedNewAnswer, dataToSend);
+                    let numberOfAnswers = mongoDB.getNumberOfAnswers(question).catch(err => {
+                        throw err
+                    }).then((numberOfAnswers) => {
+                        let dataToSend = {
+                            question: data.question,
+                            isApproved: false,
+                            answer: answer,
+                            upVotes: 0,
+                            numberOfAnswers : numberOfAnswers
+                        };
+                         //socket.emit(emits.addedNewAnswer, dataToSend);
+                        socket.broadcast.emit(emits.addedNewAnswer, dataToSend);
+                    });
+
                 });
             }).on(receives.incrementThreadUpVotes, function (question) {
                 mongoDB.incrementThreadUpVotes(sanitizer.escape(question)).catch(err => {

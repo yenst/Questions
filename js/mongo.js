@@ -225,6 +225,14 @@ let mongoDBModule = (function () {
         });
     };
 
+    let getNumberOfAnswers = function(threadQuestion){
+        return new Promise(function (resolve, reject) {
+            getThreadByQuestion(threadQuestion).catch(err => reject(err)).then(thread => {
+                resolve(thread.answers.length);
+            });
+        });
+    };
+
     return {
         createDB,
         dropDB,
@@ -235,7 +243,8 @@ let mongoDBModule = (function () {
         decrementThreadUpVotes,
         incrementAnswerUpVotes,
         decrementAnswerUpVotes,
-        changeApprovedAnswerState
+        changeApprovedAnswerState,
+        getNumberOfAnswers
     };
 })();
 
