@@ -6,22 +6,79 @@ const express = require("express");
 const http = require("http");
 const io = require("socket.io");
 const sanitizer = require('sanitizer');
+const passport = require('passport');
+const session = require('express-session');
+
+
 
 const mongoDB = require("./js/mongo.js");
 const Thread = require("./js/thread.js");
 const Answer = require("./js/answer.js");
+const auth = require('./js/auth');
 
 const app = express();
+const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 
-app.get('/', function (req, res, next) {
-    res.redirect('/questions.html')
-});
+passport.use(new GoogleStrategy({
+ clientID: '320429270103-9hls0ae1q34g6j3tav7dkr6k9lq7ie0a.apps.googleusercontent.com',
+ clientSecret: 'a-EvkBiEu3UUr8KbKjWsxxRL',
+ callbackURL: 'http://questions.dev:8080/auth/google/callback'},
+ function(req,accessToken,refreshToken,profile,done){
+     done(null,profile);
 
-app.get('/teacher', function (req, res, next) {
-    res.redirect('/questions.html?t=1')
-});
+ }
+ 
+));
 
 app.use(express.static('public'));
+
+app.set('view engine', 'ejs');
+
+app.use(session({secret: 'questions'}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.serializeUser(function(user,done){
+    done(null, user)
+});
+
+passport.deserializeUser(function(user,done){
+ done(null,user)
+});
+
+app.get('/', function (req, res, next) {
+    
+    if (req.user === undefined){
+        res.render('questions.ejs',{user:{name:"",email:"",},loginText: ''});
+        
+    }
+    else{
+        var userinfo = {name:req.user.displayName,email:req.user.emails[0].value};
+        console.log(userinfo);
+        res.render('questions.ejs',{user:userinfo,loginText: 'logged in as '});
+        
+    }
+});
+
+app.get('/login',function(req,res,next){
+    
+
+});
+
+
+app.use('/auth',auth);
+
+
+
+app.get('/teacher',function(req,res,next){
+
+    //login stuff atm
+    
+    
+
+});
+
+
 
 const httpServer = http.createServer(app);
 
@@ -37,7 +94,8 @@ let serverSocketModule = (function () {
         ThreadUpVotesChanged: "7",
         approvedAnswerStateChanged: "8",
         updateAnswerVotes: "9",
-        updateQuestionVotes: "10"
+        updateQuestionVotes: "10",
+        loggedInSession:11
     };
     let receives = {
         OpenNewThread: "a",
@@ -87,14 +145,20 @@ let serverSocketModule = (function () {
                     throw err
                 }).then(() => {
                     console.log("Added answer (" + data.answer + ") to thread (" + data.question + ")");
-                    let dataToSend = {
-                        question: data.question,
-                        isApproved: false,
-                        answer: answer,
-                        upVotes: 0
-                    };
-                    // socket.emit(emits.addedNewAnswer, dataToSend);
-                    socket.broadcast.emit(emits.addedNewAnswer, dataToSend);
+                    let numberOfAnswers = mongoDB.getNumberOfAnswers(question).catch(err => {
+                        throw err
+                    }).then((numberOfAnswers) => {
+                        let dataToSend = {
+                            question: data.question,
+                            isApproved: false,
+                            answer: answer,
+                            upVotes: 0,
+                            numberOfAnswers : numberOfAnswers
+                        };
+                         //socket.emit(emits.addedNewAnswer, dataToSend);
+                        socket.broadcast.emit(emits.addedNewAnswer, dataToSend);
+                    });
+
                 });
             }).on(receives.incrementThreadUpVotes, function (question) {
                 mongoDB.incrementThreadUpVotes(sanitizer.escape(question)).catch(err => {
