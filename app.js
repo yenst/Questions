@@ -14,14 +14,11 @@ const VoteAble = require("./js/voteAble.js").VoteAble;
 
 const app = express();
 
-// TODO remove this line if we don't use ejs
-app.set('view engine', 'ejs');
-
 app.get('/', function (req, res, next) {
     res.redirect('/questions.html')
 });
 
-app.get('/teacher',function(req,res,next){
+app.get('/teacher', function (req, res, next) {
     res.redirect('/questions.html?t=1')
 });
 
@@ -39,8 +36,9 @@ let serverSocketModule = (function () {
         AnswerDownVotesChanged: "5",
         ThreadDownVotesChanged: "6",
         ThreadUpVotesChanged: "7",
-        updateAnswerVotes: "8",
-        updateQuestionVotes: "9"
+        approvedAnswerStateChanged: "8",
+        updateAnswerVotes: "9",
+        updateQuestionVotes: "10"
     };
     let receives = {
         OpenNewThread: "a",
@@ -49,23 +47,8 @@ let serverSocketModule = (function () {
         decrementAnswerUpVotes: "d",
         incrementThreadUpVotes: "e",
         decrementThreadUpVotes: "f",
-        answerApproved: "g"
+        approvedAnswerStateChanged: "g"
     };
-
-    let refreshCurrentThreads = function (socket) {
-        mongoDB.getAllThreads().catch(err => {
-            throw err
-        }).then(threads => {
-            let sortedThreads = helperFunctions.sortByUpVotes(threads);
-            sortedThreads.forEach(thread => {
-                thread.answers = helperFunctions.sortByUpVotes(thread.answers);
-            });
-            socket.emit(emits.CurrentThreads, sortedThreads);
-            socket.broadcast.emit(emits.CurrentThreads, sortedThreads);
-        });
-    };
-
-
 
     //------------- \\
     // PUBLIC STUFF \\
@@ -73,72 +56,76 @@ let serverSocketModule = (function () {
     // TODO handle errors from db here
     let init = function () {
         serverSocket.on('connection', function (socket) {
-            mongoDB.getAllThreads()
-                .catch(err => {
-                    throw err
-                })
-                .then(threads => {
-                    refreshCurrentThreads(socket);
+            mongoDB.getAllThreads().catch(err => {
+                throw err
+            }).then(threads => {
+                let sortedThreads = helperFunctions.sortByUpVotes(threads);
+                sortedThreads.forEach(thread => {
+                    thread.answers = helperFunctions.sortByUpVotes(thread.answers);
+                    // TODO sort by approved
                 });
+                socket.emit(emits.CurrentThreads, sortedThreads);
+            });
 
-            socket.on(receives.OpenNewThread, function (data) {
-                let newThread = new Thread(sanitizer.escape(data.question));
-
-                mongoDB.addThread(newThread)
-                    .catch(err => {
-                        throw err
-                    })
-                    .then(res => {
-                        console.log("Added thread (" + newThread.question + ")");
-                        socket.emit(emits.addedNewThread, newThread);
-                        socket.broadcast.emit(emits.addedNewThread, newThread);
-                    });
+            socket.on(receives.OpenNewThread, function (question) {
+                let questionMarked = helperFunctions.checkQuestionMark(sanitizer.escape(question));
+                mongoDB.addThread(new Thread(questionMarked)).catch(err => {
+                    throw err
+                }).then(res => {
+                    console.log("Added thread (" + question + ")");
+                    // socket.emit(emits.addedNewThread, newThread);
+                    let dataToSend = {
+                        answerList: [],
+                        question: questionMarked,
+                        upVotes: 0,
+                    };
+                    socket.broadcast.emit(emits.addedNewThread, dataToSend);
+                });
             }).on(receives.questionAnswered, function (data) {
-
-                let newAnswer = new Answer(sanitizer.escape(data.answer));
-                mongoDB.addAnswerToThread(data.question, newAnswer.answer)
-                    .catch(err => {
-                        throw err
-                    })
-                    .then(() => {
-                        console.log("Added answer (" + newAnswer.answer + ") to thread (" + data.question + ")");
-                        let dataToSend = {
-                            question: data.question,
-                            answer: newAnswer
-                        };
-                        socket.emit(emits.addedNewAnswer, dataToSend);
-                        socket.broadcast.emit(emits.addedNewAnswer, dataToSend);
-                    });
+                let question = sanitizer.escape(data.question);
+                let answer = sanitizer.escape(data.answer);
+                mongoDB.addAnswerToThread(question, answer).catch(err => {
+                    throw err
+                }).then(() => {
+                    console.log("Added answer (" + data.answer + ") to thread (" + data.question + ")");
+                    let dataToSend = {
+                        question: data.question,
+                        isApproved: false,
+                        answer: answer,
+                        upVotes: 0
+                    };
+                    // socket.emit(emits.addedNewAnswer, dataToSend);
+                    socket.broadcast.emit(emits.addedNewAnswer, dataToSend);
+                });
             }).on(receives.incrementThreadUpVotes, function (question) {
-                mongoDB.incrementThreadUpVotes(question).catch(err => {
+                mongoDB.incrementThreadUpVotes(sanitizer.escape(question)).catch(err => {
                     throw err
                 }).then((updatedThread) => {
                     let dataToSend = {
-                        question : updatedThread.question,
+                        question: question,
                         votes: updatedThread.upVotes
                     };
                     socket.emit(emits.updateQuestionVotes, dataToSend);
                     socket.broadcast.emit(emits.updateQuestionVotes, dataToSend);
                 });
             }).on(receives.decrementThreadUpVotes, function (question) {
-                mongoDB.decrementThreadUpVotes(question).catch(err => {
+                mongoDB.decrementThreadUpVotes(sanitizer.escape(question)).catch(err => {
                     throw err
                 }).then((updatedThread) => {
                     let dataToSend = {
-                        question : updatedThread.question,
+                        question: question,
                         votes: updatedThread.upVotes
                     };
                     socket.emit(emits.updateQuestionVotes, dataToSend);
                     socket.broadcast.emit(emits.updateQuestionVotes, dataToSend);
                 });
             }).on(receives.incrementAnswerUpVotes, function (data) {
-                // TODO Link this to front-end + test
-                mongoDB.incrementAnswerUpVotes(data.question, data.answer).catch(err => {
+                mongoDB.incrementAnswerUpVotes(sanitizer.escape(data.question), sanitizer.escape(data.answer)).catch(err => {
                     throw err
                 }).then((updatedAnswer) => {
                     let dataToSend = {
-                        question : data.question,
-                        answer : data.answer,
+                        question: data.question,
+                        answer: data.answer,
                         votes: updatedAnswer.upVotes
                     };
                     socket.emit(emits.updateAnswerVotes, dataToSend);
@@ -146,28 +133,27 @@ let serverSocketModule = (function () {
 
                 });
             }).on(receives.decrementAnswerUpVotes, function (data) {
-                // TODO Link this to front-end + test
-                mongoDB.decrementAnswerUpVotes(data.question, data.answer).catch(err => {
+                mongoDB.decrementAnswerUpVotes(sanitizer.escape(data.question), sanitizer.escape(data.answer)).catch(err => {
                     throw err
                 }).then((updatedAnswer) => {
-
                     let dataToSend = {
-                        question : data.question,
-                        answer : data.answer,
+                        question: data.question,
+                        answer: data.answer,
                         votes: updatedAnswer.upVotes
                     };
                     socket.emit(emits.updateAnswerVotes, dataToSend);
                     socket.broadcast.emit(emits.updateAnswerVotes, dataToSend);
                 });
-            }).on(receives.answerApproved, function(data){
-                mongoDB.approveAnswer(data.question, data.answer).catch(err => {
+            }).on(receives.approvedAnswerStateChanged, function (data) {
+                mongoDB.changeApprovedAnswerState(sanitizer.escape(data.question), sanitizer.escape(data.answer)).catch(err => {
                     throw err
-                }).then((thread) => {
+                }).then((approvedState) => {
+                    console.log("Answer (" + data.answer + ") changed approved state to (" + approvedState + ") in thread (" + sanitizer.escape(data.question) + ")");
                     let dataToSend = {
-                        question: thread.question,
+                        question: data.question,
                         answer: data.answer
                     };
-                    refreshCurrentThreads(socket);
+                    socket.broadcast.emit(emits.approvedAnswerStateChanged, dataToSend);
                 })
             });
         });
@@ -185,6 +171,13 @@ let helperFunctions = {
         });
         return arrayOfVoteAbleObjects;
     },
+    checkQuestionMark: function (question) {
+        let checkedQuestion = question;
+        if (!question.endsWith("?")) {
+            checkedQuestion += "?";
+        }
+        return checkedQuestion
+    }
 };
 
 serverSocketModule.init();

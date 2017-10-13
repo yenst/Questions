@@ -208,7 +208,7 @@ let mongoDBModule = (function () {
         });
     };
 
-    let approveAnswer = function (threadQuestion, answer) {
+    let changeApprovedAnswerState = function (threadQuestion, answer) {
         return new Promise(function (resolve, reject) {
             getThreadByQuestion(threadQuestion).catch(err => reject(err)).then(thread => {
                 let findAnswerObject = function (answerObject) {
@@ -220,7 +220,7 @@ let mongoDBModule = (function () {
                 approvedAnswer.changeIsApproved();
                 thread.answers[approvedAnswerIndex] = approvedAnswer;
                 updateThreadByQuestion(thread);
-                resolve(thread);
+                resolve(approvedAnswer.isApproved);
             });
         });
     };
@@ -235,7 +235,7 @@ let mongoDBModule = (function () {
         decrementThreadUpVotes,
         incrementAnswerUpVotes,
         decrementAnswerUpVotes,
-        approveAnswer
+        changeApprovedAnswerState
     };
 })();
 

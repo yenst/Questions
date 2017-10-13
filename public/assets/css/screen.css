@@ -5,13 +5,7 @@
     width:100%;
 }
 
-body {
-    background-image: url("../images/hands.jpg");
-    background-size: cover;
-    background-attachment: fixed;
-    background-repeat: no-repeat;
-    height: 100%;
-}
+
 .question{
     width:80%;
     float:left;
@@ -45,6 +39,8 @@ padding:30px;
 
 .questionWrap{
     margin-bottom:15px;
+    border-bottom: 1px solid #6c757d;
+    padding-bottom: 10px;
 }
 
 #questionForm{
