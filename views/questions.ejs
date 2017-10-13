@@ -17,9 +17,13 @@
 </head>
 
 <body>
-<header><a href="/auth/google">sign in with google</a>
+<header>
+    <% if(user === null){ %>
+        <a href="/auth/google">sign in with google</a>
+    <%}else{ %>
+    
 <p><%= loginText %> <%= user.email %></p></header>
-
+<%}%>
 
 <section class="container">
     <form action="#" id="questionForm" class="row">
