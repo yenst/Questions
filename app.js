@@ -11,11 +11,9 @@ const session = require('express-session');
 
 
 
-const mongoDB = require("./js/mongo.js").mongoDBModule;
-const Thread = require("./js/thread.js").Thread;
-const Answer = require("./js/answer.js").Answer;
-const VoteAble = require("./js/voteAble.js").VoteAble;
-const Login = require("./js/login.js").Login;
+const mongoDB = require("./js/mongo.js");
+const Thread = require("./js/thread.js");
+const Answer = require("./js/answer.js");
 const auth = require('./js/auth');
 
 const app = express();
@@ -128,7 +126,7 @@ let serverSocketModule = (function () {
 
             socket.on(receives.OpenNewThread, function (question) {
                 let questionMarked = helperFunctions.checkQuestionMark(sanitizer.escape(question));
-                mongoDB.addThread(new Thread(questionMarked)).catch(err => {
+                mongoDB.addThread(new Thread({question: questionMarked})).catch(err => {
                     throw err
                 }).then(res => {
                     console.log("Added thread (" + question + ")");

@@ -14,14 +14,11 @@
 // db.thread.remove({})
 
 
-let mongoDBModule = (function () {
-    const mongo = require('mongodb');
-    const MongoClient = mongo.MongoClient;
+let mongo = (function () {
+    const MongoClient = require('mongodb').MongoClient;
 
-
-    const Thread = require("./thread.js").Thread;
-    const Answer = require("./answer.js").Answer;
-    const VoteAble = require("./voteAble.js").VoteAble;
+    const Thread = require("./thread.js");
+    const Answer = require("./answer.js");
 
     // TODO security?
     const dbConf = {
@@ -50,17 +47,17 @@ let mongoDBModule = (function () {
                 let query = {question: threadQuestion};
                 db.collection(dbConf.collections.thread).find(query).toArray().catch(err => reject(err)).then(res => {
                     db.close();
-                    resolve(new Thread(res[0].question, res[0].answers, res[0].upVotes));
+                    resolve(new Thread(res[0]));
                 });
             });
         });
     };
 
-    let updateThreadByQuestion = function (thread) {
+    let updateThreadByQuestion = function (threadObject) {
         return new Promise(function (resolve, reject) {
             openConnection().catch(err => reject(err)).then(db => {
-                let query = {question: thread.question};
-                db.collection(dbConf.collections.thread).updateOne(query, thread).catch(err => reject(err)).then((res) => {
+                let query = {question: threadObject.question};
+                db.collection(dbConf.collections.thread).updateOne(query, threadObject).catch(err => reject(err)).then((res) => {
                     db.close();
                     resolve(res);
                 });
@@ -131,19 +128,19 @@ let mongoDBModule = (function () {
                     db.close();
                     let threads = [];
                     res.forEach(item => {
-                        threads.push(new Thread(item.question, item.answers, item.upVotes));
+                        threads.push(new Thread(item));
                     });
-                    resolve(threads)
+                    resolve(threads);
                 });
             });
         });
     };
 
-    let addAnswerToThread = function (threadQuestion, answer) {
+    let addAnswerToThread = function (threadQuestion, answerText) {
         return new Promise(function (resolve, reject) {
             getThreadByQuestion(threadQuestion).catch(err => reject(err)).then(thread => {
-                if (thread.isAnswerUnique(answer)) {
-                    thread.addNewAnswer(answer);
+                if (thread.isAnswerUnique(answerText)) {
+                    thread.addNewAnswer(answerText);
                     updateThreadByQuestion(thread).catch(err => reject(err)).then(() => resolve());
                 } else {
                     reject("Answer is not unique");
@@ -181,8 +178,7 @@ let mongoDBModule = (function () {
                     return answerObject.answer === answer;
                 };
                 let obj = thread.answers.find(findAnswerObject);
-
-                let upVotedAnswerObject = new Answer(obj.answer, obj.upVotes, obj.isApproved);
+                let upVotedAnswerObject = new Answer(obj);
                 let upVotedAnswerIndex = thread.answers.findIndex(findAnswerObject);
                 upVotedAnswerObject.incrementUpVotes();
                 thread.answers[upVotedAnswerIndex] = upVotedAnswerObject;
@@ -199,7 +195,7 @@ let mongoDBModule = (function () {
                     return answerObject.answer === answer;
                 };
                 let obj = thread.answers.find(findAnswerObject);
-                let downVotedAnswerObject = new Answer(obj.answer, obj.upVotes, obj.isApproved);
+                let downVotedAnswerObject = new Answer(obj);
                 let downVotedAnswerIndex = thread.answers.findIndex(findAnswerObject);
                 downVotedAnswerObject.decrementUpVotes();
                 thread.answers[downVotedAnswerIndex] = downVotedAnswerObject;
@@ -216,7 +212,7 @@ let mongoDBModule = (function () {
                     return answerObject.answer === answer;
                 };
                 let obj = thread.answers.find(findAnswerObject);
-                let approvedAnswer = new Answer(obj.answer, obj.upVotes, obj.isApproved);
+                let approvedAnswer = new Answer(obj);
                 let approvedAnswerIndex = thread.answers.findIndex(findAnswerObject);
                 approvedAnswer.changeIsApproved();
                 thread.answers[approvedAnswerIndex] = approvedAnswer;
@@ -249,6 +245,4 @@ let mongoDBModule = (function () {
     };
 })();
 
-module.exports = {
-    mongoDBModule
-};
+module.exports = mongo;

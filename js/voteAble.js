@@ -1,18 +1,17 @@
 "use strict";
 
-let VoteAble = function(upVotes){
-    this.upVotes = (upVotes !== undefined) ? upVotes : 0;
-    this.incrementUpVotes = function(){
-        this.upVotes++;
-    };
-    this.decrementUpVotes = function(){
-        let newValue = this.upVotes - 1;
-        if(newValue >= 0){
-            this.upVotes = newValue;
-        }
-    };
+let VoteAble = function(properties){
+    this.upVotes = (properties.upVotes !== undefined) ? properties.upVotes : 0;
 };
 
-module.exports = {
-    VoteAble
+VoteAble.prototype.incrementUpVotes = function(){
+    this.upVotes++;
 };
+VoteAble.prototype.decrementUpVotes = function(){
+    let newValue = this.upVotes - 1;
+    if(newValue >= 0){
+        this.upVotes = newValue;
+    }
+};
+
+module.exports = VoteAble;

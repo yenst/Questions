@@ -1,37 +1,26 @@
 "use strict";
 
-const VoteAble = require("./voteAble.js").VoteAble;
-const Answer = require("./answer.js").Answer;
+const VoteAble = require("./voteAble.js");
+const Answer = require("./answer.js");
 
-// class Thread extends VoteAble {
-//     constructor(question, answers, upVotes){
-//         super(upVotes);
-//         this.question = question;
-//         this.answers = (answers === undefined) ? [] : answers;
-//     }
-//     ...
-// }
-
-let Thread = function(question, answers, upVotes){
-    VoteAble.call(this, upVotes);
-    this.question = question;
-    this.answers = (answers === undefined) ? [] : answers;
-
-    this.isAnswerUnique = function(answerToCheck){
-        let answer = this.answers.find(answerObject => answerObject.answer === answerToCheck);
-        return (!answer); // if answer exists => false; else => true
-    };
-    this.addNewAnswer = function(answer){
-        this.answers.push(new Answer(answer));
-    };
-    this.getAnswer = function(answer){
-        return Object.create(Answer, this.answers.find(answerObject => {return answerObject.answer === answer}));
-    };
+let Thread = function(properties){
+    VoteAble.call(this, {upVotes: properties.upVotes});
+    this.question = properties.question;
+    this.answers = (properties.answers === undefined) ? [] : properties.answers;
 };
 
 Thread.prototype = Object.create(VoteAble.prototype);
 Thread.prototype.constructor = Thread;
 
-module.exports = {
-    Thread
+Thread.prototype.isAnswerUnique = function(answerToCheck){
+    let answer = this.answers.find(answerObject => answerObject.answer === answerToCheck);
+    return (!answer); // if answer exists => false; else => true
 };
+Thread.prototype.addNewAnswer = function(answerText){
+    this.answers.push(new Answer({answer: answerText}));
+};
+Thread.prototype.getAnswer = function(answer){
+    return Object.create(Answer, this.answers.find(answerObject => {return answerObject.answer === answer}));
+};
+
+module.exports = Thread;
