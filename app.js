@@ -30,7 +30,7 @@ passport.use(
 
 app.use(express.static("public"));
 
-app.set("view engine", "ejs");
+app.set("view engine", "pug");
 
 app.use(session({ secret: "questions" }));
 app.use(passport.initialize());
@@ -47,7 +47,7 @@ passport.deserializeUser(function(user, done) {
 app.get("/", function(req, res, next) {
   if (req.session.user) {
     // return page with user info
-    return res.render("questions.ejs", {
+    return res.render("layout.pug", {
       user: req.session.user,
       loginText: "logged in as "
     });
@@ -63,7 +63,7 @@ app.get("/", function(req, res, next) {
     return res.redirect("/");
   }
 
-  return res.render("questions.ejs", {
+  return res.render("layout.pug", {
     user: null,
     loginText: null
   });
