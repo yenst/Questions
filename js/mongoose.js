@@ -2,7 +2,7 @@
 
 let mongoose = (function () {
     const Thread = require("./mongoose_models/thread");
-    const Answer = require("./mongoose_models/answer").Answer;
+    const Answer = require("./mongoose_models/answer");
 
     const async = require("async"); // for saving a list of documents with mongoose
     const mongoose = require("mongoose");
@@ -41,8 +41,32 @@ let mongoose = (function () {
     };
     publicMethods.getAllThreads = function(){
         return new Promise( (resolve, reject) => {
-            Thread.find({}).populate('answers').catch(err => reject(err)).then(threads => {
+            Thread.find({}).populate('answers').sort({votes: -1}).catch(err => reject(err)).then(threads => {
                 resolve(threads)
+            })
+        })
+    };
+    publicMethods.getThreadById = function(id){
+        return new Promise( (resolve, reject) => {
+            Thread.findOne({_id: id}).populate('answers').catch(err => reject(err)).then(thread => {
+                resolve(thread)
+            })
+        })
+    };
+    publicMethods.getAnswerById = function(id){
+        return new Promise( (resolve, reject) => {
+            Answer.findOne({_id: id}).populate('parentNode').catch(err => reject(err)).then(answer => {
+                resolve(answer)
+            })
+        })
+    };
+    publicMethods.createObjectId = function(id){
+        return mongoose.Types.ObjectId(id);
+    };
+    publicMethods.getThreadByQuestion = function(question){
+        return new Promise( (resolve, reject) => {
+            Thread.findOne({question: question}).populate('answers').catch(err => reject(err)).then(thread => {
+                resolve(thread)
             })
         })
     };
