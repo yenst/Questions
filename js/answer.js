@@ -14,7 +14,6 @@ Answer.prototype.constructor = Answer;
 
 Answer.prototype.changeIsApproved = function(){
     this.isApproved = !this.isApproved;
-
 };
 
 module.exports = Answer;
