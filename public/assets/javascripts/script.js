@@ -108,7 +108,7 @@ let socketModule = (function () {
             gInterface.showError(err);
         }).then(userId => {
             let data = {
-                threadId: answerId,
+                answerId: answerId,
                 userId: userId
             };
             socket.emit(emits.incrementAnswerUpVotes, data);
@@ -120,7 +120,7 @@ let socketModule = (function () {
             gInterface.showError(err)
         }).then(userId => {
             let data = {
-                threadId: answerId,
+                answerId: answerId,
                 userId: userId
             };
             socket.emit(emits.decrementAnswerUpVotes, data);
