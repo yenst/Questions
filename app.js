@@ -45,67 +45,56 @@ passport.deserializeUser(function (user, done) {
 });
 
 
-app.get("/", function(req, res, next) {
-  var isTeacher = checkForTeacher(req.user);
+let isTeacher = function (user) {
+    if (user !== undefined) {
+        let u = user._json.domain;
+        return u !== 'student.howest.be';
+    }
+};
 
-  if (req.session.user) {
-    // return page with user info
-    return res.render("layout.pug", {
-      user: req.session.user,
-      loginText: "logged in as ",
-      isTeacher
-      
-    });
-  }
-
-
+app.get("/", function (req, res) {
+    if (req.session.user) {
+        // return page with user info
+        return res.render("layout.pug", {
+            user: req.session.user,
+            loginText: "logged in as "
+        });
+    }
     if (req.user) {
-        var userinfo = {
+        req.session.user = {
             id: req.user.id,
             name: req.user.displayName,
             email: req.user.emails[0].value
         };
-        req.session.user = userinfo;
-
         return res.redirect("/");
     }
-
-
-  return res.render("layout.pug", {
-    user: null,
-    loginText: null
-  });
+    return res.render("layout.pug", {
+        user: null,
+        loginText: null
+    });
 
 });
 
-app.get("/checkteacher", function (req, res, next) {
-    res.send(JSON.stringify(checkForTeacher(req.user)));
+app.get("/checkteacher", function (req, res) {
+    res.send(JSON.stringify(isTeacher(req.user)));
 });
 
+app.get("/getUserId", function (req, res) {
+    if(req.isAuthenticated()){
+        res.send(JSON.stringify(req.user.id));
+    }
+});
+
+// TODO is this used?
 app.get("/login", function (req, res, next) {
 });
 
 app.use("/auth", auth);
 
+// TODO is this used?
 app.get("/teacher", function (req, res, next) {
-console.log("toegekomen")});
-
-
-let checkForTeacher = function(user){
-  if (user !== undefined){
-    var u = user._json.domain;
-    if(u=='student.howest.be'){
-      return false;
-    }
-    else{
-      return true;
-    }
-  }
-
-
-
-
-};
+    console.log("toegekomen")
+});
 
 const httpServer = http.createServer(app);
 
@@ -115,10 +104,6 @@ let serverSocketModule = (function () {
         addedNewThread: "1",
         addedNewAnswer: "2",
         CurrentThreads: "3",
-        AnswerUpVotesChanged: "4",
-        AnswerDownVotesChanged: "5",
-        ThreadDownVotesChanged: "6",
-        ThreadUpVotesChanged: "7",
         approvedAnswerStateChanged: "8",
         updateAnswerVotes: "9",
         updateQuestionVotes: "10",
@@ -188,11 +173,11 @@ let serverSocketModule = (function () {
                         });
                     });
                 });
-            }).on(receives.incrementThreadUpVotes, function (threadId) {
-                repository.getThreadById(sanitizer.escape(threadId)).catch(err => {
+            }).on(receives.incrementThreadUpVotes, function (data) {
+                repository.getThreadById(sanitizer.escape(data.threadId)).catch(err => {
                     throw err
                 }).then(thread => {
-                    thread.upVote();
+                    thread.upVote(sanitizer.escape(data.userId));
                     repository.saveObject(thread).catch(err => {
                         throw err
                     }).then((savedThread) => {
@@ -200,11 +185,11 @@ let serverSocketModule = (function () {
                         socket.broadcast.emit(emits.updateQuestionVotes, savedThread);
                     })
                 });
-            }).on(receives.decrementThreadUpVotes, function (threadId) {
-                repository.getThreadById(sanitizer.escape(threadId)).catch(err => {
+            }).on(receives.decrementThreadUpVotes, function (data) {
+                repository.getThreadById(sanitizer.escape(data.threadId)).catch(err => {
                     throw err
                 }).then(thread => {
-                    thread.downVote();
+                    thread.downVote(sanitizer.escape(data.userId));
                     repository.saveObject(thread).catch(err => {
                         throw err
                     }).then((savedThread) => {
@@ -212,11 +197,11 @@ let serverSocketModule = (function () {
                         socket.broadcast.emit(emits.updateQuestionVotes, savedThread);
                     })
                 });
-            }).on(receives.incrementAnswerUpVotes, function (answerId) {
-                repository.getAnswerById(sanitizer.escape(answerId)).catch(err => {
+            }).on(receives.incrementAnswerUpVotes, function (data) {
+                repository.getAnswerById(sanitizer.escape(data.answerId)).catch(err => {
                     throw err
                 }).then(answer => {
-                    answer.upVote();
+                    answer.upVote(sanitizer.escape(data.userId));
                     repository.saveObject(answer).catch(err => {
                         throw err
                     }).then((savedAnswer) => {
@@ -224,11 +209,11 @@ let serverSocketModule = (function () {
                         socket.broadcast.emit(emits.updateAnswerVotes, savedAnswer);
                     });
                 });
-            }).on(receives.decrementAnswerUpVotes, function (answerId) {
-                repository.getAnswerById(sanitizer.escape(answerId)).catch(err => {
+            }).on(receives.decrementAnswerUpVotes, function (data) {
+                repository.getAnswerById(sanitizer.escape(data.answerId)).catch(err => {
                     throw err
                 }).then(answer => {
-                    answer.downVote();
+                    answer.downVote(sanitizer.escape(data.userId));
                     repository.saveObject(answer).catch(err => {
                         throw err
                     }).then((savedAnswer) => {
