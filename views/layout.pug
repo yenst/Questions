@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+html(lang="en")
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0")
+        meta(http-equiv="X-UA-Compatible", content="ie=edge")
+        title Questions PUG #{title}
+
+        block styles
+            link(rel="stylesheet", href="/assets/css/screen.css")
+            link(rel="stylesheet", href="/lib/css/bootstrap.min.css")
+            link(rel="stylesheet", href="/lib/css/font-awesome.min.css")
+
+    body
+        header
+            if user === null
+                a(href="/auth/google") Sign in with Google
+            else
+                p #{loginText} #{user.email}
+            
+            if isTeacher
+                p teacher logged in
+                script var teacher = "1"
+        
+       
+        section.container
+            form(action="#").row#questionForm
+                input(type="text", name="question", placeholder="", autocomplete="off").col-10
+                input(type="submit", value="Ask").col-2
+            
+            ul#threads
+
+        footer
+
+        block scripts
+            script(src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js")
+            script(src="lib/js/bootstrap.js")
+            script(src="/socket.io/socket.io.js")
+            script(src="assets/javascripts/script.js")

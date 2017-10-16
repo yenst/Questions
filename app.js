@@ -30,7 +30,7 @@ passport.use(
 
 app.use(express.static("public"));
 
-app.set("view engine", "ejs");
+app.set("view engine", "pug");
 
 app.use(session({secret: "questions"}));
 app.use(passport.initialize());
@@ -44,14 +44,20 @@ passport.deserializeUser(function (user, done) {
     done(null, user);
 });
 
-app.get("/", function (req, res, next) {
-    if (req.session.user) {
-        // return page with user info
-        return res.render("questions.ejs", {
-            user: req.session.user,
-            loginText: "logged in as "
-        });
-    }
+
+app.get("/", function(req, res, next) {
+  var isTeacher = checkForTeacher(req.user);
+
+  if (req.session.user) {
+    // return page with user info
+    return res.render("layout.pug", {
+      user: req.session.user,
+      loginText: "logged in as ",
+      isTeacher
+      
+    });
+  }
+
 
     if (req.user) {
         var userinfo = {
@@ -64,10 +70,12 @@ app.get("/", function (req, res, next) {
         return res.redirect("/");
     }
 
-    return res.render("questions.ejs", {
-        user: null,
-        loginText: null
-    });
+
+  return res.render("layout.pug", {
+    user: null,
+    loginText: null
+  });
+
 });
 
 app.get("/login", function (req, res, next) {
@@ -78,6 +86,23 @@ app.use("/auth", auth);
 app.get("/teacher", function (req, res, next) {
     //login stuff atm
 });
+
+
+let checkForTeacher = function(user){
+  if (user !== undefined){
+    var u = user._json.domain;
+    if(u=='student.howest.be'){
+      return false;
+    }
+    else{
+      return true;
+    }
+  }
+
+
+
+
+};
 
 const httpServer = http.createServer(app);
 
