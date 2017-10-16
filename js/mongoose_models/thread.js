@@ -1,8 +1,7 @@
 "use strict";
 
 const mongoose = require("mongoose");
-const Answer = require("./answer").Answer;
-const AnswerSchema = require("./answer").AnswerSchema;
+const Answer = require("./answer");
 
 let ThreadSchema = mongoose.Schema({
     question: {type: String, required: true},

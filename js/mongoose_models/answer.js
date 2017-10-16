@@ -8,7 +8,7 @@ let AnswerSchema = mongoose.Schema({
     isApproved: {type: Boolean, default: false},
     upVotedUserIds: [{type: String}],
     downVotedUserIds: [{type: String}],
-    threadId: {type: mongoose.Schema.ObjectId, ref:"Thread"}
+    parentNode: {type: mongoose.Schema.ObjectId, ref:"Thread"}
 
     // parentNode is a Thread object or an Answer Object
     // parentNode: {
@@ -66,7 +66,4 @@ AnswerSchema.methods.downVote = function(userId){
 
 let Answer = mongoose.model("Answer", AnswerSchema);
 
-module.exports = {
-    Answer,
-    AnswerSchema
-};
+module.exports = Answer;
