@@ -1,6 +1,6 @@
 "use strict";
 
-let mongoose = (function () {
+let repository = (function () {
     const Thread = require("./mongoose_models/thread");
     const Answer = require("./mongoose_models/answer");
 
@@ -9,21 +9,21 @@ let mongoose = (function () {
     mongoose.Promise = global.Promise;
     mongoose.connect("mongodb://localhost:27017/questionsDB", {useMongoClient: true});
 
-    let saveAllAnswers = function(answers){
-        return new Promise( (resolve, reject) => {
+    let saveAllAnswers = function (answers) {
+        return new Promise((resolve, reject) => {
             // 1st para in async.each() is the array of items
             async.each(answers,
                 // 2nd param is the function that each item is passed to
-                function(answer, callback){
+                function (answer, callback) {
                     // Call an asynchronous function, often a save() to DB
-                    answer.save(function (){
+                    answer.save(function () {
                         // Async call is done, alert via callback
                         callback();
                     });
                 },
                 // 3rd param is the function to call when everything's done
-                function(err){
-                    if(err) reject(err);
+                function (err) {
+                    if (err) reject(err);
                     // All tasks are done now
                     resolve();
                 }
@@ -32,43 +32,67 @@ let mongoose = (function () {
     };
 
     let publicMethods = {};
-    publicMethods.saveThread = function(thread){
-        return new Promise( (resolve, reject) => {
-            thread.save().catch(err => reject(err)).then( () => {
-                saveAllAnswers(thread.answers).catch(err => reject(err)).then( () => resolve());
+    publicMethods.updateThreadAndAnswers = function (thread) {
+        return new Promise((resolve, reject) => {
+            thread.save().catch(err => reject(err)).then(() => {
+                saveAllAnswers(thread.answers).catch(err => reject(err)).then(() => resolve());
             });
         });
     };
-    publicMethods.getAllThreads = function(){
-        return new Promise( (resolve, reject) => {
+    publicMethods.getAllThreads = function () {
+        return new Promise((resolve, reject) => {
             Thread.find({}).populate('answers').sort({votes: -1}).catch(err => reject(err)).then(threads => {
                 resolve(threads)
             })
         })
     };
-    publicMethods.getThreadById = function(id){
-        return new Promise( (resolve, reject) => {
+    publicMethods.getThreadById = function (id) {
+        return new Promise((resolve, reject) => {
             Thread.findOne({_id: id}).populate('answers').catch(err => reject(err)).then(thread => {
                 resolve(thread)
             })
         })
     };
-    publicMethods.getAnswerById = function(id){
-        return new Promise( (resolve, reject) => {
+    publicMethods.getAnswerById = function (id) {
+        return new Promise((resolve, reject) => {
             Answer.findOne({_id: id}).populate('parentNode').catch(err => reject(err)).then(answer => {
                 resolve(answer)
             })
         })
     };
-    publicMethods.createObjectId = function(id){
+    publicMethods.createObjectId = function (id) {
         return mongoose.Types.ObjectId(id);
     };
-    publicMethods.getThreadByQuestion = function(question){
-        return new Promise( (resolve, reject) => {
+    publicMethods.getThreadByQuestion = function (question) {
+        return new Promise((resolve, reject) => {
             Thread.findOne({question: question}).populate('answers').catch(err => reject(err)).then(thread => {
                 resolve(thread)
             })
         })
+    };
+    publicMethods.addThread = function (threadObject) {
+        return new Promise((resolve, reject) => {
+            publicMethods.getThreadByQuestion(threadObject.question).catch(err => {
+                reject(err)
+            })
+                .then(thread => {
+                    if (!thread) { // only make a new thread, when question is unique
+                        threadObject.save().catch(err => {
+                            reject(err)
+                        }).then((thread) => {
+                            resolve(thread)
+                        });
+                    } else {
+                        reject("Question is not unique")
+                    }
+                });
+        });
+    };
+    publicMethods.saveObject = function (object) {
+        return new Promise((resolve, reject) => {
+            object.save().catch(err => reject(err))
+                .then(savedObject => resolve(savedObject));
+        });
     };
 
     // TEST MONGOOSE
@@ -87,4 +111,4 @@ let mongoose = (function () {
     return publicMethods;
 })();
 
-module.exports = mongoose;
+module.exports = repository;

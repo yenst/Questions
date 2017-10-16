@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html>
 <head>
@@ -19,15 +18,15 @@
 <body>
 <header>
     <% if(user === null){ %>
-        <a href="/auth/google">sign in with google</a>
-    <%}else{ %>
-    
-<p><%= loginText %> <%= user.email %></p></header>
-<%}%>
+    <a href="/auth/google">sign in with google</a>
+    <% }else{ %>
+    <p><%= loginText + " " + user.email %></p>
+    <% } %>
+</header>
 
 <section class="container">
     <form action="#" id="questionForm" class="row">
-        <input class="col-10"  type="text" name="question" placeholder="Your question" autocomplete="off"/>
+        <input class="col-10" type="text" name="question" placeholder="Your question" autocomplete="off"/>
         <input class="col-2" type="submit" value="Ask"/>
     </form>
 
@@ -35,7 +34,6 @@
 
 </section>
 <footer></footer>
-
 
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>

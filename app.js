@@ -6,7 +6,7 @@ const sanitizer = require("sanitizer");
 const passport = require("passport");
 const session = require("express-session");
 
-const mongoose = require("./js/mongoose");
+const repository = require("./js/repository");
 const Thread = require("./js/mongoose_models/thread");
 const Answer = require("./js/mongoose_models/answer");
 const auth = require("./js/auth");
@@ -55,6 +55,7 @@ app.get("/", function (req, res, next) {
 
     if (req.user) {
         var userinfo = {
+            id: req.user.id,
             name: req.user.displayName,
             email: req.user.emails[0].value
         };
@@ -111,148 +112,115 @@ let serverSocketModule = (function () {
     // TODO handle errors from db here
     let init = function () {
         serverSocket.on("connection", function (socket) {
-            mongoose.getAllThreads()
-                .catch(err => {
-                    throw err;
-                })
-                .then(threads => {
-                    threads.forEach(thread => {
-                        thread.answers = helperFunctions.sortByUpVotes(thread.answers);
-                        // TODO sort by approved
-                    });
-                    socket.emit(emits.CurrentThreads, threads);
+            repository.getAllThreads().catch(err => {
+                throw err;
+            }).then(threads => {
+                threads.forEach(thread => {
+                    thread.answers = helperFunctions.sortByUpVotes(thread.answers);
+                    // TODO sort by approved
                 });
+                socket.emit(emits.CurrentThreads, threads);
+            });
 
-            socket
-                .on(receives.OpenNewThread, function (question) {
-                    let questionMarked = helperFunctions.checkQuestionMark(
-                        sanitizer.escape(question)
-                    );
-                    mongoose.getThreadByQuestion(questionMarked).catch(err => {
-                        throw err
-                    })
-                        .then(thread => {
-                            if (!thread) { // only make a new thread, when question is unique
-                                new Thread({question: questionMarked}).save().catch(err => {
-                                    throw err
-                                }).then((thread) => {
-                                    console.log("Added thread (" + thread.question + ")");
-                                    socket.emit(emits.addedNewThread, thread);
-                                    socket.broadcast.emit(emits.addedNewThread, thread);
-                                });
-                            }
-                        });
-                })
-                .on(receives.questionAnswered, function (data) {
-                    let threadId = mongoose.createObjectId(sanitizer.escape(data.threadId));
-                    mongoose.getThreadById(threadId).catch(err => {
-                        throw err
-                    })
-                        .then(returnedThread => {
-                            let answerText = sanitizer.escape(data.answer);
-                            let answer = new Answer({answer: answerText, parentNode: threadId});
-                            returnedThread.addNewAnswer(answer).catch(err => {
-                                throw err
-                            })
-                                .then(() => {
-                                    returnedThread.save().catch(err => {
-                                        throw err
-                                    })
-                                        .then(() => {
-                                            answer.save().catch(err => {
-                                                throw err
-                                            })
-                                                .then((returnedAnswer) => {
-                                                    Answer.populate(returnedAnswer, "parentNode").catch(err => {
-                                                        throw err
-                                                    })
-                                                        .then(populatedAnswer => {
-                                                            console.log("Added answer (" + populatedAnswer.answer + ") to thread (" + populatedAnswer.parentNode.question + ")");
-                                                            socket.emit(emits.addedNewAnswer, populatedAnswer);
-                                                            socket.broadcast.emit(emits.addedNewAnswer, populatedAnswer);
-                                                        });
-                                                });
-                                        });
-                                });
-                        });
-                })
-                .on(receives.incrementThreadUpVotes, function (threadId) {
-                    mongoose.getThreadById(sanitizer.escape(threadId))
-                        .catch(err => {
-                            throw err
-                        })
-                        .then(thread => {
-                            thread.upVote();
-                            thread.save().catch(err => {
-                                throw err
-                            })
-                                .then(() => {
-                                    socket.emit(emits.updateQuestionVotes, thread);
-                                    socket.broadcast.emit(emits.updateQuestionVotes, thread);
-                                })
-                        });
-                })
-                .on(receives.decrementThreadUpVotes, function (threadId) {
-                    mongoose.getThreadById(sanitizer.escape(threadId))
-                        .catch(err => {
-                            throw err
-                        })
-                        .then(thread => {
-                            thread.downVote();
-                            thread.save().catch(err => {
-                                throw err
-                            })
-                                .then(() => {
-                                    socket.emit(emits.updateQuestionVotes, thread);
-                                    socket.broadcast.emit(emits.updateQuestionVotes, thread);
-                                })
-                        });
-                })
-                .on(receives.incrementAnswerUpVotes, function (answerId) {
-                    mongoose.getAnswerById(sanitizer.escape(answerId)).catch(err => {
-                        throw err
-                    })
-                        .then(answer => {
-                            answer.upVote();
-                            answer.save().catch(err => {
-                                throw err
-                            })
-                                .then((returnedAnswer) => {
-                                    socket.emit(emits.updateAnswerVotes, returnedAnswer);
-                                    socket.broadcast.emit(emits.updateAnswerVotes, returnedAnswer);
-                                });
-                        });
-                })
-                .on(receives.decrementAnswerUpVotes, function (answerId) {
-                    mongoose.getAnswerById(sanitizer.escape(answerId)).catch(err => {
-                        throw err
-                    })
-                        .then(answer => {
-                            answer.downVote();
-                            answer.save().catch(err => {
-                                throw err
-                            })
-                                .then((returnedAnswer) => {
-                                    socket.emit(emits.updateAnswerVotes, returnedAnswer);
-                                    socket.broadcast.emit(emits.updateAnswerVotes, returnedAnswer);
-                                });
-                        });
-                })
-                .on(receives.approvedAnswerStateChanged, function (answerId) {
-                    mongoose.getAnswerById(sanitizer.escape(answerId)).catch(err => {
-                        throw err
-                    })
-                        .then(answer => {
-                            answer.changeIsApproved();
-                            answer.save().catch(err => {
-                                throw err
-                            })
-                                .then(returnedAnswer => {
-                                    console.log("Answer (" + returnedAnswer.answer + ") changed approved state to (" + approvedState + ") in thread (" + returnedAnswer.parentNode.question + ")");
-                                    socket.broadcast.emit(emits.approvedAnswerStateChanged, returnedAnswer);
-                                });
-                        });
+            socket.on(receives.OpenNewThread, function (question) {
+                let questionMarked = helperFunctions.checkQuestionMark(
+                    sanitizer.escape(question)
+                );
+                repository.addThread(new Thread({question: questionMarked})).catch(err => {
+                    throw err
+                }).then(returnedThread => {
+                    console.log("Added thread (" + returnedThread.question + ")");
+                    socket.emit(emits.addedNewThread, returnedThread);
+                    socket.broadcast.emit(emits.addedNewThread, returnedThread);
                 });
+            }).on(receives.questionAnswered, function (data) {
+                let threadId = repository.createObjectId(sanitizer.escape(data.threadId));
+                repository.getThreadById(threadId).catch(err => {
+                    throw err
+                }).then(returnedThread => {
+                    let answerText = sanitizer.escape(data.answer);
+                    let answer = new Answer({answer: answerText, parentNode: returnedThread._id});
+                    returnedThread.addNewAnswer(answer).catch(err => {
+                        throw err
+                    }).then(() => {
+                        repository.saveObject(returnedThread).catch(err => {
+                            throw err
+                        }).then(() => {
+                            repository.saveObject(answer).catch(err => {
+                                throw err
+                            }).then(savedAnswer => {
+                                Answer.populate(savedAnswer, "parentNode").catch(err => {
+                                    throw err
+                                }).then(populatedAnswer => {
+                                    console.log("Added answer (" + populatedAnswer.answer + ") to thread (" + populatedAnswer.parentNode.question + ")");
+                                    socket.emit(emits.addedNewAnswer, populatedAnswer);
+                                    socket.broadcast.emit(emits.addedNewAnswer, populatedAnswer);
+                                });
+                            });
+                        });
+                    });
+                });
+            }).on(receives.incrementThreadUpVotes, function (threadId) {
+                repository.getThreadById(sanitizer.escape(threadId)).catch(err => {
+                    throw err
+                }).then(thread => {
+                    thread.upVote();
+                    repository.saveObject(thread).catch(err => {
+                        throw err
+                    }).then((savedThread) => {
+                        socket.emit(emits.updateQuestionVotes, savedThread);
+                        socket.broadcast.emit(emits.updateQuestionVotes, savedThread);
+                    })
+                });
+            }).on(receives.decrementThreadUpVotes, function (threadId) {
+                repository.getThreadById(sanitizer.escape(threadId)).catch(err => {
+                    throw err
+                }).then(thread => {
+                    thread.downVote();
+                    repository.saveObject(thread).catch(err => {
+                        throw err
+                    }).then((savedThread) => {
+                        socket.emit(emits.updateQuestionVotes, savedThread);
+                        socket.broadcast.emit(emits.updateQuestionVotes, savedThread);
+                    })
+                });
+            }).on(receives.incrementAnswerUpVotes, function (answerId) {
+                repository.getAnswerById(sanitizer.escape(answerId)).catch(err => {
+                    throw err
+                }).then(answer => {
+                    answer.upVote();
+                    repository.saveObject(answer).catch(err => {
+                        throw err
+                    }).then((savedAnswer) => {
+                        socket.emit(emits.updateAnswerVotes, savedAnswer);
+                        socket.broadcast.emit(emits.updateAnswerVotes, savedAnswer);
+                    });
+                });
+            }).on(receives.decrementAnswerUpVotes, function (answerId) {
+                repository.getAnswerById(sanitizer.escape(answerId)).catch(err => {
+                    throw err
+                }).then(answer => {
+                    answer.downVote();
+                    repository.saveObject(answer).catch(err => {
+                        throw err
+                    }).then((savedAnswer) => {
+                        socket.emit(emits.updateAnswerVotes, savedAnswer);
+                        socket.broadcast.emit(emits.updateAnswerVotes, savedAnswer);
+                    });
+                });
+            }).on(receives.approvedAnswerStateChanged, function (answerId) {
+                repository.getAnswerById(sanitizer.escape(answerId)).catch(err => {
+                    throw err
+                }).then(answer => {
+                    answer.changeIsApproved();
+                    repository.saveObject(answer).catch(err => {
+                        throw err
+                    }).then((savedAnswer) => {
+                        console.log("Answer (" + savedAnswer.answer + ") changed approved state to (" + savedAnswer.isApproved + ") in thread (" + savedAnswer.parentNode.question + ")");
+                        socket.broadcast.emit(emits.approvedAnswerStateChanged, savedAnswer);
+                    });
+                });
+            });
         });
     };
 
