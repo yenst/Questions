@@ -17,6 +17,10 @@ html(lang="en")
                 a(href="/auth/google") Sign in with Google
             else
                 p #{loginText} #{user.email}
+            
+            if isTeacher
+                p teacher logged in
+                script var teacher = "1"
         
        
         section.container

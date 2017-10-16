@@ -140,8 +140,6 @@ let gInterface = (function () {
         );
     };
 
-    const url = new URL(document.URL);
-    const teacher = url.searchParams.get("t");
     let createAnswerContainer = function (answer, upVotes, isApproved) {
         let $li = $("<li class='answerWrap row' >" +
             "<div class='up_number_down col-2'><button  class='upVoteAnswer component_updown' onclick='gInterface.upVoteAnswer(this)'><i class='fa fa-chevron-up' aria-hidden='true'></i></button>" +

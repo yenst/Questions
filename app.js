@@ -45,11 +45,15 @@ passport.deserializeUser(function(user, done) {
 });
 
 app.get("/", function(req, res, next) {
+  var isTeacher = checkForTeacher(req.user);
+
   if (req.session.user) {
     // return page with user info
     return res.render("layout.pug", {
       user: req.session.user,
-      loginText: "logged in as "
+      loginText: "logged in as ",
+      isTeacher
+      
     });
   }
 
@@ -76,6 +80,23 @@ app.use("/auth", auth);
 app.get("/teacher", function(req, res, next) {
   //login stuff atm
 });
+
+
+let checkForTeacher = function(user){
+  if (user !== undefined){
+    var u = user._json.domain;
+    if(u=='student.howest.be'){
+      return false;
+    }
+    else{
+      return true;
+    }
+  }
+
+
+
+
+};
 
 const httpServer = http.createServer(app);
 
