@@ -78,14 +78,17 @@ app.get("/", function(req, res, next) {
 
 });
 
+app.get("/checkteacher", function (req, res, next) {
+    res.send(JSON.stringify(checkForTeacher(req.user)));
+});
+
 app.get("/login", function (req, res, next) {
 });
 
 app.use("/auth", auth);
 
 app.get("/teacher", function (req, res, next) {
-    //login stuff atm
-});
+console.log("toegekomen")});
 
 
 let checkForTeacher = function(user){
