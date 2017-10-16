@@ -11,6 +11,9 @@
     float:left;
 }
 
+.showAnswersBtn u:hover{
+    cursor: pointer;
+}
 
 .btnAnswer{
     width:20%;
