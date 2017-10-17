@@ -25,4 +25,5 @@ sudo echo "172.21.22.52  questions.dev" >> /etc/hosts
 
 Windows
 -----------
+open cmd as administrator
 echo 172.21.22.52 questions.dev >> %windir%\System32\drivers\etc\hosts
