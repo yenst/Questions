@@ -390,7 +390,7 @@ let gInterface = (function () {
     };
 
     let showError = function (error) {
-        alert(error);
+        $("#errortext").html(error);
     };
 
     return {
