@@ -80,50 +80,50 @@ let socketModule = (function () {
     };
 
     let incrementThreadUpVotes = function (threadId) {
-        ajaxCalls.getUID().catch(err => {
-            gInterface.showError(err);
-        }).then(userId => {
+        ajaxCalls.getUID().then(userId => {
             let data = {
                 threadId: threadId,
                 userId: userId
             };
             socket.emit(emits.incrementThreadUpVotes, data);
+        }).catch(err => {
+            gInterface.showError(err);
         });
     };
 
     let decrementThreadUpVotes = function (threadId) {
-        ajaxCalls.getUID().catch(err => {
-            gInterface.showError(err);
-        }).then(userId => {
+        ajaxCalls.getUID().then(userId => {
             let data = {
                 threadId: threadId,
                 userId: userId
             };
             socket.emit(emits.decrementThreadUpVotes, data);
+        }).catch(err => {
+            gInterface.showError(err);
         });
     };
 
     let incrementAnswerUpVotes = function (answerId) {
-        ajaxCalls.getUID().catch(err => {
-            gInterface.showError(err);
-        }).then(userId => {
+        ajaxCalls.getUID().then(userId => {
             let data = {
                 answerId: answerId,
                 userId: userId
             };
             socket.emit(emits.incrementAnswerUpVotes, data);
+        }).catch(err => {
+            gInterface.showError(err);
         });
     };
 
     let decrementAnswerUpVotes = function (answerId) {
-        ajaxCalls.getUID().catch(err => {
-            gInterface.showError(err)
-        }).then(userId => {
+        ajaxCalls.getUID().then(userId => {
             let data = {
                 answerId: answerId,
                 userId: userId
             };
             socket.emit(emits.decrementAnswerUpVotes, data);
+        }).catch(err => {
+            gInterface.showError(err)
         });
     };
 
@@ -146,7 +146,8 @@ let ajaxCalls = {
                 type: "GET",
                 url: "/checkteacher",
                 success: function (data) {
-                    resolve(data);
+                    let parsedData = JSON.parse(data);
+                    resolve(parsedData.isTeacher)
                 },
                 error: function (jqXHR, textStatus, errorThrown) {
                     reject("teacher call failed");
@@ -159,9 +160,10 @@ let ajaxCalls = {
             $.ajax({
                 type: "GET",
                 url: "/getUserId",
-                success: function (userId) {
-                    if (userId) {
-                        resolve(userId);
+                success: function (data) {
+                    let parsedData = JSON.parse(data);
+                    if (parsedData.isLoggedIn) {
+                        resolve(parsedData.userId);
                     } else {
                         reject("Not logged in");
                     }
@@ -318,18 +320,17 @@ let gInterface = (function () {
 
     let refreshThreads = function (threads) {
         $("#threads").html("");
-        ajaxCalls.isTeacher().catch(err => console.log(err)).then(isTeacher => {
+        ajaxCalls.isTeacher().then(isTeacher => {
             threads.forEach(thread => {
                 addThread(thread, isTeacher);
             });
+        }).catch(err => {
+            gInterface.showError(err);
         });
     };
 
     let addAnswerToThread = function (answer) {
-        console.log(answer);
-        ajaxCalls.isTeacher().catch(err => {
-            console.log(err)
-        }).then(isTeacher => {
+        ajaxCalls.isTeacher().then(isTeacher => {
             let $li = createAnswerContainer(answer, isTeacher);
             let $questionWrap = $("#threads")
                 .find(".question:contains('" + answer.parentNode.question + "')")
@@ -345,6 +346,8 @@ let gInterface = (function () {
                     answer.parentNode.answers.length +
                     " answers</u>"
                 );
+        }).catch(err => {
+            gInterface.showError(err);
         });
     };
 
