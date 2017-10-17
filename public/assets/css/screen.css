@@ -73,3 +73,7 @@ padding:30px;
     display: none;
 }
 
+
+#errortext{
+    color:red;
+}
