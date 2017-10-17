@@ -14,3 +14,15 @@ Setup Guide
 5. run following command in the directory where app.js is:
 	node app.js
 6. surf to localhost:8080
+
+
+## Hostfile guide:
+
+MacOS/linux
+-----------
+sudo echo "172.21.22.52  questions.dev" >> /etc/hosts
+
+
+Windows
+-----------
+run added script as administrator
