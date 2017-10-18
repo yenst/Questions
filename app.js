@@ -20,7 +20,7 @@ passport.use(
             clientID:
                 "320429270103-9hls0ae1q34g6j3tav7dkr6k9lq7ie0a.apps.googleusercontent.com",
             clientSecret: "a-EvkBiEu3UUr8KbKjWsxxRL",
-            callbackURL: "http://questions.dev:8080/auth/google/callback"
+            callbackURL: "http://172.21.22.52.xip.io:8080/auth/google/callback"
         },
         function (req, accessToken, refreshToken, profile, done) {
             done(null, profile);
