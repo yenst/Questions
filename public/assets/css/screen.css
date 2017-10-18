@@ -1,79 +1,73 @@
 @import url("./reset.css");
 
-
-.container{
-    width:100%;
+.container {
+    width: 100%;
 }
 
-
-.question{
-    width:80%;
-    float:left;
+.question {
+    width: 80%;
+    float: left;
 }
 
-.showAnswersBtn u:hover{
+.showAnswersBtn u:hover {
     cursor: pointer;
 }
 
-.btnAnswer{
-    width:20%;
-    float:left;
+.btnAnswer {
+    width: 20%;
+    float: left;
 }
 
-.component_updown{
-    width:100%;
+.component_updown {
+    width: 100%;
 }
 
-.up_number_down{
-    text-align:center;
+.up_number_down {
+    text-align: center;
 
 }
 
-
-.question{
+.question {
     font-size: 1.5rem;
 }
 
-.thread{
-margin-bottom: 20px;
-background-color:#F5F5F5;
-padding:30px;
+.thread {
+    margin-bottom: 20px;
+    background-color: #F5F5F5;
+    padding: 30px;
 }
 
-.questionWrap{
-    margin-bottom:15px;
+.questionWrap {
+    margin-bottom: 15px;
     border-bottom: 1px solid #6c757d;
     padding-bottom: 10px;
 }
 
-#questionForm{
-    margin-bottom:20px;
+#questionForm {
+    margin-bottom: 20px;
 }
 
-.questionHeading{
-    margin-bottom:15px;
+.questionHeading {
+    margin-bottom: 15px;
 }
 
-.answers{
-    margin-bottom:20px;
+.answers {
+    margin-bottom: 20px;
 }
 
-.answerWrap{
-    margin-bottom:10px;
-    padding:5px;
-
+.answerWrap {
+    margin-bottom: 10px;
+    padding: 5px;
 }
 
-.approved{
+.approved {
     background-color: #7fb922;
-
 }
 
 .hide {
     display: none;
 }
 
-
-#errortext{
-    color:red;
+#errortext {
+    color: red;
 }

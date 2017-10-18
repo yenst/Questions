@@ -48,17 +48,17 @@ passport.deserializeUser(function (user, done) {
 let isTeacher = function (user) {
     if (user !== undefined) {
         let u = user._json.domain;
-        switch(u){
+        switch (u) {
             case 'student.howest.be':
-            return false;
-            break;
+                return true;
+                break;
 
             case 'howest.be':
-            return true;
-            break;
+                return true;
+                break;
 
             default:
-            return false;
+                return false;
         }
     }
 };
@@ -87,7 +87,7 @@ app.get("/", function (req, res) {
 });
 
 app.get("/logout", function (req, res) {
-    if(req.session){
+    if (req.session) {
         req.session.destroy();
         res.redirect('/');
     }
@@ -127,7 +127,10 @@ let serverSocketModule = (function () {
         approvedAnswerStateChanged: "8",
         updateAnswerVotes: "9",
         updateQuestionVotes: "10",
-        loggedInSession: "11"
+        loggedInSession: "11", // TODO is this used?
+        removedAnswer: "12",
+        removedThread: "13"
+
     };
     let receives = {
         OpenNewThread: "a",
@@ -136,7 +139,9 @@ let serverSocketModule = (function () {
         decrementAnswerUpVotes: "d",
         incrementThreadUpVotes: "e",
         decrementThreadUpVotes: "f",
-        approvedAnswerStateChanged: "g"
+        approvedAnswerStateChanged: "g",
+        removeAnswer: "h",
+        removeThread: "i"
     };
 
     //------------- \\
@@ -267,6 +272,18 @@ let serverSocketModule = (function () {
                     });
                 }).catch(err => {
                     throw err
+                });
+            }).on(receives.removeAnswer, function (answerId) {
+                repository.removeAnswerById(sanitizer.escape(answerId)).then((removedAnswer) => {
+                    socket.broadcast.emit(emits.removedAnswer, removedAnswer);
+                }).catch(err => {
+                    throw err;
+                })
+            }).on(receives.removeThread, function (threadId) {
+                repository.removeThreadByIdCascade(sanitizer.escape(threadId)).then(removedThread => {
+                    socket.broadcast.emit(emits.removedThread, removedThread);
+                }).catch(err => {
+                    throw err;
                 });
             });
         });
