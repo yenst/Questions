@@ -9,6 +9,7 @@ const session = require("express-session");
 const repository = require("./js/repository");
 const Thread = require("./js/mongoose_models/thread");
 const Answer = require("./js/mongoose_models/answer");
+const Tag = require("./js/mongoose_models/tag");
 const auth = require("./js/auth");
 
 const app = express();
@@ -136,7 +137,9 @@ let serverSocketModule = (function () {
         decrementAnswerUpVotes: "d",
         incrementThreadUpVotes: "e",
         decrementThreadUpVotes: "f",
-        approvedAnswerStateChanged: "g"
+        approvedAnswerStateChanged: "g",
+        addNewTag: "j",
+        removeTag:"k"
     };
 
     //------------- \\
@@ -268,6 +271,15 @@ let serverSocketModule = (function () {
                 }).catch(err => {
                     throw err
                 });
+            }).on(receives.addNewTag,function(data){
+                console.log("data ",data);
+                let tagObject = new Tag({tagname: sanitizer.escape(data.tagname)});
+             repository.addTag(data.threadId,tagObject).then(function(){
+                 console.log("Tag (" +tagObject.tagname + ") toegevoegd");
+             })
+            }).on(receives.removeTag,function(data){
+                console.log("data ",data);
+                repository.removeTag(data.threadId,data.tagId);
             });
         });
     };

@@ -2,13 +2,15 @@
 
 const mongoose = require("mongoose");
 const Answer = require("./answer");
+const Tag = require("./tag");
 
 let ThreadSchema = mongoose.Schema({
     question: {type: String, required: true},
     votes: {type: Number, default: 0},
     upVotedUserIds: [{type: String}],
     downVotedUserIds: [{type: String}],
-    answers: [{type: mongoose.Schema.ObjectId, ref: "Answer"}]
+    answers: [{type: mongoose.Schema.ObjectId, ref: "Answer"}],
+    tags: [{type: mongoose.Schema.ObjectId,ref:"Tag"}]
 });
 /*
 question: String,
@@ -40,6 +42,35 @@ ThreadSchema.methods.addNewAnswer = function(newAnswerObject){
             reject("Answer is not unique");
         }
     });
+};
+
+ThreadSchema.methods.addNewTag = function(newTagObject){
+    let self = this;
+    let hasTagBeenAdded =function(tagName){
+        let tag = self.tags.find(tagObject => tagObject.tagname === tagName);
+        return tag;    
+    };
+
+    return new Promise( (resolve,reject) => {
+        if(!hasTagBeenAdded(newTagObject.tagname)){
+            this.tags.push(newTagObject);
+            resolve();
+        }
+        else{
+            reject("tag already added");
+        }
+    })
+};
+
+ThreadSchema.methods.removeTag = function(tagId){
+
+    let self = this;
+    return new Promise((resolve,reject)=>{
+        console.log(self.tags);           
+        self.tags.remove(tagId);
+        console.log(self.tags);   
+        resolve();
+    })
 };
 
 // TODO refactor voting in thread.js and answer.js
