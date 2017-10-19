@@ -8,7 +8,12 @@ let AnswerSchema = mongoose.Schema({
     isApproved: {type: Boolean, default: false},
     upVotedUserIds: [{type: String}],
     downVotedUserIds: [{type: String}],
-    parentNode: {type: mongoose.Schema.ObjectId, ref:"Thread"}
+    parentNode: {type: mongoose.Schema.ObjectId, oneOf: [
+                {ref: "Thread"},
+                {ref: "Answer"}
+             ]},
+    answers: [{type: mongoose.Schema.ObjectId, ref: "Answer"}]
+
 
     // parentNode is a Thread object or an Answer Object
     // parentNode: {
@@ -20,7 +25,22 @@ let AnswerSchema = mongoose.Schema({
     // },
     // childNodes: [{type: mongoose.Schema.ObjectId, ref: 'Answer'}]
 });
+AnswerSchema.methods.addNewAnswer = function(newAnswerObject){
+    let self = this;
+    let isAnswerUnique = function(answerText){
+        let answer = self.answers.find(answerObject => answerObject.answer === answerText);
+        return !answer; // if answer exists => false; else => true
+    };
 
+    return new Promise( (resolve, reject) => {
+        if(isAnswerUnique(newAnswerObject.answer)){
+            this.answers.push(newAnswerObject);
+            resolve();
+        } else {
+            reject("Answer is not unique");
+        }
+    });
+};
 AnswerSchema.methods.changeIsApproved = function(){
     this.isApproved = !this.isApproved;
 };

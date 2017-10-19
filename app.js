@@ -9,6 +9,7 @@ const session = require("express-session");
 const repository = require("./js/repository");
 const Thread = require("./js/mongoose_models/thread");
 const Answer = require("./js/mongoose_models/answer");
+
 const auth = require("./js/auth");
 
 const app = express();
@@ -127,7 +128,8 @@ let serverSocketModule = (function () {
         approvedAnswerStateChanged: "8",
         updateAnswerVotes: "9",
         updateQuestionVotes: "10",
-        loggedInSession: "11"
+        loggedInSession: "11",
+        addedAnswerToAnswer: "12"
     };
     let receives = {
         OpenNewThread: "a",
@@ -136,7 +138,8 @@ let serverSocketModule = (function () {
         decrementAnswerUpVotes: "d",
         incrementThreadUpVotes: "e",
         decrementThreadUpVotes: "f",
-        approvedAnswerStateChanged: "g"
+        approvedAnswerStateChanged: "g",
+        answerAnswered: "h"
     };
 
     //------------- \\
@@ -147,6 +150,7 @@ let serverSocketModule = (function () {
         serverSocket.on("connection", function (socket) {
             repository.getAllThreads().then(threads => {
                 threads.forEach(thread => {
+
                     thread.answers = helperFunctions.sortByUpVotes(thread.answers);
                     // TODO sort by approved
                 });
@@ -173,11 +177,9 @@ let serverSocketModule = (function () {
                     let answer = new Answer({answer: answerText, parentNode: returnedThread._id});
                     returnedThread.addNewAnswer(answer).then(() => {
                         repository.saveObject(returnedThread).then(() => {
-                            repository.saveObject(answer).catch(err => {
-                                throw err
-                            }).then(savedAnswer => {
-                                Answer.populate(savedAnswer, "parentNode").then(populatedAnswer => {
-                                    console.log("Added answer (" + populatedAnswer.answer + ") to thread (" + populatedAnswer.parentNode.question + ")");
+                            repository.saveObject(answer).then(savedAnswer => {
+                                Thread.populate(savedAnswer, "parentNode").then(populatedAnswer => {
+                                    console.log(populatedAnswer);
                                     socket.emit(emits.addedNewAnswer, populatedAnswer);
                                     socket.broadcast.emit(emits.addedNewAnswer, populatedAnswer);
                                 }).catch(err => {
@@ -195,6 +197,42 @@ let serverSocketModule = (function () {
                 }).catch(err => {
                     throw err
                 });
+            }).on(receives.answerAnswered, function(data){
+                let threadId = repository.createObjectId(sanitizer.escape(data.threadId));
+                repository.getThreadById(threadId).then(returnedThread => {
+                    let answerId = repository.createObjectId(sanitizer.escape(data.answerId));
+                    repository.getAnswerById(answerId).then(returnedAnswer => {
+                        let answerText = data.answer;
+                        let answer = new Answer({answer: answerText, parentNode: returnedAnswer._id});
+                        returnedAnswer.addNewAnswer(answer).then( () => {
+                            repository.saveObject(returnedThread).then(() => {
+                                repository.saveObject(returnedAnswer).then(() => {
+                                    repository.saveObject(answer).then(savedAnswer => {
+                                        Answer.populate(savedAnswer, "parentNode").then(populatedAnswer => {
+                                                socket.emit(emits.addedAnswerToAnswer, populatedAnswer);
+                                                socket.broadcast.emit(emits.addedAnswerToAnswer, populatedAnswer);
+                                        }).catch(err => {
+                                            throw err
+                                        });
+                                    }).catch(err => {
+                                        throw err;
+                                    })
+                                }).catch(err => {
+                                    throw err;
+                                })
+                            }).catch(err => {
+                                throw err;
+                            })
+                        }).catch(err => {
+                            throw err;
+                        })
+                    }).catch(err => {
+                        throw err;
+                    })
+                }).catch(err => {
+                    throw err
+                });
+
             }).on(receives.incrementThreadUpVotes, function (data) {
                 repository.getThreadById(sanitizer.escape(data.threadId)).then(thread => {
                     thread.upVote(sanitizer.escape(data.userId)).then(() => {

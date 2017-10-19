@@ -8,7 +8,7 @@ let ThreadSchema = mongoose.Schema({
     votes: {type: Number, default: 0},
     upVotedUserIds: [{type: String}],
     downVotedUserIds: [{type: String}],
-    answers: [{type: mongoose.Schema.ObjectId, ref: "Answer"}]
+    answers: [{type: mongoose.Schema.ObjectId, ref: "Answer"}],
 });
 /*
 question: String,

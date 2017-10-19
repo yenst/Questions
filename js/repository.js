@@ -42,7 +42,19 @@ let repository = (function () {
     };
     publicMethods.getAllThreads = function () {
         return new Promise((resolve, reject) => {
-            Thread.find({}).populate('answers').sort({votes: -1}).then(threads => {
+            Thread.find({}).populate({
+                path: 'answers',
+                populate: {
+                    path: 'answers',
+                    model: 'Answer'
+                }
+            }).sort({votes: -1}).then(threads => {
+                threads.forEach(thread => {
+                    thread.answers.forEach(answer => {
+                        console.log(answer)
+                    })
+                });
+
                 resolve(threads)
             }).catch(err => reject(err));
         })
@@ -57,6 +69,13 @@ let repository = (function () {
     publicMethods.getAnswerById = function (id) {
         return new Promise((resolve, reject) => {
             Answer.findOne({_id: id}).populate('parentNode').then(answer => {
+                resolve(answer)
+            }).catch(err => reject(err));
+        })
+    };
+    publicMethods.getAnswerToAnswerById = function (id) {
+        return new Promise((resolve, reject) => {
+            AnswerToAnswer.findOne({_id: id}).populate('parentNode').then(answer => {
                 resolve(answer)
             }).catch(err => reject(err));
         })
