@@ -14,6 +14,7 @@ let socketModule = (function () {
         updateAnswerVotes: "9",
         updateQuestionVotes: "10",
         loggedInSession: "11",
+        addedAnswerToAnswer: "12"
         sendNewTag:"14",
         sendRemoveTag:"15"
     };
@@ -25,6 +26,7 @@ let socketModule = (function () {
         incrementThreadUpVotes: "e",
         decrementThreadUpVotes: "f",
         approvedAnswerStateChanged: "g",
+        answerAnswered: "h",
         addNewTag:"j",
         removeTag:"k"
     };
@@ -64,7 +66,8 @@ let socketModule = (function () {
             .on(receives.approvedAnswerStateChanged, handleApprovedAnswerState)
             .on(receives.updateAnswerVotes, gInterface.updateAnswerVotes)
             .on(receives.updateQuestionVotes, handleUpdateQuestionVotes)
-            .on(receives.loggedInSession, handleLogInSession);
+            .on(receives.loggedInSession, handleLogInSession)
+            .on(receives.addedAnswerToAnswer, gInterface.updateAnswerToAnswer);
     };
 
     let sendNewQuestion = function (question) {
@@ -89,6 +92,15 @@ let socketModule = (function () {
             answer: answer
         };
         socket.emit(emits.questionAnswered, data);
+    };
+
+    let sendNewAnswerToAnswer = function(threadId, answerId, answer){
+        let data = {
+            threadId: threadId,
+            answerId: answerId,
+            answer: answer
+        };
+        socket.emit(emits.answerAnswered,data);
     };
 
     let sendApprovedAnswer = function (answerId) {
@@ -143,6 +155,37 @@ let socketModule = (function () {
         });
     };
 
+    let addAnswerToThread = function(e){
+        e.preventDefault();
+        let $answer = $(e.target).find("input[name='answer']");
+        let threadId = $(e.target)
+            .parent()
+            .attr("data-id");
+        socketModule.sendNewAnswer(threadId, $answer.val());
+        $(e.target)
+            .parent()
+            .find(".answers")
+            .removeClass("hide");
+        $answer.val("");
+    };
+
+
+    let addAnswerToAnswer = function(e){
+        e.preventDefault();
+        let $answer = $(e.target).find("input[name='answerToAnswer']");
+        let threadId = $(e.target)
+            .parent()
+            .parent()
+            .parent()
+            .attr("data-id");
+        let answerId = $(e.target)
+            .parent()
+            .attr("data-id");
+        socketModule.sendNewAnswerToAnswer(threadId, answerId, $answer.val());
+
+        $answer.val("");
+    };
+
     return {
         init,
         sendNewQuestion,
@@ -152,6 +195,9 @@ let socketModule = (function () {
         incrementAnswerUpVotes,
         decrementAnswerUpVotes,
         sendApprovedAnswer,
+        addAnswerToThread,
+        addAnswerToAnswer,
+        sendNewAnswerToAnswer
         sendNewTag,
         sendRemoveTag
     };
@@ -216,11 +262,11 @@ let gInterface = (function () {
             thread.answers.length +
             " answers</u></a>" +
             "</div>" +
-            "<ul class='answers hide'></ul>" +
-            "<form class='answerForm row' action='#'>" +
+            "<form class='answerForm row col-12' action='#' onsubmit='socketModule.addAnswerToThread(event)'>" +
             "<input type='text' name='answer' class='col-10' autocomplete=\"off\"> " +
             "<input type='submit' class='col-2' value='Answer'/>" +
             "</form>" +
+            "<ul class='answers hide'></ul>" +
             "</li>"
         );
 
@@ -248,8 +294,18 @@ let gInterface = (function () {
             "<p class='answer col-8'>" +
             answer.answer +
             "</p>" +
+            "<form class='answerToAnswerForm row col-6' action='#' onsubmit='socketModule.addAnswerToAnswer(event)'>" +
+            "<input type='text' name='answerToAnswer' class='col-10' autocomplete=\"off\"> " +
+            "<input type='submit' class='col-2' value='Answer'/>" +
+            "</form>" +
+            "<ul class='answersToAnswer col-12'>" +
+
+            "</ul>" +
             "</li>"
         );
+        answer.answers.forEach(answer => {
+            $li.find(".answersToAnswer").append(createAnswerToAnswerContainer(answer));
+        });
         if (isTeacher) {
             $li.append(
                 "<button class='col-2 .approve' onclick='gInterface.approveAnswer(this)'><i class='fa fa-star' aria-hidden='true'></i></button>"
@@ -258,6 +314,19 @@ let gInterface = (function () {
         if (answer.isApproved) {
             $li.addClass("approved");
         }
+        return $li;
+    };
+
+    let createAnswerToAnswerContainer = function(answer){
+        let $li = $(
+            "<li class='answerWrap row' data-id='" +
+            answer._id +
+            "'>" +
+            "<p class='answer col-8'>" +
+            answer.answer +
+            "</p>" +
+            "</li>"
+        );
         return $li;
     };
 
@@ -325,21 +394,7 @@ let gInterface = (function () {
             $questionInput.val("");
         });
 
-        $("#threads").on("submit", $(".answerForm"), function (e) {
-            e.preventDefault();
-            let $answer = $(e.target).find("input[name='answer']");
-            let threadId = $(e.target)
-                .parent()
-                .attr("data-id");
-            socketModule.sendNewAnswer(threadId, $answer.val());
-            $(e.target)
-                .parent()
-                .find(".answers")
-                .removeClass("hide");
-            $answer.val("");
-        });
 
-        
     };
 
     let addThread = function (thread, isTeacher) {
@@ -427,6 +482,17 @@ let gInterface = (function () {
         $("#errortext").html(error);
     };
 
+    let updateAnswerToAnswer =  function(answer){
+        let $li = createAnswerToAnswerContainer(answer);
+        let $questionWrap = $("#threads")
+            .find(".answer:contains('" + answer.parentNode.answer + "')")
+            .parent();
+
+        $questionWrap
+            .find(".answersToAnswer")
+            .append($li);
+    };
+
     let addTag = function(e){
             let $tag = $(e).find("input[name='tag']");
             console.log('tag queued:' + $tag.val());
@@ -464,7 +530,9 @@ let gInterface = (function () {
         updateAnswerVotes,
         showAnswers,
         showError,
+        createAnswerToAnswerContainer,
+        updateAnswerToAnswer
+
         addTag,
-        removeTag
-    };
+        removeTag    };
 })();
