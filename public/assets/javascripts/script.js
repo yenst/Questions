@@ -15,6 +15,8 @@ let socketModule = (function () {
         updateQuestionVotes: "10",
         loggedInSession: "11",
         addedAnswerToAnswer: "12"
+        sendNewTag:"14",
+        sendRemoveTag:"15"
     };
     let emits = {
         OpenNewThread: "a",
@@ -25,6 +27,8 @@ let socketModule = (function () {
         decrementThreadUpVotes: "f",
         approvedAnswerStateChanged: "g",
         answerAnswered: "h",
+        addNewTag:"j",
+        removeTag:"k"
     };
 
     let handleNewThread = function (data) {
@@ -69,6 +73,18 @@ let socketModule = (function () {
     let sendNewQuestion = function (question) {
         socket.emit(emits.OpenNewThread, question);
     };
+
+    let sendNewTag = function(threadId,tagname){
+        let data={threadId,tagname};
+        socket.emit(emits.addNewTag,data);
+    }
+
+    let sendRemoveTag = function(threadId,tagId){
+    
+        let data = {threadId,tagId};
+        console.log(data);
+        socket.emit(emits.removeTag,data);
+    }
 
     let sendNewAnswer = function (threadId, answer) {
         let data = {
@@ -182,6 +198,8 @@ let socketModule = (function () {
         addAnswerToThread,
         addAnswerToAnswer,
         sendNewAnswerToAnswer
+        sendNewTag,
+        sendRemoveTag
     };
 })();
 
@@ -224,7 +242,8 @@ let ajaxCalls = {
 
 let gInterface = (function () {
     let createThreadContainer = function (thread) {
-        return $(
+        console.log(thread);
+        let threadContainer = $(
             "<li class='thread' data-id='" +
             thread._id +
             "'>" +
@@ -234,9 +253,11 @@ let gInterface = (function () {
             thread.votes +
             "</span>" +
             "<button  class='downVoteThread component_updown' onclick='gInterface.downVoteThread(this)'><i class='fa fa-chevron-down' aria-hidden='true'></i></button></div>" +
-            "<p class='question col-10'>" +
+            "<div class='question col-10'><p>" +
             thread.question +
-            "</p>" +
+            "</p><div class='row'><ul class='tagscontainer col-7'></ul><form class='col-5' onsubmit='gInterface.addTag(this)'><input type='text' name='tag'></form></div>"+
+            "</div>" +
+            
             "<a class='showAnswersBtn col-12 text-center' onclick='gInterface.showAnswers(this)'><u class='text-info'>" +
             thread.answers.length +
             " answers</u></a>" +
@@ -248,7 +269,16 @@ let gInterface = (function () {
             "<ul class='answers hide'></ul>" +
             "</li>"
         );
+
+        thread.tags.forEach(function(tag){
+            console.log(tag);   
+            $(threadContainer).find('.tagscontainer').append("<li class='tagclass badge badge-pill badge-primary'><a onclick='gInterface.removeTag(this)' data-id='"+tag._id+"'>"+tag.tagname+"</a></li>");
+        });
+
+        return(threadContainer);
+
     };
+
 
     let createAnswerContainer = function (answer, isTeacher) {
         let $li = $(
@@ -365,10 +395,6 @@ let gInterface = (function () {
         });
 
 
-
-        /*$("#threads").on("submit", $(".answerForm"), function (e) {
-
-        });*/
     };
 
     let addThread = function (thread, isTeacher) {
@@ -411,6 +437,8 @@ let gInterface = (function () {
             gInterface.showError(err);
         });
     };
+
+   
 
     let changeApprovedAnswerState = function (answer) {
         $("#threads")
@@ -465,6 +493,28 @@ let gInterface = (function () {
             .append($li);
     };
 
+    let addTag = function(e){
+            let $tag = $(e).find("input[name='tag']");
+            console.log('tag queued:' + $tag.val());
+            let threadId = $(e)
+            .closest("li.thread")
+                .attr("data-id");
+                console.log(threadId);
+            socketModule.sendNewTag(threadId,$tag.val());
+            
+        };
+
+    let removeTag = function(e){
+
+        let $threadId = $(e)
+        .closest("li.thread")
+        .attr("data-id");
+        console.log($threadId);
+        
+        socketModule.sendRemoveTag($threadId,$(e).attr("data-id"));
+    }
+    
+
     return {
         init,
         addThread,
@@ -483,5 +533,6 @@ let gInterface = (function () {
         createAnswerToAnswerContainer,
         updateAnswerToAnswer
 
-    };
+        addTag,
+        removeTag    };
 })();

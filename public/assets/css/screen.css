@@ -77,3 +77,7 @@ padding:30px;
 #errortext{
     color:red;
 }
+
+.col-5 input{
+    width:100%;
+}
