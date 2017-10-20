@@ -81,6 +81,7 @@ let socketModule = (function () {
         let data = {threadId,tagId};
         console.log(data);
         socket.emit(emits.removeTag,data);
+        
     }
 
     let sendNewAnswer = function (threadId, answer) {

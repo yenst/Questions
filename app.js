@@ -280,6 +280,7 @@ let serverSocketModule = (function () {
             }).on(receives.removeTag,function(data){
                 console.log("data ",data);
                 repository.removeTag(data.threadId,data.tagId);
+                
             });
         });
     };
