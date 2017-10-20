@@ -142,7 +142,7 @@ let serverSocketModule = (function () {
         decrementThreadUpVotes: "f",
         approvedAnswerStateChanged: "g",
 
-        answerAnswered: "h"
+        answerAnswered: "h",
         addNewTag: "j",
         removeTag:"k"
 

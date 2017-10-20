@@ -14,7 +14,7 @@ let socketModule = (function () {
         updateAnswerVotes: "9",
         updateQuestionVotes: "10",
         loggedInSession: "11",
-        addedAnswerToAnswer: "12"
+        addedAnswerToAnswer: "12",
         sendNewTag:"14",
         sendRemoveTag:"15"
     };
@@ -197,7 +197,7 @@ let socketModule = (function () {
         sendApprovedAnswer,
         addAnswerToThread,
         addAnswerToAnswer,
-        sendNewAnswerToAnswer
+        sendNewAnswerToAnswer,
         sendNewTag,
         sendRemoveTag
     };
@@ -531,7 +531,7 @@ let gInterface = (function () {
         showAnswers,
         showError,
         createAnswerToAnswerContainer,
-        updateAnswerToAnswer
+        updateAnswerToAnswer,
 
         addTag,
         removeTag    };
