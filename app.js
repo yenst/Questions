@@ -49,17 +49,17 @@ passport.deserializeUser(function (user, done) {
 let isTeacher = function (user) {
     if (user !== undefined) {
         let u = user._json.domain;
-        switch(u){
+        switch (u) {
             case 'student.howest.be':
-            return false;
-            break;
+                return false;
+                break;
 
             case 'howest.be':
-            return true;
-            break;
+                return true;
+                break;
 
             default:
-            return false;
+                return false;
         }
     }
 };
@@ -88,7 +88,7 @@ app.get("/", function (req, res) {
 });
 
 app.get("/logout", function (req, res) {
-    if(req.session){
+    if (req.session) {
         req.session.destroy();
         res.redirect('/');
     }
@@ -128,7 +128,8 @@ let serverSocketModule = (function () {
         approvedAnswerStateChanged: "8",
         updateAnswerVotes: "9",
         updateQuestionVotes: "10",
-        loggedInSession: "11"
+        addedNewTag: "11",
+        removedTag: "12"
     };
     let receives = {
         OpenNewThread: "a",
@@ -139,7 +140,7 @@ let serverSocketModule = (function () {
         decrementThreadUpVotes: "f",
         approvedAnswerStateChanged: "g",
         addNewTag: "j",
-        removeTag:"k"
+        removeTag: "k"
     };
 
     //------------- \\
@@ -271,16 +272,20 @@ let serverSocketModule = (function () {
                 }).catch(err => {
                     throw err
                 });
-            }).on(receives.addNewTag,function(data){
-                console.log("data ",data);
+            }).on(receives.addNewTag, function (data) {
                 let tagObject = new Tag({tagname: sanitizer.escape(data.tagname)});
-             repository.addTag(data.threadId,tagObject).then(function(){
-                 console.log("Tag (" +tagObject.tagname + ") toegevoegd");
-             })
-            }).on(receives.removeTag,function(data){
-                console.log("data ",data);
-                repository.removeTag(data.threadId,data.tagId);
-                
+                let threadId = sanitizer.escape(data.threadId);
+                repository.addTag(, tagObject).then(function () {
+                    console.log("Tag (" + tagObject.tagname + ") toegevoegd");
+                    let dataToSend = {
+                        threadId: threadId,
+                        tagname: tagObject.tagname
+                    };
+                    socket.emit(emits.addedNewTag, dataToSend);
+                    socket.broadcast.emit(emits.addedNewTag, dataToSend);
+                })
+            }).on(receives.removeTag, function (data) {
+                repository.removeTag(sanitizer.escape(data.threadId), sanitizer.escape(data.tagId));
             });
         });
     };

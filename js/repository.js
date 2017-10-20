@@ -131,7 +131,7 @@ let repository = (function() {
               reject(err);
           })
       })
-  }
+  };
 
   publicMethods.addTag = function(threadId, tagObject) {
     return new Promise((resolve, reject) => {

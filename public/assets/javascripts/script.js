@@ -13,9 +13,8 @@ let socketModule = (function () {
         approvedAnswerStateChanged: "8",
         updateAnswerVotes: "9",
         updateQuestionVotes: "10",
-        loggedInSession: "11",
-        sendNewTag:"14",
-        sendRemoveTag:"15"
+        addedNewTag: "11",
+        removedTag: "12"
     };
     let emits = {
         OpenNewThread: "a",
@@ -25,8 +24,8 @@ let socketModule = (function () {
         incrementThreadUpVotes: "e",
         decrementThreadUpVotes: "f",
         approvedAnswerStateChanged: "g",
-        addNewTag:"j",
-        removeTag:"k"
+        addNewTag: "j",
+        removeTag: "k"
     };
 
     let handleNewThread = function (data) {
@@ -52,6 +51,10 @@ let socketModule = (function () {
     let handleLogInSession = function (data) {
     };
 
+    let handleNewTag = function (data) {
+        gInterface.
+    };
+
     //------------- \\
     // PUBLIC STUFF \\
     //------------- \\
@@ -64,7 +67,7 @@ let socketModule = (function () {
             .on(receives.approvedAnswerStateChanged, handleApprovedAnswerState)
             .on(receives.updateAnswerVotes, gInterface.updateAnswerVotes)
             .on(receives.updateQuestionVotes, handleUpdateQuestionVotes)
-            .on(receives.loggedInSession, handleLogInSession);
+            .on(receives.addedNewTag, handleNewTag);
     };
 
     let sendNewQuestion = function (question) {
@@ -74,15 +77,15 @@ let socketModule = (function () {
     let sendNewTag = function(threadId,tagname){
         let data={threadId,tagname};
         socket.emit(emits.addNewTag,data);
-    }
+    };
 
     let sendRemoveTag = function(threadId,tagId){
     
         let data = {threadId,tagId};
         console.log(data);
         socket.emit(emits.removeTag,data);
-        
-    }
+
+    };
 
     let sendNewAnswer = function (threadId, answer) {
         let data = {
@@ -436,18 +439,15 @@ let gInterface = (function () {
                 .attr("data-id");
                 console.log(threadId);
             socketModule.sendNewTag(threadId,$tag.val());
-            
         };
 
     let removeTag = function(e){
-
         let $threadId = $(e)
         .closest("li.thread")
         .attr("data-id");
         console.log($threadId);
-        
         socketModule.sendRemoveTag($threadId,$(e).attr("data-id"));
-    }
+    };
     
 
     return {
