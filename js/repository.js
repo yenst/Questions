@@ -50,8 +50,13 @@ let repository = (function() {
   publicMethods.getAllThreads = function() {
     return new Promise((resolve, reject) => {
       Thread.find({})
-        .populate("answers")
-        .populate("tags")
+          .populate({
+              path: 'answers',
+              populate: {
+                  path: 'answers',
+                  model: 'Answer'
+              }
+          }).populate("tags")
         .sort({ votes: -1 })
         .then(threads => {
           resolve(threads);
@@ -62,8 +67,13 @@ let repository = (function() {
   publicMethods.getThreadById = function(id) {
     return new Promise((resolve, reject) => {
       Thread.findOne({ _id: id })
-        .populate("answers")
-        .populate("tags")
+          .populate({
+              path: 'answers',
+              populate: {
+                  path: 'answers',
+                  model: 'Answer'
+              }
+          }).populate("tags")
         .then(thread => {
           resolve(thread);
         })
@@ -86,8 +96,13 @@ let repository = (function() {
   publicMethods.getThreadByQuestion = function(question) {
     return new Promise((resolve, reject) => {
       Thread.findOne({ question: question })
-        .populate("answers")
-        .populate("tags")
+          .populate({
+              path: 'answers',
+              populate: {
+                  path: 'answers',
+                  model: 'Answer'
+              }
+          }).populate("tags")
         .then(thread => {
           resolve(thread);
         })
