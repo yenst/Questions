@@ -128,8 +128,10 @@ let serverSocketModule = (function () {
         approvedAnswerStateChanged: "8",
         updateAnswerVotes: "9",
         updateQuestionVotes: "10",
-        addedNewTag: "11",
-        removedTag: "12"
+        removedAnswer: "12",
+        removedThread: "13"
+        addedNewTag: "14",
+        removedTag: "15"
     };
     let receives = {
         OpenNewThread: "a",
@@ -139,6 +141,8 @@ let serverSocketModule = (function () {
         incrementThreadUpVotes: "e",
         decrementThreadUpVotes: "f",
         approvedAnswerStateChanged: "g",
+        removeAnswer: "h",
+        removeThread: "i",
         addNewTag: "j",
         removeTag: "k"
     };
@@ -286,6 +290,19 @@ let serverSocketModule = (function () {
                 })
             }).on(receives.removeTag, function (data) {
                 repository.removeTag(sanitizer.escape(data.threadId), sanitizer.escape(data.tagId));
+
+            }).on(receives.removeAnswer, function (answerId) {
+                repository.removeAnswerById(sanitizer.escape(answerId)).then((removedAnswer) => {
+                    socket.broadcast.emit(emits.removedAnswer, removedAnswer);
+                }).catch(err => {
+                    throw err;
+                })
+            }).on(receives.removeThread, function (threadId) {
+                repository.removeThreadByIdCascade(sanitizer.escape(threadId)).then(removedThread => {
+                    socket.broadcast.emit(emits.removedThread, removedThread);
+                }).catch(err => {
+                    throw err;
+                });
             });
         });
     };

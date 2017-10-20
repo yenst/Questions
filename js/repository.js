@@ -34,15 +34,26 @@ let repository = (function() {
     });
   };
 
-  let publicMethods = {};
-  publicMethods.updateThreadAndAnswers = function(thread) {
-    return new Promise((resolve, reject) => {
-      thread
-        .save()
-        .then(() => {
-          saveAllAnswers(thread.answers)
-            .then(() => resolve())
-            .catch(err => reject(err));
+    let removeAnswerFromThread = function (threadId, answerId) {
+        return new Promise((resolve, reject) => {
+            Thread.update({_id: threadId}, {$pull: {answers: answerId}}).then(() => resolve()).catch(err => reject(err))
+        });
+    };
+
+    let publicMethods = {};
+    publicMethods.updateThreadCascade = function (thread) {
+        return new Promise((resolve, reject) => {
+            thread.save().then(() => {
+                saveAllAnswers(thread.answers).then(() => resolve())
+                    .catch(err => reject(err));
+            }).catch(err => reject(err));
+        });
+    };
+    publicMethods.getAllThreads = function () {
+        return new Promise((resolve, reject) => {
+            Thread.find({}).populate('answers').sort({votes: -1}).then(threads => {
+                resolve(threads)
+            }).catch(err => reject(err));
         })
         .catch(err => reject(err));
     });
@@ -94,28 +105,6 @@ let repository = (function() {
         .catch(err => reject(err));
     });
   };
-  publicMethods.addThread = function(threadObject) {
-    return new Promise((resolve, reject) => {
-      publicMethods
-        .getThreadByQuestion(threadObject.question)
-        .then(thread => {
-          if (!thread) {
-            // only make a new thread, when question is unique
-            threadObject
-              .save()
-              .catch(err => {
-                reject(err);
-              })
-              .then(thread => {
-                resolve(thread);
-              });
-          } else {
-            reject("Question is not unique");
-          }
-        })
-        .catch(err => reject(err));
-    });
-  };
 
   publicMethods.removeTag = function(threadId,tagId){
       return new Promise((resolve,reject)=>{
@@ -148,14 +137,45 @@ let repository = (function() {
         });
     });
   };
-  publicMethods.saveObject = function(object) {
-    return new Promise((resolve, reject) => {
-      object
-        .save()
-        .then(savedObject => resolve(savedObject))
-        .catch(err => reject(err));
-    });
-  };
+    };
+    publicMethods.addThread = function (threadObject) {
+        return new Promise((resolve, reject) => {
+            publicMethods.getThreadByQuestion(threadObject.question).then(thread => {
+                if (!thread) { // only make a new thread, when question is unique
+                    threadObject.save().catch(err => {
+                        reject(err)
+                    }).then((thread) => {
+                        resolve(thread)
+                    });
+                } else {
+                    reject("Question is not unique")
+                }
+            }).catch(err => reject(err));
+        });
+    };
+    publicMethods.saveObject = function (object) {
+        return new Promise((resolve, reject) => {
+            object.save().then(savedObject => resolve(savedObject))
+                .catch(err => reject(err));
+        });
+    };
+    publicMethods.removeThreadByIdCascade = function (id) {
+        return new Promise((resolve, reject) => {
+            Thread.findByIdAndRemove({_id: id}).then(removedThread => {
+                let answerIdsToRemove = removedThread.answers;
+                Answer.remove({_id: {$in: answerIdsToRemove}}).then(() => {
+                    resolve(removedThread);
+                }).catch(err => reject(err));
+            }).catch(err => reject(err));
+        });
+    };
+    publicMethods.removeAnswerById = function (id) {
+        return new Promise((resolve, reject) => {
+            Answer.findByIdAndRemove({_id: id}).then((removedAnswer) => {
+                removeAnswerFromThread(removedAnswer.parentNode, id).then(() => resolve(removedAnswer)).catch(err => reject(err));
+            }).catch(err => reject(err));
+        });
+    };
 
   return publicMethods;
 })();
