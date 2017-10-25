@@ -46,7 +46,7 @@ ThreadSchema.methods.addNewAnswer = function(newAnswerObject){
 
 ThreadSchema.methods.addNewTag = function(newTagObject){
     let self = this;
-    let hasTagBeenAdded =function(tagName){
+    let hasTagBeenAdded=function(tagName){
         let tag = self.tags.find(tagObject => tagObject.tagname === tagName);
         return tag;    
     };

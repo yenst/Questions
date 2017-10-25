@@ -81,3 +81,17 @@ padding:30px;
 .col-5 input{
     width:100%;
 }
+
+.tagclass{margin-right:5px;}
+
+
+a,a:visited {
+    color:white !important;
+    text-decoration: none !important;
+}
+
+a:hover{
+    color:gray !important;
+    text-decoration: none !important;
+}
+
