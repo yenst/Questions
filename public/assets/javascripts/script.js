@@ -213,6 +213,7 @@ let socketModule = (function() {
 })();
 
 let ajaxCalls = {
+
   isTeacher: function() {
     return new Promise(function(resolve, reject) {
       $.ajax({
@@ -224,6 +225,7 @@ let ajaxCalls = {
         },
         error: function(jqXHR, textStatus, errorThrown) {
           reject("teacher call failed");
+
         }
       });
     });
@@ -564,4 +566,5 @@ let gInterface = (function() {
     removeTag,
     showInput
   };
+
 })();
