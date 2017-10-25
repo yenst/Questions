@@ -3,6 +3,7 @@
 let repository = (function() {
   const Thread = require("./mongoose_models/thread");
   const Answer = require("./mongoose_models/answer");
+  const Tag = require("./mongoose_models/tag");
 
   const async = require("async"); // for saving a list of documents with mongoose
   const mongoose = require("mongoose");
@@ -55,7 +56,7 @@ let repository = (function() {
               populate: {
                   path: 'answers',
                   model: 'Answer'
-              }
+              },
           }).populate("tags")
         .sort({ votes: -1 })
         .then(threads => {
@@ -90,6 +91,15 @@ let repository = (function() {
         .catch(err => reject(err));
     });
   };
+    publicMethods.getTagById = function(id) {
+        return new Promise((resolve, reject) => {
+            Tag.findOne({ _id: id })
+                .then(tag => {
+                    resolve(tag);
+                })
+                .catch(err => reject(err));
+        });
+    };
   publicMethods.createObjectId = function(id) {
     return mongoose.Types.ObjectId(id);
   };
@@ -146,16 +156,17 @@ let repository = (function() {
               reject(err);
           })
       })
-  }
+  };
 
   publicMethods.addTag = function(threadId, tagObject) {
     return new Promise((resolve, reject) => {
-      publicMethods.saveObject(tagObject);
+        publicMethods.saveObject(tagObject);
+
       publicMethods
         .getThreadById(threadId)
         .then(function(result) {
-          result.addNewTag(tagObject);
-          publicMethods.saveObject(result);
+                result.addNewTag(tagObject);
+                publicMethods.saveObject(result);
           resolve();
         })
         .catch(function(err) {

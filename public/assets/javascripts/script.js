@@ -243,7 +243,7 @@ let ajaxCalls = {
 let gInterface = (function () {
     let createThreadContainer = function (thread) {
         console.log(thread);
-        let threadContainer = $(
+        let $threadContainer = $(
             "<li class='thread' data-id='" +
             thread._id +
             "'>" +
@@ -255,7 +255,7 @@ let gInterface = (function () {
             "<button  class='downVoteThread component_updown' onclick='gInterface.downVoteThread(this)'><i class='fa fa-chevron-down' aria-hidden='true'></i></button></div>" +
             "<div class='question col-10'><p>" +
             thread.question +
-            "</p><div class='row'><ul class='tagscontainer col-7'></ul><form class='col-5' onsubmit='gInterface.addTag(this)'><input type='text' name='tag'></form></div>"+
+            "</p><div class='row'><ul class='tagscontainer col-7'></ul><form class='col-5' onsubmit='gInterface.addTag(event)'><input type='text' name='tag'></form></div>"+
             "</div>" +
             
             "<a class='showAnswersBtn col-12 text-center' onclick='gInterface.showAnswers(this)'><u class='text-info'>" +
@@ -272,10 +272,10 @@ let gInterface = (function () {
 
         thread.tags.forEach(function(tag){
             console.log(tag);   
-            $(threadContainer).find('.tagscontainer').append("<li class='tagclass badge badge-pill badge-primary'><a onclick='gInterface.removeTag(this)' data-id='"+tag._id+"'>"+tag.tagname+"</a></li>");
+            $threadContainer.find('.tagscontainer').append("<li class='tagclass badge badge-pill badge-primary'><a onclick='gInterface.removeTag(this)' data-id='"+tag._id+"'>"+tag.tagname+"</a></li>");
         });
 
-        return(threadContainer);
+        return($threadContainer);
 
     };
 
@@ -494,13 +494,14 @@ let gInterface = (function () {
     };
 
     let addTag = function(e){
-            let $tag = $(e).find("input[name='tag']");
-            console.log('tag queued:' + $tag.val());
-            let threadId = $(e)
-            .closest("li.thread")
-                .attr("data-id");
-                console.log(threadId);
-            socketModule.sendNewTag(threadId,$tag.val());
+        e.preventDefault();
+        let $tag = $(e.target).find("input[name='tag']");
+        console.log('tag queued:' + $tag.val());
+        let threadId = $(e.target)
+        .closest("li.thread")
+            .attr("data-id");
+            console.log(threadId);
+        socketModule.sendNewTag(threadId,$tag.val());
             
         };
 
@@ -512,7 +513,7 @@ let gInterface = (function () {
         console.log($threadId);
         
         socketModule.sendRemoveTag($threadId,$(e).attr("data-id"));
-    }
+    };
     
 
     return {
