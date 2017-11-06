@@ -32,7 +32,7 @@ const eventHandler = {
         if (clientSocket.request.user) {
             let thread = new Thread({
                 question: sanitizer.escape(question),
-                author: clientSocket.request.user
+                author: sanitizer.escape(clientSocket.request.user)
             });
             thread.save((err, savedThread) => {
                 if (err) clientSocket.emit("error_occurred", err);
@@ -47,25 +47,41 @@ const eventHandler = {
     },
     new_answer: function (namespace, clientSocket, data) {
         if (clientSocket.request.user) {
-            let threadId = sanitizer.escape(data.threadId);
-            let answer = new Answer({
-                answer: sanitizer.escape(data.answer),
-                author: clientSocket.request.user,
-                onThread: threadId
-            });
-            answer.save((err, savedAnswer) => {
-                if (err) clientSocket.emit("error_occurred", err);
-                else {
-                    Thread.findOne({_id: threadId}, (err, thread) => {
-                        if (err) return console.error(err);
+            Thread.findOne({_id: sanitizer.escape(data.threadId)}).exec((err, thread) => {
+                if (err) return clientSocket.emit("error_occurred", "That thread doesn't exist");
+                let answer = new Answer({
+                    answer: sanitizer.escape(data.answer),
+                    author: sanitizer.escape(clientSocket.request.user),
+                    onThread: thread._id
+                });
+                answer.save((err, savedAnswer) => {
+                    if (err) clientSocket.emit("error_occurred", err);
+                    else {
                         thread.answers.push(savedAnswer._id);
                         thread.save((err) => {
                             if (err) return console.error(err);
-                            let html = pug.renderFile("views/partials/answer.pug", {answerObject: savedAnswer});
-                            namespace.emit("new_answer_available", html);
-                        });
-                    });
-                }
+                            namespace.emit("new_answer_available", {
+                                answerHTML: pug.renderFile("views/partials/answer.pug", {answerObject: savedAnswer}),
+                                forThread: thread._id,
+                                amountAnswersOnThread: thread.answers.length
+                            });
+                            // Thread.findOne({_id: threadId}, (err, thread) => {
+                            //     if (err) return console.error(err);
+                            //     thread.answers.push(savedAnswer._id);
+                            //     thread.save((err) => {
+                            //         if (err) return console.error(err);
+                            //         let html = pug.renderFile("views/partials/answer.pug", {answerObject: savedAnswer});
+                            //         let data = {
+                            //             answerHTML: html,
+                            //             forThread: thread._id,
+                            //             amountAnswersOnThread: sav
+                            //         };
+                            //         namespace.emit("new_answer_available", data);
+                            //     });
+                            // });
+                        })
+                    }
+                });
             });
         } else {
             clientSocket.emit("error_occurred", "Please login to answer.");
