@@ -49,6 +49,12 @@ const gInterface = (function () {
                 $('#askbutton').on('click',function(e){
                     $('#questionFormModal').modal('show');
                 });
+                $('#tagfinder').on('click',function(e){
+                    e.preventDefault();
+                    window.location.href = "/thread/"+$(e.target).closest('form').find('input').val();
+                    
+
+                })
         },
         showError: function (error) {
             let $errorModal = $("#errorModal");

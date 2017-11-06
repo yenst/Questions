@@ -28,6 +28,9 @@ const socketModule = (function () {
         sendAnswer: function (threadId, answer) {
             socket.emit("new_answer", {threadId, answer});
         },
+        findThreadsWithTag: function(tag){
+            socket.emit("find_threads",tag);
+        },
         isConnected: function () {
             return socket.connected;
         }

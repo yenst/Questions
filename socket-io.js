@@ -79,6 +79,9 @@ const eventHandler = {
       clientSocket.emit("error_occurred", "Please login to ask a question.");
     }
   },
+  find_threads_with_tag:function(tag){
+    return Thread.find({tags:tag});
+  },
   processQuestion:function(question) {
     cleanQuestion = sanitizer.escape(question);
 
@@ -164,6 +167,9 @@ const serverSocketInitiator = function(server, sessionStore) {
         })
         .on("new_answer", data => {
           eventHandler.new_answer(questions_live, clientSocket, data);
+        })
+        .on("find_threads",tag =>{
+            eventHandler.find_threads_with_tag(tag);
         });
     });
 };
