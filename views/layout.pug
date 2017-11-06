@@ -10,21 +10,35 @@ html(lang="en")
             link(rel="stylesheet", href="/assets/css/screen.css")
             link(rel="stylesheet", href="/lib/css/bootstrap.min.css")
             link(rel="stylesheet", href="/lib/css/font-awesome.min.css")
+            link(rel="stylesheet", href="/lib/css/bootstrap-social.css")
+
 
     body
         header
-            if user === null
-                a(href="/auth/google") Sign in with Google
-            else
-                p #{loginText} #{user.email}
-                a(href="/logout") log out
+            nav.navbar.navbar-light.bg-dark
+                form.form-inline
+                    if user === null
+                        a(href="/auth/google").btn.btn-block.btn-social.btn-google#googlebtn 
+                            span.fa.fa-google
+                            div Sign with Google
+                    else
+                        a(href="/logout",data-toggle="tooltip",data-placement="bottom",title="logout").btn.btn-outline-secondary #{user.email}
+                div.form-inline#pagetitle
+                    div Questions
 
+                form.form-inline
+                    div.input-group
+                        span.input-group-addon#basic-addon1
+                            i(aria-hidden="true").fa.fa-search 
+                        input(type="text",placeholder="Search tag",aria-describebdy="basic-addon1").form-control
+            
+            
             
        
         section.container
             form(action="#").row#questionForm
                 input(type="text", name="question", placeholder="", autocomplete="off").col-10
-                input(type="submit", value="Ask").col-2
+                input(type="submit", value="Ask").col-2.btn.btn-secondary
             p#errortext
 
             ul#threads

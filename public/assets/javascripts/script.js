@@ -258,10 +258,10 @@ let gInterface = (function() {
       "<li class='thread' data-id='" +
         thread._id +
         "'>" +
-        "<div class='questionWrap row'>" +
+        "<div class='questionWrap row '>" +
         "<div class='up_number_down col-2'> <button  class='upVoteThread component_updown' onclick='gInterface.upVoteThread(this)'><i class='fa fa-chevron-up' aria-hidden='true'></i></button>" +
         "<span class='threadUpVotes component_updown'>" +
-        thread.votes +
+        thread.votes +  
         "</span>" +
         "<button  class='downVoteThread component_updown' onclick='gInterface.downVoteThread(this)'><i class='fa fa-chevron-down' aria-hidden='true'></i></button></div>" +
         "<div class='question col-10'><p>" +
@@ -272,9 +272,9 @@ let gInterface = (function() {
         thread.answers.length +
         " answers</u></a>" +
         "</div>" +
-        "<form class='answerForm row col-12' action='#' onsubmit='socketModule.addAnswerToThread(event)'>" +
+        "<form class='answerForm row' action='#' onsubmit='socketModule.addAnswerToThread(event)'>" +
         "<input type='text' name='answer' class='col-10' autocomplete=\"off\"> " +
-        "<input type='submit' class='col-2' value='Answer'/>" +
+        "<input type='submit' class='col-2 btn btn-secondary' value='Answer'/>" +
         "</form>" +
         "<ul class='answers hide'></ul>" +
         "</li>"
@@ -310,9 +310,9 @@ let gInterface = (function() {
         "<p class='answer col-8'>" +
         answer.answer +
         "</p>" +
-        "<form class='answerToAnswerForm row col-6' action='#' onsubmit='socketModule.addAnswerToAnswer(event)'>" +
+        "<form class='answerToAnswerForm row col-12' action='#' onsubmit='socketModule.addAnswerToAnswer(event)'>" +
         "<input type='text' name='answerToAnswer' class='col-10' autocomplete=\"off\"> " +
-        "<input type='submit' class='col-2' value='Answer'/>" +
+        "<input type='submit' class='col-2 btn btn-secondary' value='+'/>" +
         "</form>" +
         "<ul class='answersToAnswer col-12'>" +
         "</ul>" +

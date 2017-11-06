@@ -38,6 +38,7 @@
 margin-bottom: 20px;
 background-color:#F5F5F5;
 padding:30px;
+border-radius:20px;
 }
 
 .questionWrap{
@@ -46,8 +47,15 @@ padding:30px;
     padding-bottom: 10px;
 }
 
+.answerToAnswerForm{
+    border-top:1px solid  #6c757d;
+    margin-top:10px;
+    padding-top:10px;
+}
+
 #questionForm{
-    margin-bottom:20px;
+    margin-bottom:10px;
+    margin-top:10px;
 }
 
 .questionHeading{
@@ -60,8 +68,12 @@ padding:30px;
 
 .answerWrap{
     margin-bottom:10px;
-    padding:5px;
+        margin-left:10px !important;
 
+}
+
+.answer{
+    margin-top:20px;
 }
 
 .approved{
@@ -93,5 +105,20 @@ a,a:visited {
 a:hover{
     color:gray !important;
     text-decoration: none !important;
+}
+
+#googlebtn{
+   
+    margin: 5px;
+}
+
+button, submit{
+    border:none;
+    background-color:transparent;
+}
+
+#pagetitle{
+    color:white;
+    font-size:1.4rem;
 }
 
