@@ -60,7 +60,10 @@ const gInterface = (function () {
             $affectedThread.find(".amountAnswers").text(amountAnswersOnThread);
             let $answers = $affectedThread.find(".answers");
             $answers.prepend(answerHTML);
-            if(!$answers.is(":visible")) $answers.toggle();
+            if(!$answers.is(":visible"))
+                $answers.toggle();
+            if($affectedThread.find(".answerButton").text() !== "Answer")
+                $affectedThread.find(".answerButton").text("Answer");
         }
     }
 })();
