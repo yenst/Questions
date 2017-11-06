@@ -1,0 +1,16 @@
+//-
+    IMPORTANT
+    When editing -> also paste youe edits in answer.pug
+
+//-
+    This file exists purely for the for loop in thread.pug
+    Look into switching to EJS instead
+
+//-
+    mixin_answer.pug variables
+    **************************
+    @answerObject [Answer] answer to render
+
+mixin answer(answerObject)
+    li(class="list-group-item bg-light")
+        p= answerObject.answer

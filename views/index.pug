@@ -1,0 +1,20 @@
+extends layout
+
+//-
+    index.pug variables
+    ********************
+    @layout.title {String} title of current page
+    @header.layout.isAuthenticated {Boolean} shows login/logout button
+
+block content
+    include ./partials/form_question.pug
+
+    div(class="container my-4" id="threads")
+
+    include ./partials/popup_error.pug
+    include ./partials/popup_answer.pug
+
+block scripts
+    script(src="/socket.io/socket.io.js")
+    script(src="/js/socketModule.js")
+    script(src="/js/main.js")

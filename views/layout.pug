@@ -1,38 +1,35 @@
-<!DOCTYPE html>
+//-
+    layout.pug variables
+    ********************
+    @title {String} title of current page
+    @header.isAuthenticated {Boolean} shows login/logout button
+
+include ./mixins/mixin_header.pug
+
+doctype html
 html(lang="en")
     head
         meta(charset="UTF-8")
-        meta(name="viewport", content="width=device-width, initial-scale=1.0")
-        meta(http-equiv="X-UA-Compatible", content="ie=edge")
-        title Questions PUG #{title}
+        meta(name="viewport", content="width=device-width, initial-scale=1.0, shrink-to-fit=no")
+        title Questions - #{title}
 
-        block styles
-            link(rel="stylesheet", href="/assets/css/screen.css")
-            link(rel="stylesheet", href="/lib/css/bootstrap.min.css")
-            link(rel="stylesheet", href="/lib/css/font-awesome.min.css")
+        link(rel='stylesheet', href='/font-awesome-4.7.0/css/font-awesome.min.css')
+        link(rel='stylesheet', href='/css/lib/bootstrap/custom-bootstrap.css')
+        link(rel='stylesheet', href='/css/lib/bootstrap/bootstrap-social-5.1.1.min.css')
+        link(rel='stylesheet', href='/css/style.css')
 
-    body
-        header
-            if user === null
-                a(href="/auth/google") Sign in with Google
-            else
-                p #{loginText} #{user.email}
-                a(href="/logout") log out
+    body(style="margin-top: 70px")
+        //- Loads the header from another file
+        +header(isAuthenticated)
 
-            
-       
-        section.container
-            form(action="#").row#questionForm
-                input(type="text", name="question", placeholder="", autocomplete="off").col-10
-                input(type="submit", value="Ask").col-2
-            p#errortext
+        //- Blocks can be owerwritten/appended/prepended by extending this file, more info @ https://pugjs.org/language/inheritance.html
+        block content
+        block footer
 
-            ul#threads
+        //- Load scripts in this order, else fail.
+        script(src="/js/lib/jquery-3.2.1.min.js")
+        script(src="/js/lib/popper-1.12.6.min.js")
+        script(src="/js/lib/bootstrap-4.min.js")
 
-        footer
-
+        //- Our js resources
         block scripts
-            script(src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js")
-            script(src="lib/js/bootstrap.js")
-            script(src="/socket.io/socket.io.js")
-            script(src="assets/javascripts/script.js")

@@ -1,0 +1,10 @@
+//Custom theme for bootstrop, more info @ https://getbootstrap.com/docs/4.0/getting-started/theming/
+
+$theme-colors: (
+  //Howest blue
+        "primary": #44c9f6,
+  //Howest pink
+        "secondary": #e6007e
+);
+
+@import "./source_scss/bootstrap.scss";

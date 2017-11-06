@@ -1,0 +1,16 @@
+//-
+    IMPORTANT
+    When editing -> also paste youe edits in mixin_answer.pug
+
+//-
+    This file exists because there is no way to render a mixin via pug.renderFile()
+    We need the mixin for the for loop in thread.pug
+    TODO Look into switching to EJS instead
+
+//-
+    answer.pug variables
+    ********************
+    @answerObject {Answer} answer to render
+
+li(class="list-group-item")
+    p= answerObject.answer

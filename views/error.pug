@@ -1,0 +1,19 @@
+extends layout
+
+//-
+    error.pug variables
+    ********************
+    @layout.title {String} title of current page
+    @header.layout.isAuthenticated {Boolean} shows login/logout button
+    @errorMsg {String} message to show
+    @stackTrace {String} stack trace of error, only show when in development mode
+
+block content
+    div(class="my-2 mx-auto w-75 text-danger alert alert-danger" role="alert")
+        h1(class="")= title
+        p= errorMsg
+        if stackTrace
+            p= stackTrace
+        a(class="btn btn-secondary text-light" href='/')
+            span(class="sr-only") To home page
+            i(class="fa fa-3x fa-chevron-left")
