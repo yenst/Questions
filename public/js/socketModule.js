@@ -16,6 +16,7 @@ const socketModule = (function () {
             gInterface.addThread(threadHTML);
         })
         .on("threads", function (threadsHTML) {
+            gInterface.clearThreads();
             threadsHTML.forEach(threadHTML => {
                 gInterface.addThread(threadHTML);
             })

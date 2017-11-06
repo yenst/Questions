@@ -169,7 +169,14 @@ const serverSocketInitiator = function(server, sessionStore) {
           eventHandler.new_answer(questions_live, clientSocket, data);
         })
         .on("find_threads",tag =>{
-            eventHandler.find_threads_with_tag(tag);
+            eventHandler.find_threads_with_tag(tag).then(function(threads){
+                let array = [];
+                threads.forEach(function(thread){
+                    array.push(
+                    pug.renderFile('views/partials/thread.pug',{thread}))
+                })
+                clientSocket.emit("threads",array);
+            })
         });
     });
 };

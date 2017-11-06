@@ -50,9 +50,8 @@ const gInterface = (function () {
                     $('#questionFormModal').modal('show');
                 });
                 $('#tagfinder').on('click',function(e){
-                    e.preventDefault();
-                    window.location.href = "/thread/"+$(e.target).closest('form').find('input').val();
-                    
+                    console.log($('#tagfinderinput').val());
+                    socketModule.findThreadsWithTag($('#tagfinderinput').val());
 
                 })
         },
@@ -63,6 +62,9 @@ const gInterface = (function () {
         },
         addThread: function (threadHTML) {
             $("#threads").append(threadHTML);
+        },
+        clearThreads: function(){
+            $('#threads').html('');
         }
     }
 })();

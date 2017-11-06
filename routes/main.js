@@ -1,7 +1,6 @@
 "use strict";
 
 const router = require("express").Router();
-const Thread = require("./../models/thread");
 
 router
 /**
@@ -24,20 +23,13 @@ router
     })
     
     router.get('/thread/:tag',function(req,res){
-       
-            
-           
-            Thread.find({tags:req.params.tag}).then(function(threads){
-
-                console.log(threads);
-          res.render('index',threads);
-            
-        });
+      
+        
         
     
     }
     
     )
-
+    ;
 
 module.exports = router;
