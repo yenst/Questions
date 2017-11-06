@@ -46,6 +46,9 @@ const gInterface = (function () {
                     $(e.target).closest("a").find(".fa").toggleClass("fa-caret-down").toggleClass("fa-caret-up");
                     $(e.target).closest(".card-body").find(".answers").toggle();
                 });
+                $('#askbutton').on('click',function(e){
+                    $('#questionFormModal').modal('show');
+                });
         },
         showError: function (error) {
             let $errorModal = $("#errorModal");

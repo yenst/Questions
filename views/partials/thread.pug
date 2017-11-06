@@ -14,7 +14,8 @@ div(class="thread card bg-light mb-4 border-dark" data-thread-id=thread._id)
 
     div(class="card-body")
         div(class="tags row text-light mx-sm-2 mb-3")
-            span(class="badge badge-secondary") PHP
+            each tag in thread.tags
+                li(class="badge badge-secondary")=tag
         div(class="row")
             a(class="answerButton mx-auto btn btn-primary text-light" href="#")
                 if(thread.answers.length > 0)

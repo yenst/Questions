@@ -7,7 +7,9 @@ extends layout
     @header.layout.isAuthenticated {Boolean} shows login/logout button
 
 block content
-    include ./partials/popup_question.pug
+    div.row
+        button#askbutton.btn.btn-primary.text-light.mx-auto Ask new question
+        include ./partials/popup_question.pug
 
     div(class="container my-4" id="threads")
 
