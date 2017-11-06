@@ -12,5 +12,11 @@
     ********************
     @answerObject {Answer} answer to render
 
-li(class="list-group-item bg-light")
-    p= answerObject.answer
+li(class="answer list-group-item bg-light" data-answer-id=answerObject._id)
+    p(class="answerText")= answerObject.answer
+    button(class="commentButton btn btn-secondary" type="submit") Comment
+    ul(class="comments")
+        each comment in answerObject.comments
+            li(class="comment")
+                p= comment.comment
+

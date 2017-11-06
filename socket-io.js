@@ -6,7 +6,7 @@ const sanitizer = require("sanitizer");
 
 const Thread = require("./models/thread");
 const Answer = require("./models/answer");
-
+const Comment = require("./models/comment");
 /**
  * Passport and socket.io functions
  */
@@ -84,7 +84,44 @@ const eventHandler = {
                 });
             });
         } else {
-            clientSocket.emit("error_occurred", "Please login to ask a question.");
+            clientSocket.emit("error_occurred", "Please login to answer.");
+        }
+    },
+    new_comment: function (namespace, clientSocket, data) {
+        if (clientSocket.request.user) {
+            let threadId = sanitizer.escape(data.threadId);
+            let answerId = sanitizer.escape(data.answerId);
+            let comment = new Comment({
+                comment: sanitizer.escape(data.comment),
+                author: clientSocket.request.user,
+                onAnswer: answerId
+            });
+
+            comment.save((err, savedComment) => {
+                if (err) clientSocket.emit("error_occurred", err);
+                else {
+                    Answer.findOne({_id: answerId}, (err, answer) => {
+                        if (err) return console.error(err);
+                        answer.comments.push(savedComment._id);
+                        answer.save((err, savedAnswer) => {
+                            if (err) clientSocket.emit("error_occurred", err);
+                            else {
+                                Thread.findOne({_id: threadId}, (err, thread) => {
+                                    if (err) return console.error(err);
+                                    thread.save((err) => {
+                                        if (err) return console.error(err);
+                                        /*let html = pug.renderFile("views/partials/answer.pug", {answerObject: savedAnswer});
+                                        namespace.emit("new_answer_available", html);*/
+                                        //TODO live met sockets
+                                    });
+                                });
+                            }
+                        });
+                    });
+                }
+            });
+        } else {
+            clientSocket.emit("error_occurred", "Please login to comment.");
         }
     }
 };
@@ -124,8 +161,14 @@ const serverSocketInitiator = function (server, sessionStore) {
 
                 //TODO Send current threads when connecting to website
             let threadsHTML = [];
-            Thread.find().sort("-creationDate").populate("answers").exec().then(threads => {
+
+            Thread.find().populate('answers').
+            populate({
+                path: 'answers',
+                populate: { path: 'comments' }
+            }).exec().then(threads => {
                 threads.forEach(thread => {
+                    console.log(thread);
                     let html = pug.renderFile("views/partials/thread.pug", {thread: thread});
                     threadsHTML.push(html);
                 });
@@ -138,6 +181,9 @@ const serverSocketInitiator = function (server, sessionStore) {
                 })
                 .on("new_answer", (data) => {
                     eventHandler.new_answer(questions_live, clientSocket, data);
+                })
+                .on("new_comment", (data) => {
+                    eventHandler.new_comment(questions_live, clientSocket, data);
                 })
         });
 
