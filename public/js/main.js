@@ -54,6 +54,13 @@ const gInterface = (function () {
         },
         addThread: function (threadHTML) {
             $("#threads").append(threadHTML);
+        },
+        addAnswerForThread: function (threadId, answerHTML, amountAnswersOnThread) {
+            let $affectedThread = $("#threads").find(".thread[data-thread-id='" + threadId + "']");
+            $affectedThread.find(".amountAnswers").text(amountAnswersOnThread);
+            let $answers = $affectedThread.find(".answers");
+            $answers.prepend(answerHTML);
+            if(!$answers.is(":visible")) $answers.toggle();
         }
     }
 })();
