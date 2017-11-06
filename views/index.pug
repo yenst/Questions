@@ -1,19 +1,22 @@
 extends layout
+include ./mixins/mixin_thread.pug
 
 //-
     index.pug variables
     ********************
     @layout.title {String} title of current page
     @header.layout.isAuthenticated {Boolean} shows login/logout button
+    @threads {[Thread]} array of threads to render
 
 block content
     include ./partials/form_question.pug
 
     div(class="container my-4" id="threads")
+        each thread in threads
+            +thread(thread)
 
     include ./partials/popup_error.pug
     include ./partials/popup_answer.pug
-    include ./partials/popup_comment
 
 block scripts
     script(src="/socket.io/socket.io.js")
