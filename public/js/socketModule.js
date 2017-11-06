@@ -1,7 +1,7 @@
 "use strict";
 
 const socketModule = (function () {
-    const socket = io('http://172.21.22.51.xip.io:3000/questions-live');
+    const socket = io('http://172.21.22.52.xip.io:3000/questions-live');
 
     //TODO remove socket.on('connection_confirmation')
     socket
