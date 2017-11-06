@@ -28,6 +28,9 @@ const socketModule = (function () {
         sendAnswer: function (threadId, answer) {
             socket.emit("new_answer", {threadId, answer});
         },
+        sendComment: function(threadId, answerId, comment){
+            socket.emit("new_comment", {threadId,answerId, comment});
+        },
         isConnected: function () {
             return socket.connected;
         }
