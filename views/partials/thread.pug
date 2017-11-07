@@ -1,36 +1,3 @@
-include ../mixins/mixin_answer.pug
-//-
-    thread.pug variables
-    ********************
-    @thread {Thread}
+include ../mixins/mixin_thread.pug
 
-div(class="thread card bg-light mb-4 border-dark" data-thread-id=thread._id)
-    div(class="card-header container-fluid")
-        div(class="row")
-            h6(class="question col-sm-10 my-0 card-title")!= thread.question
-            span(class="col-sm-2 text-right")
-                | #{thread.creationDate.getHours()}:#{thread.creationDate.getMinutes()}
-                | #{thread.creationDate.getDate()}/#{thread.creationDate.getMonth()}/#{thread.creationDate.getYear() - 100}
-
-    div(class="card-body")
-        div(class="tags row text-light mx-sm-2 mb-3")
-            each tag in thread.tags
-                li(class="badge badge-secondary")=tag
-        div(class="row")
-            a(class="answerButton mx-auto btn btn-primary text-light" href="#")
-                if(thread.answers.length > 0)
-                    | Answer
-                else
-                    | Be the first to answer
-        div(class="row")
-            div(class="col text-center")
-                a(class="answersVisibiltyToggler text-primary" href="#")
-                    i(class="fa fa-caret-down")
-                    span(class="ml-2")
-                        span(class="amountAnswers")=thread.answers.length
-                        |  answers
-        ul(class="answers row list-group list-group-flush" style="display: none")
-            each answer in thread.answers
-                +answer(answer)
-
-    //- div(class="card-footer")
++thread(thread)

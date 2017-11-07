@@ -14,6 +14,7 @@ const gInterface = (function () {
                 if (socketModule.isConnected()) {
                     let $questionInput = $(e.target).find("input[name='question']");
                     socketModule.sendQuestion($questionInput.val());
+                    $('#questionFormModal').modal("hide");
                     $questionInput.val("");
                 }
                 else AskToLogin();
@@ -36,7 +37,7 @@ const gInterface = (function () {
                     let $answerInput = $(e.target).find("input[name='comment']");
                     let $answerIdInput = $(e.target).find("input[name='answerId']");
                     let $threadIdInput = $(e.target).find("input[name='threadId']");
-                    socketModule.sendComment($threadIdInput.val(),$answerIdInput.val(), $answerInput.val());
+                    socketModule.sendComment($threadIdInput.val(), $answerIdInput.val(), $answerInput.val());
                     $("#commentFormModal").modal("hide");
                     $answerInput.val("");
                     $threadIdInput.val("");
@@ -54,7 +55,7 @@ const gInterface = (function () {
                     $answerFormModal.find(".threadQuestion").text(threadQuestion);
                     $answerFormModal.modal("show");
                 })
-                .on('click', ".answersVisibiltyToggler", function (e) {
+                .on('click', ".answersVisibilityToggler", function (e) {
                     e.preventDefault();
                     $(e.target).closest("a").find(".fa").toggleClass("fa-caret-down").toggleClass("fa-caret-up");
                     $(e.target).closest(".card-body").find(".answers").toggle();
@@ -71,16 +72,32 @@ const gInterface = (function () {
                     let $commentFormModal = $("#commentFormModal");
                     $commentFormModal.find(".threadAnswer").text(answer);
                     $commentFormModal.modal("show");
-                });
-                $('#askbutton').on('click',function(e){
-                    $('#questionFormModal').modal('show');
-                });
-                $('#tagfinder').on('submit',function(e){
-                    e.preventDefault();
-                    console.log($('#tagfinderinput').val());
-                    socketModule.findThreadsWithTag($('#tagfinderinput').val());
-
                 })
+                .on("click", ".threadUpVoteBtn", function (e) {
+                    e.preventDefault();
+                    if (socketModule.isConnected()) {
+                        let threadId = $(e.target).closest(".thread").attr("data-thread-id");
+                        socketModule.upVoteThread(threadId);
+                    }
+                    else AskToLogin();
+                })
+                .on("click", ".threadDownVoteBtn", function (e) {
+                    e.preventDefault();
+                    if (socketModule.isConnected()) {
+                        let threadId = $(e.target).closest(".thread").attr("data-thread-id");
+                        socketModule.downVoteThread(threadId);
+                    }
+                    else AskToLogin();
+                });
+            $('#askbutton').on('click', function (e) {
+                $('#questionFormModal').modal('show');
+            });
+            $('#search_threads_on_tag_form').on('submit', function (e) {
+                e.preventDefault();
+                let $tagInput = $(e.target).find('input[name="tag"]');
+                socketModule.findThreadsWithTag($tagInput.val());
+                $tagInput.val("");
+            })
         },
         showError: function (error) {
             let $errorModal = $("#errorModal");
@@ -95,9 +112,9 @@ const gInterface = (function () {
             $affectedThread.find(".amountAnswers").text(amountAnswersOnThread);
             let $answers = $affectedThread.find(".answers");
             $answers.prepend(answerHTML);
-            if(!$answers.is(":visible"))
+            if (!$answers.is(":visible"))
                 $answers.toggle();
-            if($affectedThread.find(".answerButton").text() !== "Answer")
+            if ($affectedThread.find(".answerButton").text() !== "Answer")
                 $affectedThread.find(".answerButton").text("Answer");
         },
         addCommentToAnswer: function (answerId, commentHTML) {
@@ -105,8 +122,11 @@ const gInterface = (function () {
             let $comments = $affectedAnswer.find(".comments");
             $comments.prepend(commentHTML);
         },
-        clearThreads: function(){
+        clearThreads: function () {
             $('#threads').html('');
+        },
+        updateThreadVotes: function (threadId, votes) {
+            $("#threads").find(".thread[data-thread-id='" + threadId + "']").find(".votes").text(votes);
         }
     }
 })();

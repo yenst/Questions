@@ -8,6 +8,7 @@ const UserSchema = Schema({
     displayName: {type: String, required: true},
     email: {type: String, required: true},
     domain: {type: String, required: true},
+    isAdmin: {type: Boolean, default: false, required: true},
     googleId: Number,
     threads: [{type: Schema.ObjectId, ref: "Thread"}],
     answers: [{type: Schema.ObjectId, ref: "Answer"}],

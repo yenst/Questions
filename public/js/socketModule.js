@@ -26,6 +26,9 @@ const socketModule = (function () {
             threadsHTML.forEach(threadHTML => {
                 gInterface.addThread(threadHTML);
             })
+        })
+        .on("thread_voted", function (data) {
+            gInterface.updateThreadVotes(data.threadId, data.votes);
         });
 
     return {
@@ -43,6 +46,12 @@ const socketModule = (function () {
         },
         isConnected: function () {
             return socket.connected;
+        },
+        upVoteThread: function (threadId) {
+            socket.emit("up_vote_thread", threadId);
+        },
+        downVoteThread: function (threadId) {
+            socket.emit("down_vote_thread", threadId);
         }
     }
 })();
