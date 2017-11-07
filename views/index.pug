@@ -14,8 +14,10 @@ block content
 
     div(class="container my-4" id="threads")
         each thread in threads
-            +thread(thread, user)
-
+            if user
+                +thread(thread, user.isAdmin)
+            else
+                +thread(thread, false)
     include ./partials/popup_error.pug
     include ./partials/popup_answer.pug
     include ./partials/popup_comment.pug

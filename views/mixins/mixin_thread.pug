@@ -1,6 +1,6 @@
 include ./mixin_answer.pug
 
-mixin thread(thread)
+mixin thread(thread, isAdmin)
     div(class="thread card bg-light mb-4 border-dark" data-thread-id=thread._id)
         div(class="card-header")
             div(class="row")
@@ -13,16 +13,21 @@ mixin thread(thread)
                     span(class="badge badge-primary text-light")!= tag
         div(class="card-body")
             div(class="row text-light mx-sm-2")
-                div(class="col-1 p-0 mx-2")
-                    a(class="threadUpVoteBtn row btn-sm btn-outline-secondary mx-auto justify-content-center" href="#")
-                        i(class="fa fa-chevron-up")
+                div(class="col-1")
+                    a(class="threadUpVoteBtn row btn-sm btn-outline-primary justify-content-center" href="#")
+                        i(class="fa fa-2x fa-chevron-up")
                         span(class="sr-only") up vote
                     div(class="row justify-content-center")
                         span(class="votes text-dark")= thread.votes
-                    a(class="threadDownVoteBtn row btn-sm btn-outline-secondary mx-auto justify-content-center" href="#")
-                        i(class="fa fa-chevron-down")
+                    a(class="threadDownVoteBtn row btn-sm btn-outline-primary justify-content-center" href="#")
+                        i(class="fa fa-2x fa-chevron-down")
                         span(class="sr-only") up vote
                 div(class="extraInfo col")
+                if isAdmin
+                    div(class="col-1")
+                        a(class="deleteThreadBtn row btn-sm btn-secondary justify-content-center" href="#")
+                            i(class="fa fa-2x fa-trash")
+                            span(class="sr-only") delete
             div(class="row")
                 a(class="answerButton mx-auto btn btn-primary text-light" href="#")
                     if(thread.answers.length > 0)
@@ -38,4 +43,4 @@ mixin thread(thread)
                             |  answers
             ul(class="answers row list-group list-group-flush" style="display: none")
                 each answer in thread.answers
-                    +answer(answer)
+                    +answer(answer, isAdmin)

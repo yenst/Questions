@@ -2,7 +2,8 @@
 
 const gInterface = (function () {
 
-    let AskToLogin = function () {
+    //TODO use this function with callbacks
+    let askToLogin = function () {
         gInterface.showError("Please login to continue.");
     };
 
@@ -17,7 +18,7 @@ const gInterface = (function () {
                     $('#questionFormModal').modal("hide");
                     $questionInput.val("");
                 }
-                else AskToLogin();
+                else askToLogin();
             });
             $("#answer_form").on("submit", function (e) {
                 e.preventDefault();
@@ -29,7 +30,7 @@ const gInterface = (function () {
                     $answerInput.val("");
                     $threadIdInput.val("");
                 }
-                else AskToLogin();
+                else askToLogin();
             });
             $("#comment_form").on("submit", function (e) {
                 e.preventDefault();
@@ -42,18 +43,20 @@ const gInterface = (function () {
                     $answerInput.val("");
                     $threadIdInput.val("");
                 }
-                else AskToLogin();
+                else askToLogin();
             });
             $("#threads")
                 .on("click", ".answerButton", function (e) {
-                    e.preventDefault();
-                    let $currentThread = $(e.target).closest(".thread");
-                    let threadId = $currentThread.attr("data-thread-id");
-                    $("input[name='threadId']").attr("value", threadId);
-                    let threadQuestion = $currentThread.find(".question").text();
-                    let $answerFormModal = $("#answerFormModal");
-                    $answerFormModal.find(".threadQuestion").text(threadQuestion);
-                    $answerFormModal.modal("show");
+                    if (socketModule.isConnected()) {
+                        e.preventDefault();
+                        let $currentThread = $(e.target).closest(".thread");
+                        let threadId = $currentThread.attr("data-thread-id");
+                        $("input[name='threadId']").attr("value", threadId);
+                        let threadQuestion = $currentThread.find(".question").text();
+                        let $answerFormModal = $("#answerFormModal");
+                        $answerFormModal.find(".threadQuestion").text(threadQuestion);
+                        $answerFormModal.modal("show");
+                    } else askToLogin();
                 })
                 .on('click', ".answersVisibilityToggler", function (e) {
                     e.preventDefault();
@@ -61,17 +64,19 @@ const gInterface = (function () {
                     $(e.target).closest(".card-body").find(".answers").toggle();
                 })
                 .on("click", ".commentButton", function (e) {
-                    e.preventDefault();
-                    let $currentThread = $(e.target).closest(".thread");
-                    let $currentAnswer = $(e.target).closest(".answer");
-                    let threadId = $currentThread.attr("data-thread-id");
-                    let answerId = $currentAnswer.attr("data-answer-id");
-                    $("input[name='threadId']").attr("value", threadId);
-                    $("input[name='answerId']").attr("value", answerId);
-                    let answer = $currentAnswer.find('.answerText').text();
-                    let $commentFormModal = $("#commentFormModal");
-                    $commentFormModal.find(".threadAnswer").text(answer);
-                    $commentFormModal.modal("show");
+                    if (socketModule.isConnected()) {
+                        e.preventDefault();
+                        let $currentThread = $(e.target).closest(".thread");
+                        let $currentAnswer = $(e.target).closest(".answer");
+                        let threadId = $currentThread.attr("data-thread-id");
+                        let answerId = $currentAnswer.attr("data-answer-id");
+                        $("input[name='threadId']").attr("value", threadId);
+                        $("input[name='answerId']").attr("value", answerId);
+                        let answer = $currentAnswer.find('.answerText').text();
+                        let $commentFormModal = $("#commentFormModal");
+                        $commentFormModal.find(".threadAnswer").text(answer);
+                        $commentFormModal.modal("show");
+                    } else askToLogin();
                 })
                 .on("click", ".threadUpVoteBtn", function (e) {
                     e.preventDefault();
@@ -79,7 +84,7 @@ const gInterface = (function () {
                         let threadId = $(e.target).closest(".thread").attr("data-thread-id");
                         socketModule.upVoteThread(threadId);
                     }
-                    else AskToLogin();
+                    else askToLogin();
                 })
                 .on("click", ".threadDownVoteBtn", function (e) {
                     e.preventDefault();
@@ -87,10 +92,11 @@ const gInterface = (function () {
                         let threadId = $(e.target).closest(".thread").attr("data-thread-id");
                         socketModule.downVoteThread(threadId);
                     }
-                    else AskToLogin();
+                    else askToLogin();
                 });
             $('#askbutton').on('click', function (e) {
-                $('#questionFormModal').modal('show');
+                if (socketModule.isConnected()) $('#questionFormModal').modal('show');
+                else askToLogin();
             });
             $('#search_threads_on_tag_form').on('submit', function (e) {
                 e.preventDefault();

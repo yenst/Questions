@@ -1,11 +1,19 @@
 include ./mixin_comment.pug
 
-mixin answer(answerObject)
+mixin answer(answerObject, isAdmin)
     li(class="answer list-group-item bg-light" data-answer-id=answerObject._id)
         div(class="row")
-            p(class="answerText col")!= answerObject.answer
-            button(class="commentButton btn btn-primary text-light col-sm-2 col-md-1" type="submit")
+            span(class="answerText col")!= answerObject.answer
+            a(class="commentButton btn btn-primary text-light justify-content-end" href="#")
                 span(class="fa fa-2x fa-comment" aria-hidden="true")
+                span(class="sr-only") comment
+            if isAdmin
+                a(class="deleteAnswerBtn btn btn-secondary text-light ml-1 justify-content-end" href="#")
+                    span(class="fa fa-2x fa-trash" aria-hidden="true")
+                    span(class="sr-only") delete answer
+                a(class="approveAnswerBtn btn btn-secondary text-light ml-1 justify-content-end" href="#")
+                    span(class="fa fa-2x fa-check" aria-hidden="true")
+                    span(class="sr-only") approve answer
         ul(class="comments fa-ul mt-2")
             each comment in answerObject.comments
                 +comment(comment)

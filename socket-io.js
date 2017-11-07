@@ -93,15 +93,17 @@ const eventHandler = {
             thread.save((err, savedThread) => {
                 if (err) clientSocket.emit("error_occurred", err);
                 else {
-                    let html = pug.renderFile("views/partials/thread.pug", {thread: savedThread});
-                    namespace.emit("new_thread_available", html);
+                    let htmlForAdmins = pug.renderFile("views/partials/thread.pug", {thread: savedThread, isAdmin: true});
+                    let htmlForStudents = pug.renderFile("views/partials/thread.pug", {thread: savedThread, isAdmin: false});
+                    sendToAdmins("new_thread_available", htmlForAdmins);
+                    sendToStudents("new_thread_available", htmlForStudents);
                 }
             });
         } else {
             clientSocket.emit("error_occurred", "Please login to ask a question.");
         }
     },
-    new_answer: function (namespace, clientSocket, data) {
+    new_answer: function (clientSocket, data) {
         if (clientSocket.request.user) {
             Thread.findOne({_id: sanitizer.escape(data.threadId)}).exec((err, thread) => {
                 if (err) return clientSocket.emit("error_occurred", "That thread doesn't exist");
@@ -116,11 +118,19 @@ const eventHandler = {
                         thread.answers.push(savedAnswer._id);
                         thread.save((err) => {
                             if (err) return console.error(err);
-                            namespace.emit("new_answer_available", {
-                                answerHTML: pug.renderFile("views/partials/answer.pug", {answerObject: savedAnswer}),
+
+                            let dataForAdmins = {
+                                answerHTML: pug.renderFile("views/partials/answer.pug", {answerObject: savedAnswer, isAdmin: true}),
                                 forThread: thread._id,
                                 amountAnswersOnThread: thread.answers.length
-                            });
+                            };
+                            let dataForStudents = {
+                                answerHTML: pug.renderFile("views/partials/answer.pug", {answerObject: savedAnswer, isAdmin: false}),
+                                forThread: thread._id,
+                                amountAnswersOnThread: thread.answers.length
+                            };
+                            sendToAdmins("new_answer_available", dataForAdmins);
+                            sendToStudents("new_answer_available", dataForStudents);
                         })
                     }
                 });
@@ -129,7 +139,7 @@ const eventHandler = {
             clientSocket.emit("error_occurred", "Please login to answer.");
         }
     },
-    new_comment: function (namespace, clientSocket, data) {
+    new_comment: function (clientSocket, data) {
         if (clientSocket.request.user) {
             let threadId = sanitizer.escape(data.threadId);
             let answerId = sanitizer.escape(data.answerId);
@@ -153,7 +163,11 @@ const eventHandler = {
                                     thread.save((err) => {
                                         if (err) return console.error(err);
                                         let html = pug.renderFile("views/partials/comment.pug", {commentObject: savedComment});
-                                        namespace.emit("new_comment_available", {
+                                        sendToAdmins({
+                                            commentHTML: html,
+                                            forAnswer: answerId
+                                        });
+                                        sendToStudents({
                                             commentHTML: html,
                                             forAnswer: answerId
                                         });
@@ -169,7 +183,13 @@ const eventHandler = {
         }
     },
     find_threads_with_tag: function (clientSocket, tag) {
-        Thread.find({tags: tag}).then(threads => {
+        Thread.find({tags: tag}).populate({
+            path: "answers",
+            populate: {
+                path: "comments",
+                model: "Comment"
+            }
+        }).then(threads => {
             let renderedThreads = [];
             threads.forEach(function (thread) {
                 renderedThreads.push(
@@ -181,6 +201,22 @@ const eventHandler = {
             clientSocket.emit("error_occurred", "Failed to get threads.");
         });
     }
+};
+
+/**
+ * Keep difference between admin and students
+ */
+const adminClients = [];
+const studentClients = [];
+const sendToAdmins = function (event, data) {
+    adminClients.forEach(adminClient => {
+        adminClient.emit(event, data);
+    })
+};
+const sendToStudents = function (event, data) {
+    studentClients.forEach(studentClient => {
+        studentClient.emit(event, data);
+    })
 };
 
 /**
@@ -209,27 +245,21 @@ const serverSocketInitiator = function (server, sessionStore) {
     const questions_live = io
         .of("/questions-live")
         .on("connection", function (clientSocket) {
-            clientSocket.emit(
-                "connection_confirmation",
-                "connected to socket in room 'questions-live'"
-            );
-
-            /**
-             * TODO implement pagination
-             * more info @
-             * http://madhums.me/2012/08/20/pagination-using-mongoose-express-and-jade/
-             * https://stackoverflow.com/questions/5539955/how-to-paginate-with-mongoose-in-node-js
-             */
-
+            if(clientSocket.request.user.isAdmin){
+                adminClients.push(clientSocket);
+            } else {
+                studentClients.push(clientSocket);
+            }
+            clientSocket.emit("connection_confirmation", "connected to socket in room 'questions-live'");
             clientSocket
                 .on("new_question", question => {
-                    eventHandler.new_question(questions_live, clientSocket, question);
+                    eventHandler.new_question(clientSocket, question);
                 })
                 .on("new_answer", data => {
-                    eventHandler.new_answer(questions_live, clientSocket, data);
+                    eventHandler.new_answer(clientSocket, data);
                 })
                 .on("new_comment", (data) => {
-                    eventHandler.new_comment(questions_live, clientSocket, data);
+                    eventHandler.new_comment(clientSocket, data);
                 })
                 .on("find_threads", tag => {
                     eventHandler.find_threads_with_tag(clientSocket, tag);
@@ -240,6 +270,15 @@ const serverSocketInitiator = function (server, sessionStore) {
                 .on("down_vote_thread", (threadId) => {
                     eventHandler.down_vote_thread(questions_live, clientSocket, threadId);
                 });
+            clientSocket.on("disconnect", () => {
+                if(clientSocket.request.user.isAdmin){
+                    let index = adminClients.indexOf(clientSocket);
+                    adminClients.splice(index, 1);
+                } else {
+                    let index = studentClients.indexOf(clientSocket);
+                    studentClients.splice(index, 1);
+                }
+            })
         });
 };
 
