@@ -1,26 +1,28 @@
 const pug = require("pug");
 const path = require("path");
-const cookieParser = require('cookie-parser');
+const cookieParser = require("cookie-parser");
 const passportSocketIo = require("passport.socketio");
 const sanitizer = require("sanitizer");
 
 const Thread = require("./models/thread");
 const Answer = require("./models/answer");
+const Comment = require("./models/comment");
+const Tag = require("./models/tag");
 
 /**
  * Passport and socket.io functions
  */
-const onAuthorizeSuccess = function (data, accept) {
-    console.log('successful connection to socket.io');
-    // The accept-callback still allows us to decide whether to
-    // accept the connection or not.
-    accept(null, true);
+const onAuthorizeSuccess = function(data, accept) {
+  console.log("successful connection to socket.io");
+  // The accept-callback still allows us to decide whether to
+  // accept the connection or not.
+  accept(null, true);
 };
-const onAuthorizeFail = function (data, message, error, accept) {
-    if (error) throw new Error(message);
-    console.log('failed connection to socket.io:', message);
-    // We use this callback to log all of our failed connections.
-    accept(null, false);
+const onAuthorizeFail = function(data, message, error, accept) {
+  if (error) throw new Error(message);
+  console.log("failed connection to socket.io:", message);
+  // We use this callback to log all of our failed connections.
+  accept(null, false);
 };
 
 /**
@@ -29,77 +31,165 @@ const onAuthorizeFail = function (data, message, error, accept) {
 const eventHandler = {
     new_question: function (namespace, clientSocket, question) {
         //TODO Deze check wordt al uitgevoerd in "model/thread.js"
-        if (clientSocket.request.user) {
-            let thread = new Thread({
-                question: sanitizer.escape(question),
-                author: clientSocket.request.user
-            });
-            thread.save((err, savedThread) => {
-                if (err) clientSocket.emit("error_occurred", err);
-                else {
-                    let html = pug.renderFile("views/partials/thread.pug", {thread: savedThread});
-                    namespace.emit("new_thread_available", html);
-                }
-            });
+    questionObject = this.processQuestion(question);
+    console.log(questionObject);
+    if (clientSocket.request.user) {
+      let thread = new Thread({
+        question: questionObject.question,
+        author: clientSocket.request.user,
+        tags: questionObject.tags
+      });
+        thread.save((err, savedThread) => {
+            if (err) clientSocket.emit("error_occurred", err);
+            else {
+                let html = pug.renderFile("views/partials/thread.pug", {thread: savedThread});
+                namespace.emit("new_thread_available", html);
+            }
+        });
         } else {
             clientSocket.emit("error_occurred", "Please login to ask a question.");
         }
     },
     new_answer: function (namespace, clientSocket, data) {
         if (clientSocket.request.user) {
-            let threadId = sanitizer.escape(data.threadId);
-            let answer = new Answer({
-                answer: sanitizer.escape(data.answer),
-                author: clientSocket.request.user,
-                onThread: threadId
-            });
-            answer.save((err, savedAnswer) => {
-                if (err) clientSocket.emit("error_occurred", err);
-                else {
-                    Thread.findOne({_id: threadId}, (err, thread) => {
-                        if (err) return console.error(err);
+            Thread.findOne({_id: sanitizer.escape(data.threadId)}).exec((err, thread) => {
+                if (err) return clientSocket.emit("error_occurred", "That thread doesn't exist");
+                let answer = new Answer({
+                    answer: sanitizer.escape(data.answer),
+                    author: sanitizer.escape(clientSocket.request.user),
+                    onThread: thread._id
+                });
+                answer.save((err, savedAnswer) => {
+                    if (err) clientSocket.emit("error_occurred", err);
+                    else {
                         thread.answers.push(savedAnswer._id);
                         thread.save((err) => {
                             if (err) return console.error(err);
-                            let html = pug.renderFile("views/partials/answer.pug", {answerObject: savedAnswer});
-                            namespace.emit("new_answer_available", html);
+                            namespace.emit("new_answer_available", {
+                                answerHTML: pug.renderFile("views/partials/answer.pug", {answerObject: savedAnswer}),
+                                forThread: thread._id,
+                                amountAnswersOnThread: thread.answers.length
+                            });
+                            // Thread.findOne({_id: threadId}, (err, thread) => {
+                            //     if (err) return console.error(err);
+                            //     thread.answers.push(savedAnswer._id);
+                            //     thread.save((err) => {
+                            //         if (err) return console.error(err);
+                            //         let html = pug.renderFile("views/partials/answer.pug", {answerObject: savedAnswer});
+                            //         let data = {
+                            //             answerHTML: html,
+                            //             forThread: thread._id,
+                            //             amountAnswersOnThread: sav
+                            //         };
+                            //         namespace.emit("new_answer_available", data);
+                            //     });
+                            // });
+                        })
+                    }
+                });
+            });
+        } else {
+            clientSocket.emit("error_occurred", "Please login to answer.");
+        }
+    },
+    new_comment: function (namespace, clientSocket, data) {
+        if (clientSocket.request.user) {
+            let threadId = sanitizer.escape(data.threadId);
+            let answerId = sanitizer.escape(data.answerId);
+            let comment = new Comment({
+                comment: sanitizer.escape(data.comment),
+                author: clientSocket.request.user,
+                onAnswer: answerId
+            });
+
+            comment.save((err, savedComment) => {
+                if (err) clientSocket.emit("error_occurred", err);
+                else {
+                    Answer.findOne({_id: answerId}, (err, answer) => {
+                        if (err) return console.error(err);
+                        answer.comments.push(savedComment._id);
+                        answer.save((err, savedAnswer) => {
+                            if (err) clientSocket.emit("error_occurred", err);
+                            else {
+                                Thread.findOne({_id: threadId}, (err, thread) => {
+                                    if (err) return console.error(err);
+                                    thread.save((err) => {
+                                        if (err) return console.error(err);
+                                        let html = pug.renderFile("views/partials/comment.pug", {commentObject: savedComment});
+                                        namespace.emit("new_comment_available", {
+                                            commentHTML: html,
+                                            forAnswer: answerId
+                                        });
+                                    });
+                                });
+                            }
                         });
                     });
                 }
             });
         } else {
-            clientSocket.emit("error_occurred", "Please login to ask a question.");
+            clientSocket.emit("error_occurred", "Please login to comment.");
+
         }
+
+  },
+  find_threads_with_tag:function(tag){
+    return Thread.find({tags:tag});
+  },
+  processQuestion:function(question) {
+    cleanQuestion = sanitizer.escape(question);
+
+    let object = {
+      question: "",
+      tags: []
+    };
+
+    let splitQuestion = cleanQuestion.split("#");
+    object.question=splitQuestion[0];
+    for(let i = 1; i < splitQuestion.length ;i++){
+        object.tags.push(this.removeToken(splitQuestion[i]," "));
     }
+
+    return object;
+    
+  },
+  removeToken: function(string,token){
+    return string.split(token)[0];
+  }
 };
 
 /**
  * The server socket
  */
-const serverSocketInitiator = function (server, sessionStore) {
-    const io = require("socket.io")(server);
+const serverSocketInitiator = function(server, sessionStore) {
+  const io = require("socket.io")(server);
 
-    /**
+  /**
      * Access passport user information from a socket.io connection.
      */
-    io.use(passportSocketIo.authorize({
-        cookieParser: cookieParser,
-        key: 'connect.sid', // the name of the cookie where express/connect stores its session_id
-        secret: process.env.SESSION_KEY,
-        store: sessionStore,
-        // success: onAuthorizeSuccess, //Optional
-        // fail: onAuthorizeFail //Optional
-    }));
+  io.use(
+    passportSocketIo.authorize({
+      cookieParser: cookieParser,
+      key: "connect.sid", // the name of the cookie where express/connect stores its session_id
+      secret: process.env.SESSION_KEY,
+      store: sessionStore
+      // success: onAuthorizeSuccess, //Optional
+      // fail: onAuthorizeFail //Optional
+    })
+  );
 
-    /**
+  /**
      * Namespace /questions-live
      */
-    const questions_live = io
-        .of('/questions-live')
-        .on('connection', function (clientSocket) {
-            clientSocket.emit("connection_confirmation", "connected to socket in room 'questions-live'");
+  const questions_live = io
+    .of("/questions-live")
+    .on("connection", function(clientSocket) {
+      clientSocket.emit(
+        "connection_confirmation",
+        "connected to socket in room 'questions-live'"
+      );
 
-            /**
+      /**
              * TODO implement pagination
              * more info @
              * http://madhums.me/2012/08/20/pagination-using-mongoose-express-and-jade/
@@ -108,23 +198,41 @@ const serverSocketInitiator = function (server, sessionStore) {
 
                 //TODO Send current threads when connecting to website
             let threadsHTML = [];
-            Thread.find().sort("-creationDate").populate("answers").exec().then(threads => {
+
+            Thread.find().populate('answers').
+            populate({
+                path: 'answers',
+                populate: { path: 'comments' }
+            }).exec().then(threads => {
                 threads.forEach(thread => {
+                    console.log(thread);
                     let html = pug.renderFile("views/partials/thread.pug", {thread: thread});
                     threadsHTML.push(html);
                 });
                 clientSocket.emit("threads", threadsHTML);
             }).catch(err => clientSocket.emit("error_occurred", "Failed to get threads"));
 
-            clientSocket
-                .on("new_question", (question) => {
-                    eventHandler.new_question(questions_live, clientSocket, question);
+      clientSocket
+        .on("new_question", question => {
+          eventHandler.new_question(questions_live, clientSocket, question);
+        })
+        .on("new_answer", data => {
+          eventHandler.new_answer(questions_live, clientSocket, data);
+        })
+        .on("new_comment", (data) => {
+                    eventHandler.new_comment(questions_live, clientSocket, data);
                 })
-                .on("new_answer", (data) => {
-                    eventHandler.new_answer(questions_live, clientSocket, data);
+        .on("find_threads",tag =>{
+            eventHandler.find_threads_with_tag(tag).then(function(threads){
+                let array = [];
+                threads.forEach(function(thread){
+                    array.push(
+                    pug.renderFile('views/partials/thread.pug',{thread}))
                 })
+                clientSocket.emit("threads",array);
+            })
         });
-
+    });
 };
 
 module.exports = serverSocketInitiator;

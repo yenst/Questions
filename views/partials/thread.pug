@@ -14,7 +14,8 @@ div(class="thread card bg-light mb-4 border-dark" data-thread-id=thread._id)
 
     div(class="card-body")
         div(class="tags row text-light mx-sm-2 mb-3")
-            span(class="badge badge-secondary") PHP
+            each tag in thread.tags
+                li(class="badge badge-secondary")=tag
         div(class="row")
             a(class="answerButton mx-auto btn btn-primary text-light" href="#")
                 if(thread.answers.length > 0)
@@ -25,7 +26,9 @@ div(class="thread card bg-light mb-4 border-dark" data-thread-id=thread._id)
             div(class="col text-center")
                 a(class="answersVisibiltyToggler text-primary" href="#")
                     i(class="fa fa-caret-down")
-                    span(class="ml-2") #{thread.answers.length} answers
+                    span(class="ml-2")
+                        span(class="amountAnswers")=thread.answers.length
+                        |  answers
         ul(class="answers row list-group list-group-flush" style="display: none")
             each answer in thread.answers
                 +answer(answer)

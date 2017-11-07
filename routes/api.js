@@ -2,6 +2,7 @@
 
 const router = require("express").Router();
 const sanitizer = require("sanitizer");
+const pug = require("pug");
 
 const Thread = require("./../models/thread");
 
@@ -21,6 +22,7 @@ const functions = {
             else res.json(savedThread);
         })
     }
+    
 };
 
 router.get('/', function (req, res) {
@@ -30,5 +32,7 @@ router.get('/', function (req, res) {
 router.route('/threads')
     .post(functions.postNewThread)
     .get(functions.getAllThreads);
+
+
 
 module.exports = router;

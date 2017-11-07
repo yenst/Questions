@@ -20,6 +20,16 @@ router
         req.logout();
         req.session = null; //Remove session from sessionStore
         res.redirect('/');
-    });
+    })
+    
+    router.get('/thread/:tag',function(req,res){
+      
+        
+        
+    
+    }
+    
+    )
+    ;
 
 module.exports = router;
