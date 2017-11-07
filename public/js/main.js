@@ -60,6 +60,11 @@ const gInterface = (function () {
                     $(e.target).closest("a").find(".fa").toggleClass("fa-caret-down").toggleClass("fa-caret-up");
                     $(e.target).closest(".card-body").find(".answers").toggle();
                 })
+                .on('click', ".answersToAnswersVisibilityToggler", function (e) {
+                    e.preventDefault();
+                    $(e.target).closest("a").find(".fa").toggleClass("fa-caret-down").toggleClass("fa-caret-up");
+                    $(e.target).closest(".card-body").find(".comments").toggle();
+                })
                 .on("click", ".commentButton", function (e) {
                     e.preventDefault();
                     let $currentThread = $(e.target).closest(".thread");
@@ -120,7 +125,7 @@ const gInterface = (function () {
         addCommentToAnswer: function (answerId, commentHTML) {
             let $affectedAnswer = $("#threads").find(".answer[data-answer-id='" + answerId + "']");
             let $comments = $affectedAnswer.find(".comments");
-            $comments.prepend(commentHTML);
+            $comments.append(commentHTML);
         },
         clearThreads: function () {
             $('#threads').html('');

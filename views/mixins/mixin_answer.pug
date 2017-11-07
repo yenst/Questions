@@ -6,6 +6,13 @@ mixin answer(answerObject)
             p(class="answerText col")!= answerObject.answer
             button(class="commentButton btn btn-primary text-light col-sm-2 col-md-1" type="submit")
                 span(class="fa fa-2x fa-comment" aria-hidden="true")
-        ul(class="comments fa-ul mt-2")
+        div(class="row")
+            div(class="col text-center")
+                a(class="answersToAnswersVisibilityToggler text-primary" href="#")
+                    i(class="fa fa-caret-down")
+                    span(class="ml-2")
+                        span(class="amountAnswersToAnswers")=answerObject.comments.length
+                        |  comments
+        ul(class="comments fa-ul mt-2" style="display:none")
             each comment in answerObject.comments
                 +comment(comment)
