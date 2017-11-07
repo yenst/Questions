@@ -14,11 +14,11 @@
 
 li(class="answer list-group-item bg-light" data-answer-id=answerObject._id)
     div(class="row")
-        p(class="answerText col")= answerObject.answer
+        p(class="answerText col")!= answerObject.answer
         button(class="commentButton btn btn-primary text-light col-sm-2 col-md-1" type="submit")
             span(class="fa fa-2x fa-comment" aria-hidden="true")
     ul(class="comments fa-ul")
         each comment in answerObject.comments
             li(class="comment")
                 i(class="fa fa-li fa-commenting")
-                span= comment.comment
+                span!= comment.comment

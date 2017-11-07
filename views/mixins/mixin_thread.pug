@@ -4,7 +4,7 @@ mixin thread(thread)
     div(class="thread card bg-light mb-4 border-dark" data-thread-id=thread._id)
         div(class="card-header crontainer-fluid")
             div(class="row")
-                h6(class="question col-sm-10 my-0 card-title")= thread.question
+                h6(class="question col-sm-10 my-0 card-title")!= thread.question
                 span(class="col-sm-2 text-right font-weight-light")
                     | #{thread.creationDate.getHours()}:#{thread.creationDate.getMinutes()}
                     | #{thread.creationDate.getDate()}/#{thread.creationDate.getMonth()}/#{thread.creationDate.getYear() - 100}
