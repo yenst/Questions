@@ -39,7 +39,7 @@ const processQuestion = function(question) {
   let splitQuestion = question.split("#");
   object.question = sanitizer.escape(splitQuestion[0]);
   for (let i = 1; i < splitQuestion.length; i++) {
-    object.tags.push(removeToken(sanitizer.escape(splitQuestion[i], " ")));
+    object.tags.push(sanitizer.escape(splitQuestion[i].trim()));
   }
   return object;
 };
