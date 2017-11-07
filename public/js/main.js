@@ -72,6 +72,14 @@ const gInterface = (function () {
                     $commentFormModal.find(".threadAnswer").text(answer);
                     $commentFormModal.modal("show");
                 });
+                $('#askbutton').on('click',function(e){
+                    $('#questionFormModal').modal('show');
+                });
+                $('#tagfinder').on('click',function(e){
+                    console.log($('#tagfinderinput').val());
+                    socketModule.findThreadsWithTag($('#tagfinderinput').val());
+
+                })
         },
         showError: function (error) {
             let $errorModal = $("#errorModal");
@@ -95,6 +103,8 @@ const gInterface = (function () {
             let $affectedAnswer = $("#threads").find(".answer[data-answer-id='" + answerId + "']");
             let $comments = $affectedAnswer.find(".comments");
             $comments.prepend(commentHTML);
+        clearThreads: function(){
+            $('#threads').html('');
         }
     }
 })();

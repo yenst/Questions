@@ -26,7 +26,7 @@ const ThreadSchema = Schema({
     upVotedUIDs: [{type: Schema.ObjectId, ref: "User"}],
     downVotedUIDs: [{type: Schema.ObjectId, ref: "User"}],
     answers: [{type: Schema.ObjectId, ref: "Answer"}],
-    tags: [{type: Schema.ObjectId, ref: "Tag"}]
+    tags: [{type: String}]
 });
 
 module.exports = mongoose.model('Thread', ThreadSchema);

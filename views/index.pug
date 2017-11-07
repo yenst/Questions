@@ -7,10 +7,12 @@ extends layout
     @header.layout.isAuthenticated {Boolean} shows login/logout button
 
 block content
-    include ./partials/form_question.pug
+    div.row
+        button#askbutton.btn.btn-primary.text-light.mx-auto Ask new question
+        include ./partials/popup_question.pug
 
     div(class="container my-4" id="threads")
-
+    
     include ./partials/popup_error.pug
     include ./partials/popup_answer.pug
     include ./partials/popup_comment

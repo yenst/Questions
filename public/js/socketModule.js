@@ -22,6 +22,7 @@ const socketModule = (function () {
             gInterface.addCommentToAnswer(data.forAnswer, data.commentHTML);
         })
         .on("threads", function (threadsHTML) {
+            gInterface.clearThreads();
             threadsHTML.forEach(threadHTML => {
                 gInterface.addThread(threadHTML);
             })
@@ -36,6 +37,9 @@ const socketModule = (function () {
         },
         sendComment: function(threadId, answerId, comment){
             socket.emit("new_comment", {threadId,answerId, comment});
+        },
+        findThreadsWithTag: function(tag){
+            socket.emit("find_threads",tag);
         },
         isConnected: function () {
             return socket.connected;
