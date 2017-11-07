@@ -11,7 +11,7 @@ let AnswerSchema = Schema({
     approved: {type: Boolean, default: false},
     upVotedUIDs: [{type: Schema.ObjectId, ref: "User"}],
     downVotedUIDs: [{type: Schema.ObjectId, ref: "User"}],
-    comments: [{type: Schema.ObjectId, ref: "Comment"}],
+    comments: [{type: mongoose.Schema.ObjectId, ref: "Comment"}],
 });
 
 module.exports = mongoose.model("Answer", AnswerSchema);
