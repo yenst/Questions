@@ -131,10 +131,7 @@ const eventHandler = {
             clientSocket.emit("error_occurred", "Please login to comment.");
 
         }
-      });
-    } else {
-      clientSocket.emit("error_occurred", "Please login to ask a question.");
-    }
+
   },
   find_threads_with_tag:function(tag){
     return Thread.find({tags:tag});

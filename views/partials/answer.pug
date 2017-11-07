@@ -13,10 +13,12 @@
     @answerObject {Answer} answer to render
 
 li(class="answer list-group-item bg-light" data-answer-id=answerObject._id)
-    p(class="answerText")= answerObject.answer
-    button(class="commentButton btn btn-secondary" type="submit") Comment
-    ul(class="comments")
+    div(class="row")
+        p(class="answerText col")= answerObject.answer
+        button(class="commentButton btn btn-primary text-light col-sm-2 col-md-1" type="submit")
+            span(class="fa fa-2x fa-comment" aria-hidden="true")
+    ul(class="comments fa-ul")
         each comment in answerObject.comments
             li(class="comment")
-                p= comment.comment
-
+                i(class="fa fa-li fa-commenting")
+                span= comment.comment

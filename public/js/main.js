@@ -75,7 +75,8 @@ const gInterface = (function () {
                 $('#askbutton').on('click',function(e){
                     $('#questionFormModal').modal('show');
                 });
-                $('#tagfinder').on('click',function(e){
+                $('#tagfinder').on('submit',function(e){
+                    e.preventDefault();
                     console.log($('#tagfinderinput').val());
                     socketModule.findThreadsWithTag($('#tagfinderinput').val());
 
@@ -103,6 +104,7 @@ const gInterface = (function () {
             let $affectedAnswer = $("#threads").find(".answer[data-answer-id='" + answerId + "']");
             let $comments = $affectedAnswer.find(".comments");
             $comments.prepend(commentHTML);
+        },
         clearThreads: function(){
             $('#threads').html('');
         }
