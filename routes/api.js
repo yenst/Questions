@@ -2,7 +2,6 @@
 
 const router = require("express").Router();
 const sanitizer = require("sanitizer");
-const pug = require("pug");
 
 const Thread = require("./../models/thread");
 
@@ -10,16 +9,7 @@ const functions = {
     getAllThreads: function (req, res, next) {
         Thread.find(function (err, threads) {
             if (err) return next(err); //Error wil get caught by error handler middleware
-            else {
-                let threadsHTML = [];
-                Thread.find().sort("-creationDate").populate("answers").exec((err, threadss) => {
-                    threads.forEach(thread => {
-                        let html = pug.renderFile("views/partials/thread.pug", {thread: thread});
-                        threadsHTML.push(html);
-                        res.json(threadsHTML);
-                    });
-                })
-            }
+            else res.json(threads);
         });
     },
     postNewThread: function (req, res, next) {
