@@ -29,13 +29,28 @@ const ThreadSchema = Schema({
     tags: [{type: String}]
 });
 
+ThreadSchema.pre("remove", function (next) {
+    mongoose.model("Answer").find({onThread: this._id}).then(answers => {
+        answers.forEach(answer => {
+            answer.remove();
+        });
+    }).catch(err => {
+        console.error(err);
+    });
+    next();
+});
+
 ThreadSchema.methods.upVote = function (userId) {
     let self = this;
     return new Promise(function (resolve, reject) {
-        if (self.upVotedUIDs.find((uid) => {return uid == userId})) {
+        if (self.upVotedUIDs.find((uid) => {
+                return uid == userId
+            })) {
             reject("You have already up voted this.");
         } else {
-            if (self.downVotedUIDs.find((uid) => {return uid == userId})) {
+            if (self.downVotedUIDs.find((uid) => {
+                    return uid == userId
+                })) {
                 let index = self.downVotedUIDs.indexOf(userId);
                 self.downVotedUIDs.splice(index, 1);
             } else {
@@ -49,10 +64,14 @@ ThreadSchema.methods.upVote = function (userId) {
 ThreadSchema.methods.downVote = function (userId) {
     let self = this;
     return new Promise(function (resolve, reject) {
-        if (self.downVotedUIDs.find((uid) => {return uid == userId})) {
+        if (self.downVotedUIDs.find((uid) => {
+                return uid == userId
+            })) {
             reject("You have already down voted this.");
         } else {
-            if (self.upVotedUIDs.find((uid) => {return uid == userId})) {
+            if (self.upVotedUIDs.find((uid) => {
+                    return uid == userId
+                })) {
                 let index = self.upVotedUIDs.indexOf(userId);
                 self.upVotedUIDs.splice(index, 1);
             } else {

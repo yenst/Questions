@@ -93,6 +93,21 @@ const gInterface = (function () {
                         socketModule.downVoteThread(threadId);
                     }
                     else askToLogin();
+                })
+                .on("click", ".deleteThreadBtn", function (e) {
+                    let threadId = $(e.target).closest(".thread").attr("data-thread-id");
+                    socketModule.deleteThread(threadId);
+                })
+                .on("click", ".deleteAnswerBtn", function (e) {
+                    let $answer = $(e.target).closest(".answer");
+                    let answerId = $answer.attr("data-answer-id");
+                    let threadId = $answer.closest(".thread").attr("data-thread-id");
+                    socketModule.deleteAnswer(answerId, threadId);
+                })
+                .on("click", ".approveAnswerBtn", function (e) {
+                    e.preventDefault();
+                    let answerId = $(e.target).closest(".answer").attr("data-answer-id");
+                    socketModule.toggleAnswerApproved(answerId);
                 });
             $('#askbutton').on('click', function (e) {
                 if (socketModule.isConnected()) $('#questionFormModal').modal('show');
@@ -111,7 +126,7 @@ const gInterface = (function () {
             $errorModal.modal("show");
         },
         addThread: function (threadHTML) {
-            $("#threads").append(threadHTML);
+            $("#threads").prepend(threadHTML);
         },
         addAnswerForThread: function (threadId, answerHTML, amountAnswersOnThread) {
             let $affectedThread = $("#threads").find(".thread[data-thread-id='" + threadId + "']");
@@ -126,13 +141,29 @@ const gInterface = (function () {
         addCommentToAnswer: function (answerId, commentHTML) {
             let $affectedAnswer = $("#threads").find(".answer[data-answer-id='" + answerId + "']");
             let $comments = $affectedAnswer.find(".comments");
-            $comments.prepend(commentHTML);
+            $comments.append(commentHTML);
         },
         clearThreads: function () {
             $('#threads').html('');
         },
         updateThreadVotes: function (threadId, votes) {
             $("#threads").find(".thread[data-thread-id='" + threadId + "']").find(".votes").text(votes);
+        },
+        removeThread: function (threadId) {
+            $("#threads").find(".thread[data-thread-id='" + threadId + "']").remove();
+        },
+        removeAnswer: function (answerId, threadId) {
+            let $affectedThread = $("#threads").find(".thread[data-thread-id='" + threadId + "']");
+            let $amountAnswers = $affectedThread.find(".amountAnswers");
+            $amountAnswers.text($amountAnswers.text() - 1);
+            $affectedThread.find(".answer[data-answer-id='" + answerId + "']").remove();
+        },
+        setAnswerApproved: function (answerId, threadId) {
+            $("#threads")
+                .find(".thread[data-thread-id='" + threadId + "']")
+                .find(".answer[data-answer-id='" + answerId + "']")
+                .toggleClass("bg-light")
+                .toggleClass("bg-success");
         }
     }
 })();
