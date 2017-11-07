@@ -32,15 +32,14 @@ const processQuestion = function(question) {
   let removeToken = function(string, token) {
     return string.split(token)[0];
   };
-  let cleanQuestion = sanitizer.escape(question);
   let object = {
     question: "",
     tags: []
   };
-  let splitQuestion = cleanQuestion.split("#");
-  object.question = splitQuestion[0];
+  let splitQuestion = question.split("#");
+  object.question = sanitizer.escape(splitQuestion[0]);
   for (let i = 1; i < splitQuestion.length; i++) {
-    object.tags.push(removeToken(splitQuestion[i], " "));
+    object.tags.push(removeToken(sanitizer.escape(splitQuestion[i], " ")));
   }
   return object;
 };
