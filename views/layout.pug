@@ -20,7 +20,7 @@ html(lang="en")
 
     body(style="margin-top: 70px")
         //- Loads the header from another file
-        +header(isAuthenticated)
+        +header(user)
 
         //- Blocks can be owerwritten/appended/prepended by extending this file, more info @ https://pugjs.org/language/inheritance.html
         block content

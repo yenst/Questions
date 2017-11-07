@@ -1,7 +1,7 @@
 "use strict";
 
 const socketModule = (function () {
-    const socket = io('http://172.21.22.52.xip.io:3000/questions-live');
+    const socket = io('http://questions.dev:3000/questions-live');
 
     //TODO remove socket.on('connection_confirmation')
     socket
@@ -26,6 +26,9 @@ const socketModule = (function () {
             threadsHTML.forEach(threadHTML => {
                 gInterface.addThread(threadHTML);
             })
+        })
+        .on("thread_voted", function (data) {
+            gInterface.updateThreadVotes(data.threadId, data.votes);
         });
 
     return {
@@ -43,6 +46,12 @@ const socketModule = (function () {
         },
         isConnected: function () {
             return socket.connected;
+        },
+        upVoteThread: function (threadId) {
+            socket.emit("up_vote_thread", threadId);
+        },
+        downVoteThread: function (threadId) {
+            socket.emit("down_vote_thread", threadId);
         }
     }
 })();

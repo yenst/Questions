@@ -2,13 +2,15 @@ include ./mixin_answer.pug
 
 mixin thread(thread)
     div(class="thread card bg-light mb-4 border-dark" data-thread-id=thread._id)
-        div(class="card-header crontainer-fluid")
+        div(class="card-header")
             div(class="row")
-                h6(class="question col-sm-10 my-0 card-title")= thread.question
+                h6(class="question col-sm-10 my-0 card-title")!= thread.question
                 span(class="col-sm-2 text-right font-weight-light")
                     | #{thread.creationDate.getHours()}:#{thread.creationDate.getMinutes()}
                     | #{thread.creationDate.getDate()}/#{thread.creationDate.getMonth()}/#{thread.creationDate.getYear() - 100}
-
+            div(class="tags row ml-1 mt-1")
+                each tag in thread.tags
+                    span(class="badge badge-primary text-light")!= tag
         div(class="card-body")
             div(class="row text-light mx-sm-2")
                 div(class="col-1 p-0 mx-2")
@@ -20,7 +22,7 @@ mixin thread(thread)
                     a(class="threadDownVoteBtn row btn-sm btn-outline-secondary mx-auto justify-content-center" href="#")
                         i(class="fa fa-chevron-down")
                         span(class="sr-only") up vote
-                div(class="tags col")
+                div(class="extraInfo col")
             div(class="row")
                 a(class="answerButton mx-auto btn btn-primary text-light" href="#")
                     if(thread.answers.length > 0)
@@ -29,7 +31,7 @@ mixin thread(thread)
                         | Be the first to answer
             div(class="row")
                 div(class="col text-center")
-                    a(class="answersVisibiltyToggler text-primary" href="#")
+                    a(class="answersVisibilityToggler text-primary" href="#")
                         i(class="fa fa-caret-down")
                         span(class="ml-2")
                             span(class="amountAnswers")=thread.answers.length

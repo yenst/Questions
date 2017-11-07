@@ -22,11 +22,46 @@ const ThreadSchema = Schema({
     question: {type: String, set: questionSetter, required: [true, "Question can't be empty."]},
     creationDate: {type: Date, default: Date.now},
     hasApprovedAnswer: {type: Boolean, default: false},
-    votes: {Number, default: 0},
+    votes: {type: Number, default: 0},
     upVotedUIDs: [{type: Schema.ObjectId, ref: "User"}],
     downVotedUIDs: [{type: Schema.ObjectId, ref: "User"}],
     answers: [{type: Schema.ObjectId, ref: "Answer"}],
     tags: [{type: String}]
 });
+
+ThreadSchema.methods.upVote = function (userId) {
+    let self = this;
+    return new Promise(function (resolve, reject) {
+        if (self.upVotedUIDs.find((uid) => {return uid == userId})) {
+            reject("You have already up voted this.");
+        } else {
+            if (self.downVotedUIDs.find((uid) => {return uid == userId})) {
+                let index = self.downVotedUIDs.indexOf(userId);
+                self.downVotedUIDs.splice(index, 1);
+            } else {
+                self.upVotedUIDs.push(userId);
+            }
+            self.votes++;
+            resolve();
+        }
+    });
+};
+ThreadSchema.methods.downVote = function (userId) {
+    let self = this;
+    return new Promise(function (resolve, reject) {
+        if (self.downVotedUIDs.find((uid) => {return uid == userId})) {
+            reject("You have already down voted this.");
+        } else {
+            if (self.upVotedUIDs.find((uid) => {return uid == userId})) {
+                let index = self.upVotedUIDs.indexOf(userId);
+                self.upVotedUIDs.splice(index, 1);
+            } else {
+                self.downVotedUIDs.push(userId);
+            }
+            self.votes--;
+            resolve();
+        }
+    });
+};
 
 module.exports = mongoose.model('Thread', ThreadSchema);
