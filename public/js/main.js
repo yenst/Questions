@@ -80,6 +80,20 @@ const gInterface = (function () {
         },
         addThread: function (threadHTML) {
             $("#threads").append(threadHTML);
+        },
+        addAnswerForThread: function (threadId, answerHTML, amountAnswersOnThread) {
+            let $affectedThread = $("#threads").find(".thread[data-thread-id='" + threadId + "']");
+            $affectedThread.find(".amountAnswers").text(amountAnswersOnThread);
+            let $answers = $affectedThread.find(".answers");
+            $answers.prepend(answerHTML);
+            if(!$answers.is(":visible"))
+                $answers.toggle();
+            if($affectedThread.find(".answerButton").text() !== "Answer")
+                $affectedThread.find(".answerButton").text("Answer");
+        },
+        addCommentToAnswer: function(answerId, commentHTML){
+            let $affectedAnswer = $("#threads").find(".answer[data-answer-id='" + answerId + "']");
+            $affectedAnswer.find('.comments').append(commentHTML);
         }
     }
 })();

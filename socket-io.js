@@ -94,9 +94,11 @@ const eventHandler = {
                                     if (err) return console.error(err);
                                     thread.save((err) => {
                                         if (err) return console.error(err);
-                                        /*let html = pug.renderFile("views/partials/answer.pug", {answerObject: savedAnswer});
-                                        namespace.emit("new_answer_available", html);*/
-                                        //TODO live met sockets
+                                        savedAnswer.populate('comments');
+                                        namespace.emit("new_comment_available", {
+                                            commentHTML: pug.renderFile("views/partials/comment.pug", {commentObject: savedComment}),
+                                            forAnswer: answerId,
+                                        });
                                     });
                                 });
                             }
