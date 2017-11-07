@@ -17,5 +17,5 @@ Ask and answer questions live, like Stack Overflow.
 
 ## Logbook and Planning
 - Editable links: 
-Planning: https://docs.google.com/spreadsheets/d/1uGOzUQsVnnHyWszXqmRLlKSYegMOegUdu28vA598-e0/edit#gid=0 .
-Logbook: https://docs.google.com/document/d/1nlz7kae_KaoP3mh-Qdn8FsOXiRVNB7x3XZimT1teLKE/edit
+[Planning](https://docs.google.com/spreadsheets/d/1uGOzUQsVnnHyWszXqmRLlKSYegMOegUdu28vA598-e0/edit#gid=0) - 
+[Logbook](https://docs.google.com/document/d/1nlz7kae_KaoP3mh-Qdn8FsOXiRVNB7x3XZimT1teLKE/edit)
