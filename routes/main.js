@@ -18,7 +18,7 @@ router
         }).exec((err, threads) => {
             if(err) return next(error);
             res.render("index", {
-                title: "Home",
+                title: "Home - Questions",
                 isAuthenticated: (req.user),
                 threads: threads
             });
