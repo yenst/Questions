@@ -1,21 +1,25 @@
 extends layout
+include ./mixins/mixin_thread.pug
 
 //-
     index.pug variables
     ********************
     @layout.title {String} title of current page
-    @header.layout.isAuthenticated {Boolean} shows login/logout button
+    @header.layout.user {Boolean} shows login/logout button
+    @threads {[Thread]} array of threads to render
 
 block content
-    div.row
-        button#askbutton.btn.btn-primary.text-light.mx-auto Ask new question
-        include ./partials/popup_question.pug
+    div(class="text-center my-3")
+        button(class="btn btn-primary text-light mx-auto" id="askbutton") Ask new question
 
     div(class="container my-4" id="threads")
-    
+        each thread in threads
+            +thread(thread, user)
+
     include ./partials/popup_error.pug
     include ./partials/popup_answer.pug
-    include ./partials/popup_comment
+    include ./partials/popup_comment.pug
+    include ./partials/popup_question.pug
 
 block scripts
     script(src="/socket.io/socket.io.js")

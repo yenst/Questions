@@ -1,11 +1,6 @@
-//-
-    mixin_header.pug variables
-    **************************
-    @isAuthenticated {Boolean} shows login/logout button
-
-mixin header(isAuthenticated)
+mixin header(user)
     header
-        nav(class="navbar fixed-top navbar-expand-md navbar-dark bg-primary py-1 px-2" role="navigation")
+        nav(class="navbar fixed-top navbar-expand-md navbar-dark bg-primary py-1" role="navigation")
             a(class="navbar-brand my-0 h1" href="/") Questions
             button(class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation")
                 i(class="navbar-toggler-icon")
@@ -14,8 +9,9 @@ mixin header(isAuthenticated)
                     li(class="nav-item")
                         a(class="nav-link text-light" href="/") Home
                             span(class="sr-only") (current)
-                    if isAuthenticated
-                        a(class="nav-link text-light" href='/logout') Logout
+                    if user
+                        li(class="nav-item")
+                            a(class="nav-link text-light" href='/logout') Logout
                     else
                         li(class="nav-item dropdown")
                             a(class="nav-link dropdown-toggle text-light" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") Login
@@ -23,7 +19,11 @@ mixin header(isAuthenticated)
                                 h6(class="dropdown-header") Your Howest account is a Google account
                                 a(class="btn btn-block btn-social btn-google" href='/auth/google') Sign in with Google
                                     i(class="fa fa-google")
-                form(class="form-inline my-2" action="#")#tagfinder
-                    input(class="form-control mr-sm-2" type="search" placeholder="Find tag" aria-label="Search")#tagfinderinput
+                    if user && user.isAdmin
+                        li(class="nav-item")
+                            span(class="navbar-text")
+                                |(Admin mode)
+                form(class="form-inline my-2" action="#" id="search_threads_on_tag_form")
+                    input(class="form-control mr-sm-2" type="search" name="tag" placeholder="Tag" aria-label="Search")
                     button(class="btn btn-outline-light" type="submit")
                         i(class="fa fa-search")
