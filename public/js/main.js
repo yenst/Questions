@@ -122,9 +122,10 @@ const gInterface = (function () {
             if ($affectedThread.find(".answerButton").text() !== "Answer")
                 $affectedThread.find(".answerButton").text("Answer");
         },
-        addCommentToAnswer: function (answerId, commentHTML) {
+        addCommentToAnswer: function (answerId, commentHTML,amountOfComments) {
             let $affectedAnswer = $("#threads").find(".answer[data-answer-id='" + answerId + "']");
             let $comments = $affectedAnswer.find(".comments");
+            $affectedAnswer.find(".amountAnswersToAnswers").text(amountOfComments);
             $comments.append(commentHTML);
         },
         clearThreads: function () {
