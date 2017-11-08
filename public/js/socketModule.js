@@ -2,7 +2,7 @@
 
 const socketModule = (function () {
 
-    const socket = io('http://172.21.22.52.xip.io:3000/questions-live');
+    const socket = io('http://questions.dev:3000/questions-live');
 
 
     //TODO remove socket.on('connection_confirmation')
@@ -14,12 +14,12 @@ const socketModule = (function () {
             console.log(error);
             gInterface.showError(error);
         })
-        .on("new_thread_available", function (threadHTML, tags) {
+        .on("new_thread_available", function (data) {
             if(tag === null){
-                gInterface.addThread(threadHTML);
-            }else if(tags.includes(tag)){
+                gInterface.addThread(data.threadHTML);
+            }else if(data.tags.includes(tag)){
                 new Notification("Nieuwe vraag: "+tag);
-                gInterface.addThread(threadHTML);
+                gInterface.addThread(data.threadHTML);
             }
         })
         .on("new_answer_available", function (data) {

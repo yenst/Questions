@@ -123,17 +123,24 @@ const eventHandler = {
             thread.save((err, savedThread) => {
                 if (err) clientSocket.emit("error_occurred", err);
                 else {
+                    let dataForAdmins = {
+                        threadHTML: pug.renderFile("views/partials/thread.pug", {
+                            thread: savedThread,
+                            isAdmin: true,
+                        }),
+                        tags: savedThread.tags
+                    };
+                    let dataForStudents = {
+                        threadHTML: pug.renderFile("views/partials/thread.pug", {
+                            thread: savedThread,
+                            isAdmin: false,
+                        }),
+                        tags: savedThread.tags
+                    };
 
-                    let htmlForAdmins = pug.renderFile("views/partials/thread.pug", {
-                        thread: savedThread,
-                        isAdmin: true
-                    });
-                    let htmlForStudents = pug.renderFile("views/partials/thread.pug", {
-                        thread: savedThread,
-                        isAdmin: false
-                    });
-                    sendToAdmins("new_thread_available", htmlForAdmins);
-                    sendToStudents("new_thread_available", htmlForStudents);
+
+                    sendToAdmins("new_thread_available", dataForAdmins);
+                    sendToStudents("new_thread_available", dataForStudents);
                 }
             });
         } else {
@@ -182,7 +189,7 @@ const eventHandler = {
           }
      else clientSocket.emit("error_occurred", "Please login to vote");
   },
-  new_question: function(namespace, clientSocket, question) {
+  /*new_question: function(namespace, clientSocket, question) {
     //TODO Deze check wordt al uitgevoerd in "model/thread.js"
     let questionObject = processQuestion(question);
     if (clientSocket.request.user) {
@@ -200,7 +207,7 @@ const eventHandler = {
           namespace.emit("new_thread_available", html);
         }
 
-    })}},
+    })}},*/
     new_comment: function (namespace, clientSocket, data) {
         if (clientSocket.request.user) {
             Thread.findOne({_id: sanitizer.escape(data.threadId)}).exec((err, returnedThread) => {
@@ -271,28 +278,6 @@ const eventHandler = {
         });
 
     
-  },
-  find_threads_with_tag: function(clientSocket, tag) {
-    Thread.find({ tags: tag })
-      .populate({
-        path: "answers",
-        populate: {
-          path: "comments",
-          model: "Comment"
-        }
-      })
-      .then(threads => {
-        let renderedThreads = [];
-        threads.forEach(function(thread) {
-          renderedThreads.push(
-            pug.renderFile("views/partials/thread.pug", { thread })
-          );
-        });
-        clientSocket.emit("threads", renderedThreads);
-      })
-      .catch(err => {
-        clientSocket.emit("error_occurred", "Failed to get threads.");
-      });
   }
 };
 
