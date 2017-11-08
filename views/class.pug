@@ -1,0 +1,34 @@
+include ./mixins/mixin_roomHeader.pug
+
+doctype html
+html(lang="en")
+    head
+        meta(charset="UTF-8")
+        meta(name="viewport", content="width=device-width, initial-scale=1.0, shrink-to-fit=no")
+        title Class - #{title}
+
+        link(rel='stylesheet', href='/font-awesome-4.7.0/css/font-awesome.min.css')
+        link(rel='stylesheet', href='/css/lib/bootstrap/custom-bootstrap.css')
+        link(rel='stylesheet', href='/css/lib/bootstrap/bootstrap-social-5.1.1.min.css')
+        link(rel='stylesheet', href='/css/style.css')
+        link(rel='stylesheet', href='/css/roomCss.css')
+
+    body(style="margin-top: 70px")
+        //- Loads the header from another file
+        +header()
+
+        //- Blocks can be owerwritten/appended/prepended by extending this file, more info @ https://pugjs.org/language/inheritance.html
+        div(class="container my-4" id="threads")
+
+
+        //- Load scripts in this order, else fail.
+        script(src="/js/lib/jquery-3.2.1.min.js")
+        script(src="/js/lib/popper-1.12.6.min.js")
+        script(src="/js/lib/bootstrap-4.min.js")
+        script(src="/socket.io/socket.io.js")
+        script(src="/js/socketModule.js")
+        script(src="/js/main.js")
+        script(src="/js/class.js")
+
+    //- Our js resources
+        block scripts
