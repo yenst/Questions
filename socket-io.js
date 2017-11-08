@@ -123,6 +123,7 @@ const eventHandler = {
             thread.save((err, savedThread) => {
                 if (err) clientSocket.emit("error_occurred", err);
                 else {
+
                     let htmlForAdmins = pug.renderFile("views/partials/thread.pug", {
                         thread: savedThread,
                         isAdmin: true
@@ -320,18 +321,19 @@ const serverSocketInitiator = function(server, sessionStore) {
   /**
      * Access passport user information from a socket.io connection.
      */
-  io.use(
-    passportSocketIo.authorize({
-      cookieParser: cookieParser,
-      key: "connect.sid", // the name of the cookie where express/connect stores its session_id
-      secret: process.env.SESSION_KEY,
-      store: sessionStore
-      // success: onAuthorizeSuccess, //Optional
-      // fail: onAuthorizeFail //Optional
-    })
-  );
+    io.use(
+        passportSocketIo.authorize({
+            cookieParser: cookieParser,
+            key: "connect.sid", // the name of the cookie where express/connect stores its session_id
+            secret: process.env.SESSION_KEY,
+            store: sessionStore
+            //success: onAuthorizeSuccess, //Optional
+            //fail: onAuthorizeFail //Optional
+        })
+    );
 
-  /**
+    /**
+
      * Namespace /questions-live
      */
 
@@ -362,6 +364,9 @@ const serverSocketInitiator = function(server, sessionStore) {
                 })
                 .on("down_vote_thread", (threadId) => {
                     eventHandler.down_vote_thread(questions_live, clientSocket, threadId);
+                })
+                .on("open_class", (tag) =>{
+                    eventHandler.openNewClass(clientSocket,tag);
                 })
                 .on("delete_thread", (threadId) => {
                     eventHandler.delete_thread(questions_live, clientSocket, threadId);
