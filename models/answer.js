@@ -8,10 +8,21 @@ let AnswerSchema = Schema({
     author: {type: Schema.ObjectId, ref: "User", required: true},
     onThread: {type: mongoose.Schema.ObjectId, ref: "Thread", required: true},
     votes: {type: Number, default: 0},
-    approved: {type: Boolean, default: false},
+    isApproved: {type: Boolean, default: false},
     upVotedUIDs: [{type: Schema.ObjectId, ref: "User"}],
     downVotedUIDs: [{type: Schema.ObjectId, ref: "User"}],
     comments: [{type: Schema.ObjectId, ref: "Comment"}],
 });
 
-module.exports = mongoose.model("Answer", AnswerSchema);
+AnswerSchema.pre("remove", function (next) {
+    mongoose.model("Thread").findOne({_id: this.onThread}).then(thread => {
+        let index = thread.answers.indexOf(this._id);
+        thread.answers.splice(index, 1);
+        thread.save();
+    }).catch(err => console.error(err));
+    mongoose.model("Comment").remove({onAnswer: this._id}).catch(err => console.error(err));
+    next();
+});
+
+const Answer = mongoose.model("Answer", AnswerSchema);
+module.exports = Answer;

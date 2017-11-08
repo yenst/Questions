@@ -2,6 +2,14 @@
 
 const router = require("express").Router();
 const Thread = require("../models/thread");
+
+/**
+ * TODO implement pagination
+ * more info @
+ * http://madhums.me/2012/08/20/pagination-using-mongoose-express-and-jade/
+ * https://stackoverflow.com/questions/5539955/how-to-paginate-with-mongoose-in-node-js
+ */
+
 router
 /**
  * Default Route
