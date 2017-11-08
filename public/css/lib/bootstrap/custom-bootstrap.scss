@@ -4,7 +4,8 @@ $theme-colors: (
   //Howest blue
         "primary": #44c9f6,
   //Howest pink
-        "secondary": #e6007e
+        "secondary": #e6007e,
+        "success": rgb(147, 255, 156)
 );
 
 @import "./source_scss/bootstrap.scss";

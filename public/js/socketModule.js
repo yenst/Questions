@@ -1,7 +1,9 @@
 "use strict";
 
 const socketModule = (function () {
+
     const socket = io('http://172.21.22.52.xip.io:3000/questions-live');
+
 
     //TODO remove socket.on('connection_confirmation')
     socket
@@ -29,6 +31,15 @@ const socketModule = (function () {
         })
         .on("thread_voted", function (data) {
             gInterface.updateThreadVotes(data.threadId, data.votes);
+        })
+        .on("deleted_thread", function (threadId) {
+            gInterface.removeThread(threadId);
+        })
+        .on("deleted_answer", function (data) {
+            gInterface.removeAnswer(data.answerId, data.threadId);
+        })
+        .on("answer_approved_changed", function (data) {
+            gInterface.setAnswerApproved(data.answerId, data.threadId);
         });
 
     return {
@@ -38,11 +49,11 @@ const socketModule = (function () {
         sendAnswer: function (threadId, answer) {
             socket.emit("new_answer", {threadId, answer});
         },
-        sendComment: function(threadId, answerId, comment){
-            socket.emit("new_comment", {threadId,answerId, comment});
+        sendComment: function (threadId, answerId, comment) {
+            socket.emit("new_comment", {threadId, answerId, comment});
         },
-        findThreadsWithTag: function(tag){
-            socket.emit("find_threads",tag);
+        findThreadsWithTag: function (tag) {
+            socket.emit("find_threads", tag);
         },
         isConnected: function () {
             return socket.connected;
@@ -52,6 +63,15 @@ const socketModule = (function () {
         },
         downVoteThread: function (threadId) {
             socket.emit("down_vote_thread", threadId);
+        },
+        deleteThread: function (threadId) {
+            socket.emit("delete_thread", threadId);
+        },
+        deleteAnswer: function (answerId, threadId) {
+            socket.emit("delete_answer_on_thread", {answerId, threadId});
+        },
+        toggleAnswerApproved: function (answerId) {
+            socket.emit("toggle_answer_approved", answerId);
         }
     }
 })();
