@@ -69,8 +69,8 @@ const gInterface = (function () {
                     $(e.target).closest(".answer").find(".comments").toggle();
                 })
                 .on("click", ".commentButton", function (e) {
+                    e.preventDefault();
                     if (socketModule.isConnected()) {
-                        e.preventDefault();
                         let $currentThread = $(e.target).closest(".thread");
                         let $currentAnswer = $(e.target).closest(".answer");
                         let threadId = $currentThread.attr("data-thread-id");
@@ -117,6 +117,7 @@ const gInterface = (function () {
                     socketModule.toggleAnswerApproved(answerId);
                 });
             $('#askbutton').on('click', function (e) {
+                e.preventDefault();
                 if (socketModule.isConnected()) $('#questionFormModal').modal('show');
                 else askToLogin();
             });
