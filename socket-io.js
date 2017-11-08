@@ -93,8 +93,9 @@ const eventHandler = {
             thread.save((err, savedThread) => {
                 if (err) clientSocket.emit("error_occurred", err);
                 else {
+
                     let html = pug.renderFile("views/partials/thread.pug", {thread: savedThread});
-                    namespace.emit("new_thread_available", html);
+                    namespace.emit("new_thread_available", html, questionObject.tags);
                 }
             });
         } else {
@@ -198,8 +199,8 @@ const serverSocketInitiator = function (server, sessionStore) {
             key: "connect.sid", // the name of the cookie where express/connect stores its session_id
             secret: process.env.SESSION_KEY,
             store: sessionStore
-            // success: onAuthorizeSuccess, //Optional
-            // fail: onAuthorizeFail //Optional
+            //success: onAuthorizeSuccess, //Optional
+            //fail: onAuthorizeFail //Optional
         })
     );
 
@@ -239,8 +240,16 @@ const serverSocketInitiator = function (server, sessionStore) {
                 })
                 .on("down_vote_thread", (threadId) => {
                     eventHandler.down_vote_thread(questions_live, clientSocket, threadId);
-                });
+                })
+                .on("open_class", (tag) =>{
+                    eventHandler.openNewClass(clientSocket,tag);
+                })
+
         });
+
+
+
+
 };
 
 module.exports = serverSocketInitiator;

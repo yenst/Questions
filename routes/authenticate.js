@@ -8,8 +8,8 @@ const passport = require('passport');
  */
 router.route('/google')
     .get(passport.authenticate('google', {
-        hd: 'howest.be', //Only show accounts that match the hosted domain.
-        prompt: 'select_account', //Ensure the user can always select an account when sent to Google.
+            hd: 'howest.be', //Only show accounts that match the hosted domain.
+            prompt: 'select_account', //Ensure the user can always select an account when sent to Google.
             scope: ['email', 'profile']
         })
     );
@@ -19,6 +19,7 @@ router.route('/google/callback')
             failureRedirect: '/auth/failure'
         })
     );
+
 
 /**
  * Authentication failure

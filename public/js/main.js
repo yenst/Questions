@@ -1,4 +1,6 @@
 "use strict";
+let tag = null;
+let newClass = false;
 
 const gInterface = (function () {
 
@@ -96,8 +98,17 @@ const gInterface = (function () {
                 e.preventDefault();
                 let $tagInput = $(e.target).find('input[name="tag"]');
                 socketModule.findThreadsWithTag($tagInput.val());
+                tag = $tagInput.val();
+                console.log(tag);
                 $tagInput.val("");
-            })
+            });
+            $('#open_class').on('submit', function (e) {
+                e.preventDefault();
+                let $tagInput = $(e.target).find('input[name="tag"]');
+                let tag = $tagInput.val();
+                let newClass = '/newclass/';
+                window.location.href= newClass+tag;
+            });
         },
         showError: function (error) {
             let $errorModal = $("#errorModal");
@@ -105,7 +116,7 @@ const gInterface = (function () {
             $errorModal.modal("show");
         },
         addThread: function (threadHTML) {
-            $("#threads").append(threadHTML);
+            $("#threads").prepend(threadHTML);
         },
         addAnswerForThread: function (threadId, answerHTML, amountAnswersOnThread) {
             let $affectedThread = $("#threads").find(".thread[data-thread-id='" + threadId + "']");

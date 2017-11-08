@@ -23,7 +23,14 @@ mixin header(user)
                         li(class="nav-item")
                             span(class="navbar-text")
                                 |(Admin mode)
-                form(class="form-inline my-2" action="#" id="search_threads_on_tag_form")
-                    input(class="form-control mr-sm-2" type="search" name="tag" placeholder="Tag" aria-label="Search")
-                    button(class="btn btn-outline-light" type="submit")
-                        i(class="fa fa-search")
+
+                if user
+                    form(class="form-inline my-2" action="#" id="open_class")
+                        input(class="form-control mr-sm-2" type="search" name="tag" placeholder="Tag" aria-label="Search")
+                        button(class="btn btn-outline-light" type="submit") Open class
+
+
+                    form(class="form-inline my-2" action="#" id="search_threads_on_tag_form")
+                        input(class="form-control mr-sm-2" type="search" name="tag" placeholder="Tag" aria-label="Search")
+                        button(class="btn btn-outline-light" type="submit")
+                            i(class="fa fa-search")
