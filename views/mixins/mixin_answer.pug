@@ -14,7 +14,14 @@ mixin block(answerObject, isAdmin)
                 a(class="approveAnswerBtn btn btn-secondary text-light m-1" href="#")
                     span(class="fa fa-check" aria-hidden="true")
                     span(class="sr-only") approve answer
-    ul(class="comments fa-ul mt-2")
+    div(class="row")
+            div(class="col text-center")
+                a(class="answersToAnswersVisibilityToggler text-primary" href="#")
+                    i(class="fa fa-caret-down")
+                    span(class="ml-2")
+                        span(class="amountAnswersToAnswers")=answerObject.comments.length
+                        |  comments
+    ul(class="comments fa-ul mt-2" style="display:none")
         each comment in answerObject.comments
             +comment(comment)
 
@@ -25,3 +32,4 @@ mixin answer(answerObject, isAdmin)
     else
         li(class="answer list-group-item bg-light m-1 rounded" data-answer-id=answerObject._id)
             +block(answerObject, isAdmin)
+

@@ -63,6 +63,11 @@ const gInterface = (function () {
                     $(e.target).closest("a").find(".fa").toggleClass("fa-caret-down").toggleClass("fa-caret-up");
                     $(e.target).closest(".card-body").find(".answers").toggle();
                 })
+                .on('click', ".answersToAnswersVisibilityToggler", function (e) {
+                    e.preventDefault();
+                    $(e.target).closest("a").find(".fa").toggleClass("fa-caret-down").toggleClass("fa-caret-up");
+                    $(e.target).closest(".card-body").find(".comments").toggle();
+                })
                 .on("click", ".commentButton", function (e) {
                     if (socketModule.isConnected()) {
                         e.preventDefault();
@@ -138,9 +143,11 @@ const gInterface = (function () {
             if ($affectedThread.find(".answerButton").text() !== "Answer")
                 $affectedThread.find(".answerButton").text("Answer");
         },
-        addCommentToAnswer: function (answerId, commentHTML) {
+        addCommentToAnswer: function (answerId, commentHTML,amountOfComments) {
             let $affectedAnswer = $("#threads").find(".answer[data-answer-id='" + answerId + "']");
             let $comments = $affectedAnswer.find(".comments");
+
+            $affectedAnswer.find(".amountAnswersToAnswers").text(amountOfComments);
             $comments.append(commentHTML);
         },
         clearThreads: function () {

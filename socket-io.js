@@ -12,43 +12,43 @@ const Tag = require("./models/tag");
 /**
  * Passport and socket.io functions
  */
-const onAuthorizeSuccess = function (data, accept) {
-    console.log("successful connection to socket.io");
-    // The accept-callback still allows us to decide whether to
-    // accept the connection or not.
-    accept(null, true);
+const onAuthorizeSuccess = function(data, accept) {
+  console.log("successful connection to socket.io");
+  // The accept-callback still allows us to decide whether to
+  // accept the connection or not.
+  accept(null, true);
 };
-const onAuthorizeFail = function (data, message, error, accept) {
-    if (error) throw new Error(message);
-    console.log("failed connection to socket.io:", message);
-    // We use this callback to log all of our failed connections.
-    accept(null, false);
+const onAuthorizeFail = function(data, message, error, accept) {
+  if (error) throw new Error(message);
+  console.log("failed connection to socket.io:", message);
+  // We use this callback to log all of our failed connections.
+  accept(null, false);
 };
 
 /**
  * Helper functions
  */
-const processQuestion = function (question) {
-    let removeToken = function (string, token) {
-        return string.split(token)[0];
-    };
-    let cleanQuestion = sanitizer.escape(question);
-    let object = {
-        question: "",
-        tags: []
-    };
-    let splitQuestion = cleanQuestion.split("#");
-    object.question = splitQuestion[0];
-    for (let i = 1; i < splitQuestion.length; i++) {
-        object.tags.push(removeToken(splitQuestion[i], " "));
-    }
-    return object;
+const processQuestion = function(question) {
+  let removeToken = function(string, token) {
+    return string.split(token)[0];
+  };
+  let object = {
+    question: "",
+    tags: []
+  };
+  let splitQuestion = question.split("#");
+  object.question = sanitizer.escape(splitQuestion[0]);
+  for (let i = 1; i < splitQuestion.length; i++) {
+    object.tags.push(sanitizer.escape(splitQuestion[i].trim()));
+  }
+  return object;
 };
 
 /**
  * Socket.io event handlers
  */
 const eventHandler = {
+
     delete_thread: function (namespace, clientSocket, threadId) {
         if (clientSocket.request.user && clientSocket.request.user.isAdmin) {
             Thread.findOne({_id: sanitizer.escape(threadId)}).then((thread) => {
@@ -176,10 +176,31 @@ const eventHandler = {
                         })
                     }
                 });
+
             });
-        } else {
-            clientSocket.emit("error_occurred", "Please login to answer.");
+          })
+          .catch(err => clientSocket.emit("error_occurred", err));
+      });
+    } else clientSocket.emit("error_occurred", "Please login to vote");
+  },
+  new_question: function(namespace, clientSocket, question) {
+    //TODO Deze check wordt al uitgevoerd in "model/thread.js"
+    let questionObject = processQuestion(question);
+    if (clientSocket.request.user) {
+      let thread = new Thread({
+        question: questionObject.question,
+        author: sanitizer.escape(clientSocket.request.user.uid),
+        tags: questionObject.tags
+      });
+      thread.save((err, savedThread) => {
+        if (err) clientSocket.emit("error_occurred", err);
+        else {
+          let html = pug.renderFile("views/partials/thread.pug", {
+            thread: savedThread
+          });
+          namespace.emit("new_thread_available", html);
         }
+
     },
     new_comment: function (namespace, clientSocket, data) {
         if (clientSocket.request.user) {
@@ -206,10 +227,11 @@ const eventHandler = {
                         })
                     });
                 });
+
             });
-        } else {
-            clientSocket.emit("error_occurred", "Please login to comment.");
+          });
         }
+
     },
     toggle_answer_approved: function (namespace, clientSocket, answerId) {
         if (clientSocket.request.user && clientSocket.request.user.isAdmin) {
@@ -248,7 +270,31 @@ const eventHandler = {
         }).catch(err => {
             clientSocket.emit("error_occurred", "Failed to get threads.");
         });
+
     }
+  },
+  find_threads_with_tag: function(clientSocket, tag) {
+    Thread.find({ tags: tag })
+      .populate({
+        path: "answers",
+        populate: {
+          path: "comments",
+          model: "Comment"
+        }
+      })
+      .then(threads => {
+        let renderedThreads = [];
+        threads.forEach(function(thread) {
+          renderedThreads.push(
+            pug.renderFile("views/partials/thread.pug", { thread })
+          );
+        });
+        clientSocket.emit("threads", renderedThreads);
+      })
+      .catch(err => {
+        clientSocket.emit("error_occurred", "Failed to get threads.");
+      });
+  }
 };
 
 /**
@@ -270,26 +316,27 @@ const sendToStudents = function (event, data) {
 /**
  * The server socket
  */
-const serverSocketInitiator = function (server, sessionStore) {
-    const io = require("socket.io")(server);
+const serverSocketInitiator = function(server, sessionStore) {
+  const io = require("socket.io")(server);
 
-    /**
+  /**
      * Access passport user information from a socket.io connection.
      */
-    io.use(
-        passportSocketIo.authorize({
-            cookieParser: cookieParser,
-            key: "connect.sid", // the name of the cookie where express/connect stores its session_id
-            secret: process.env.SESSION_KEY,
-            store: sessionStore
-            // success: onAuthorizeSuccess, //Optional
-            // fail: onAuthorizeFail //Optional
-        })
-    );
+  io.use(
+    passportSocketIo.authorize({
+      cookieParser: cookieParser,
+      key: "connect.sid", // the name of the cookie where express/connect stores its session_id
+      secret: process.env.SESSION_KEY,
+      store: sessionStore
+      // success: onAuthorizeSuccess, //Optional
+      // fail: onAuthorizeFail //Optional
+    })
+  );
 
-    /**
+  /**
      * Namespace /questions-live
      */
+
     const questions_live = io
         .of("/questions-live")
         .on("connection", function (clientSocket) {
@@ -336,7 +383,9 @@ const serverSocketInitiator = function (server, sessionStore) {
                     studentClients.splice(index, 1);
                 }
             })
+
         });
+    });
 };
 
 module.exports = serverSocketInitiator;
