@@ -28,15 +28,12 @@ const onAuthorizeFail = function(data, message, error, accept) {
 /**
  * Helper functions
  */
-const processQuestion = function(question) {
-  let removeToken = function(string, token) {
-    return string.split(token)[0];
-  };
+const processQuestion = function(q) {
   let object = {
     question: "",
     tags: []
   };
-  let splitQuestion = question.split("#");
+  let splitQuestion = q.split("#");
   object.question = sanitizer.escape(splitQuestion[0]);
   for (let i = 1; i < splitQuestion.length; i++) {
     object.tags.push(sanitizer.escape(splitQuestion[i].trim()));
@@ -111,34 +108,7 @@ const eventHandler = {
             });
         } else clientSocket.emit("error_occurred", "Please login to vote");
     },
-    new_question: function (clientSocket, question) {
-        //TODO Deze check wordt al uitgevoerd in "model/thread.js"
-        let questionObject = processQuestion(question);
-        if (clientSocket.request.user) {
-            let thread = new Thread({
-                question: questionObject.question,
-                author: sanitizer.escape(clientSocket.request.user.uid),
-                tags: questionObject.tags
-            });
-            thread.save((err, savedThread) => {
-                if (err) clientSocket.emit("error_occurred", err);
-                else {
-                    let htmlForAdmins = pug.renderFile("views/partials/thread.pug", {
-                        thread: savedThread,
-                        isAdmin: true
-                    });
-                    let htmlForStudents = pug.renderFile("views/partials/thread.pug", {
-                        thread: savedThread,
-                        isAdmin: false
-                    });
-                    sendToAdmins("new_thread_available", htmlForAdmins);
-                    sendToStudents("new_thread_available", htmlForStudents);
-                }
-            });
-        } else {
-            clientSocket.emit("error_occurred", "Please login to ask a question.");
-        }
-    },
+    
     new_answer: function (clientSocket, data) {
         if (clientSocket.request.user) {
             Thread.findOne({_id: sanitizer.escape(data.threadId)}).exec((err, thread) => {
@@ -180,26 +150,43 @@ const eventHandler = {
             });
           }
      else clientSocket.emit("error_occurred", "Please login to vote");
-  },
-  new_question: function(namespace, clientSocket, question) {
+  },new_question: function (clientSocket, question) {
     //TODO Deze check wordt al uitgevoerd in "model/thread.js"
     let questionObject = processQuestion(question);
     if (clientSocket.request.user) {
-      let thread = new Thread({
-        question: questionObject.question,
-        author: sanitizer.escape(clientSocket.request.user.uid),
-        tags: questionObject.tags
-      });
-      thread.save((err, savedThread) => {
-        if (err) clientSocket.emit("error_occurred", err);
-        else {
-          let html = pug.renderFile("views/partials/thread.pug", {
-            thread: savedThread
-          });
-          namespace.emit("new_thread_available", html);
-        }
+        let thread = new Thread({
+            question: questionObject.question,
+            author: sanitizer.escape(clientSocket.request.user.uid),
+            tags: questionObject.tags
+        });
+        thread.save((err, savedThread) => {
+            if (err) clientSocket.emit("error_occurred", err);
+            else {
+                let dataForAdmins = {
+                    threadHTML: pug.renderFile("views/partials/thread.pug", {
+                        thread: savedThread,
+                        isAdmin: true,
+                    }),
+                    tags: savedThread.tags
+                };
+                let dataForStudents = {
+                    threadHTML: pug.renderFile("views/partials/thread.pug", {
+                        thread: savedThread,
+                        isAdmin: false,
+                    }),
+                    tags: savedThread.tags
+                };
 
-    })}},
+
+                sendToAdmins("new_thread_available", dataForAdmins);
+                sendToStudents("new_thread_available", dataForStudents);
+            }
+        });
+    } else {
+        clientSocket.emit("error_occurred", "Please login to ask a question.");
+    }
+},
+  
     new_comment: function (namespace, clientSocket, data) {
         if (clientSocket.request.user) {
             Thread.findOne({_id: sanitizer.escape(data.threadId)}).exec((err, returnedThread) => {

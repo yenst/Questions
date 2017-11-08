@@ -43,6 +43,11 @@ router
         req.logout();
         req.session = null; //Remove session from sessionStore
         res.redirect('/');
+    })
+    .get('/gettags',function(req,res){
+        Thread.distinct('tags',function(error,tags){
+            res.send(tags);       });
+        
     });
 
 module.exports = router;
