@@ -47,8 +47,8 @@ const gInterface = (function () {
             });
             $("#threads")
                 .on("click", ".answerButton", function (e) {
+                    e.preventDefault();
                     if (socketModule.isConnected()) {
-                        e.preventDefault();
                         let $currentThread = $(e.target).closest(".thread");
                         let threadId = $currentThread.attr("data-thread-id");
                         $("input[name='threadId']").attr("value", threadId);
@@ -63,10 +63,10 @@ const gInterface = (function () {
                     $(e.target).closest("a").find(".fa").toggleClass("fa-caret-down").toggleClass("fa-caret-up");
                     $(e.target).closest(".card-body").find(".answers").toggle();
                 })
-                .on('click', ".answersToAnswersVisibilityToggler", function (e) {
+                .on('click', ".commentsVisibilityToggler", function (e) {
                     e.preventDefault();
                     $(e.target).closest("a").find(".fa").toggleClass("fa-caret-down").toggleClass("fa-caret-up");
-                    $(e.target).closest(".card-body").find(".comments").toggle();
+                    $(e.target).closest(".answer").find(".comments").toggle();
                 })
                 .on("click", ".commentButton", function (e) {
                     if (socketModule.isConnected()) {
@@ -100,10 +100,12 @@ const gInterface = (function () {
                     else askToLogin();
                 })
                 .on("click", ".deleteThreadBtn", function (e) {
+                    e.preventDefault();
                     let threadId = $(e.target).closest(".thread").attr("data-thread-id");
                     socketModule.deleteThread(threadId);
                 })
                 .on("click", ".deleteAnswerBtn", function (e) {
+                    e.preventDefault();
                     let $answer = $(e.target).closest(".answer");
                     let answerId = $answer.attr("data-answer-id");
                     let threadId = $answer.closest(".thread").attr("data-thread-id");
@@ -143,12 +145,13 @@ const gInterface = (function () {
             if ($affectedThread.find(".answerButton").text() !== "Answer")
                 $affectedThread.find(".answerButton").text("Answer");
         },
-        addCommentToAnswer: function (answerId, commentHTML,amountOfComments) {
+        addCommentToAnswer: function (answerId, commentHTML, amountOfComments) {
             let $affectedAnswer = $("#threads").find(".answer[data-answer-id='" + answerId + "']");
             let $comments = $affectedAnswer.find(".comments");
-
-            $affectedAnswer.find(".amountAnswersToAnswers").text(amountOfComments);
+            $affectedAnswer.find(".amountComments").text(amountOfComments);
             $comments.append(commentHTML);
+            if (!$comments.is(":visible"))
+                $comments.toggle();
         },
         clearThreads: function () {
             $('#threads').html('');

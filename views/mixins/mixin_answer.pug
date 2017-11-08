@@ -16,17 +16,17 @@ mixin block(answerObject, isAdmin)
                     span(class="sr-only") approve answer
     div(class="row")
             div(class="col text-center")
-                a(class="answersToAnswersVisibilityToggler text-primary" href="#")
+                a(class="commentsVisibilityToggler text-primary" href="#")
                     i(class="fa fa-caret-down")
                     span(class="ml-2")
-                        span(class="amountAnswersToAnswers")=answerObject.comments.length
+                        span(class="amountComments")=answerObject.comments.length
                         |  comments
     ul(class="comments fa-ul mt-2" style="display:none")
         each comment in answerObject.comments
             +comment(comment)
 
 mixin answer(answerObject, isAdmin)
-    if answerObject.approved
+    if answerObject.isApproved
         li(class="answer list-group-item bg-success m-1 rounded" data-answer-id=answerObject._id)
             +block(answerObject, isAdmin)
     else
