@@ -1,7 +1,6 @@
 "use strict";
 
 const router = require("express").Router();
-
 const Thread = require("../models/thread");
 
 /**
@@ -49,5 +48,11 @@ router
             res.send(tags);       });
         
     });
+
+    .get('/newClass/:tag', function (req, res) {
+        res.render("class", {
+            title: req.params.tag
+        });
+});
 
 module.exports = router;

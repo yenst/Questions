@@ -37,6 +37,7 @@ router.get('/', function (req, res) {
     res.json({message: 'API Initialized!'});
 });
 
+
 router.route('/threads')
     .post(functions.postNewThread)
     .get(functions.getAllThreads);
