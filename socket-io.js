@@ -188,7 +188,7 @@ const eventHandler = {
      else clientSocket.emit("error_occurred", "Please login to vote");
 
   },
- 
+
 
 
     new_comment: function (namespace, clientSocket, data) {
@@ -218,7 +218,7 @@ const eventHandler = {
                 });
 
             });
-          
+
         }
 
     },

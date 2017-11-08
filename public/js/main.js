@@ -84,21 +84,21 @@ const gInterface = (function() {
             .find(".comments")
             .toggle();
         })
-        .on("click", ".commentButton", function(e) {
-          if (socketModule.isConnected()) {
-            e.preventDefault();
-            let $currentThread = $(e.target).closest(".thread");
-            let $currentAnswer = $(e.target).closest(".answer");
-            let threadId = $currentThread.attr("data-thread-id");
-            let answerId = $currentAnswer.attr("data-answer-id");
-            $("input[name='threadId']").attr("value", threadId);
-            $("input[name='answerId']").attr("value", answerId);
-            let answer = $currentAnswer.find(".answerText").text();
-            let $commentFormModal = $("#commentFormModal");
-            $commentFormModal.find(".threadAnswer").text(answer);
-            $commentFormModal.modal("show");
-          } else askToLogin();
-        })
+          .on("click", ".commentButton", function(e) {
+              if (socketModule.isConnected()) {
+                  e.preventDefault();
+                  let $currentThread = $(e.target).closest(".thread");
+                  let $currentAnswer = $(e.target).closest(".answer");
+                  let threadId = $currentThread.attr("data-thread-id");
+                  let answerId = $currentAnswer.attr("data-answer-id");
+                  $("input[name='threadId']").attr("value", threadId);
+                  $("input[name='answerId']").attr("value", answerId);
+                  let answer = $currentAnswer.find(".answerText").text();
+                  let $commentFormModal = $("#commentFormModal");
+                  $commentFormModal.find(".threadAnswer").text(answer);
+                  $commentFormModal.modal("show");
+              } else askToLogin();
+          })
         .on("click", ".threadUpVoteBtn", function(e) {
           e.preventDefault();
           if (socketModule.isConnected()) {
@@ -171,6 +171,7 @@ const gInterface = (function() {
             ".answer[data-answer-id='" + answerId + "']"
         );
         let $comments = $affectedAnswer.find(".comments");
+        $comments.append(commentHTML);
     },
       clearThreads: function () {
           $('#threads').html('');
