@@ -1,11 +1,35 @@
 include ./mixin_comment.pug
 
-mixin answer(answerObject)
-    li(class="answer list-group-item bg-light" data-answer-id=answerObject._id)
-        div(class="row")
-            p(class="answerText col")!= answerObject.answer
-            button(class="commentButton btn btn-primary text-light col-sm-2 col-md-1" type="submit")
-                span(class="fa fa-2x fa-comment" aria-hidden="true")
-        ul(class="comments fa-ul mt-2")
-            each comment in answerObject.comments
-                +comment(comment)
+mixin block(answerObject, isAdmin)
+    div(class="row")
+        span(class="answerText col")!= answerObject.answer
+        div(class="col-sm-2 col-md-3 text-right")
+            a(class="commentButton btn btn-primary text-light m-1" href="#")
+                span(class="fa fa-comment" aria-hidden="true")
+                span(class="sr-only") comment
+            if isAdmin
+                a(class="deleteAnswerBtn btn btn-secondary text-light m-1" href="#")
+                    span(class="fa fa-trash" aria-hidden="true")
+                    span(class="sr-only") delete answer
+                a(class="approveAnswerBtn btn btn-secondary text-light m-1" href="#")
+                    span(class="fa fa-check" aria-hidden="true")
+                    span(class="sr-only") approve answer
+    div(class="row")
+            div(class="col text-center")
+                a(class="answersToAnswersVisibilityToggler text-primary" href="#")
+                    i(class="fa fa-caret-down")
+                    span(class="ml-2")
+                        span(class="amountAnswersToAnswers")=answerObject.comments.length
+                        |  comments
+    ul(class="comments fa-ul mt-2" style="display:none")
+        each comment in answerObject.comments
+            +comment(comment)
+
+mixin answer(answerObject, isAdmin)
+    if answerObject.approved
+        li(class="answer list-group-item bg-success m-1 rounded" data-answer-id=answerObject._id)
+            +block(answerObject, isAdmin)
+    else
+        li(class="answer list-group-item bg-light m-1 rounded" data-answer-id=answerObject._id)
+            +block(answerObject, isAdmin)
+
