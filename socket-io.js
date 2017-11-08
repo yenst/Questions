@@ -178,10 +178,8 @@ const eventHandler = {
                 });
 
             });
-          })
-          .catch(err => clientSocket.emit("error_occurred", err));
-      });
-    } else clientSocket.emit("error_occurred", "Please login to vote");
+          }
+     else clientSocket.emit("error_occurred", "Please login to vote");
   },
   new_question: function(namespace, clientSocket, question) {
     //TODO Deze check wordt al uitgevoerd in "model/thread.js"
@@ -201,7 +199,7 @@ const eventHandler = {
           namespace.emit("new_thread_available", html);
         }
 
-    },
+    })}},
     new_comment: function (namespace, clientSocket, data) {
         if (clientSocket.request.user) {
             Thread.findOne({_id: sanitizer.escape(data.threadId)}).exec((err, returnedThread) => {
@@ -229,7 +227,7 @@ const eventHandler = {
                 });
 
             });
-          });
+          
         }
 
     },
@@ -271,7 +269,7 @@ const eventHandler = {
             clientSocket.emit("error_occurred", "Failed to get threads.");
         });
 
-    }
+    
   },
   find_threads_with_tag: function(clientSocket, tag) {
     Thread.find({ tags: tag })
@@ -385,7 +383,7 @@ const serverSocketInitiator = function(server, sessionStore) {
             })
 
         });
-    });
+    
 };
 
 module.exports = serverSocketInitiator;
