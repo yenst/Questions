@@ -43,6 +43,12 @@ router
         req.session = null; //Remove session from sessionStore
         res.redirect('/');
     })
+    .get('/gettags',function(req,res){
+        Thread.distinct('tags',function(error,tags){
+            res.send(tags);       });
+        
+    });
+
     .get('/newClass/:tag', function (req, res) {
         res.render("class", {
             title: req.params.tag
