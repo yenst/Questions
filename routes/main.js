@@ -47,8 +47,7 @@ router
         Thread.distinct('tags',function(error,tags){
             res.send(tags);       });
         
-    });
-
+    })
     .get('/newClass/:tag', function (req, res) {
         res.render("class", {
             title: req.params.tag

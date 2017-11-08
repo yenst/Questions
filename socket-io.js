@@ -191,7 +191,6 @@ const eventHandler = {
  
 
 
-    })}},*/
     new_comment: function (namespace, clientSocket, data) {
         if (clientSocket.request.user) {
             Thread.findOne({_id: sanitizer.escape(data.threadId)}).exec((err, returnedThread) => {
