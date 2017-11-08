@@ -45,7 +45,6 @@ const processQuestion = function (q) {
  * Socket.io event handlers
  */
 const eventHandler = {
-
     delete_thread: function (namespace, clientSocket, threadId) {
         if (clientSocket.request.user && clientSocket.request.user.isAdmin) {
             Thread.findOne({_id: sanitizer.escape(threadId)}).then((thread) => {
@@ -108,11 +107,10 @@ const eventHandler = {
             });
         } else clientSocket.emit("error_occurred", "Please login to vote");
     },
-
     new_question: function (clientSocket, question) {
         //TODO Deze check wordt al uitgevoerd in "model/thread.js"
-        let questionObject = processQuestion(question);
         if (clientSocket.request.user) {
+            let questionObject = processQuestion(question);
             let thread = new Thread({
                 question: questionObject.question,
                 author: sanitizer.escape(clientSocket.request.user.uid),
@@ -135,8 +133,6 @@ const eventHandler = {
                         }),
                         tags: savedThread.tags
                     };
-
-
                     sendToAdmins("new_thread_available", dataForAdmins);
                     sendToStudents("new_thread_available", dataForStudents);
                 }
@@ -187,8 +183,6 @@ const eventHandler = {
         }
         else clientSocket.emit("error_occurred", "Please login to vote");
     },
-
-
     new_comment: function (namespace, clientSocket, data) {
         if (clientSocket.request.user) {
             Thread.findOne({_id: sanitizer.escape(data.threadId)}).exec((err, returnedThread) => {

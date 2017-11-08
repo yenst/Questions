@@ -147,6 +147,13 @@ const gInterface = (function () {
                 socketModule.findThreadsWithTag($tagInput.val());
                 $tagInput.val("");
             });
+            $('#open_class').on('submit', function (e) {
+                e.preventDefault();
+                let $tagInput = $(e.target).find('input[name="tag"]');
+                let tag = $tagInput.val();
+                let newClass = '/newclass/';
+                window.location.href= newClass+tag;
+            });
         },
         showError: function (error) {
             let $errorModal = $("#errorModal");
