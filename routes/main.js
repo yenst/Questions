@@ -21,7 +21,7 @@ router
                 path: "comments",
                 model: "Comment"
             }
-        }).then(threads => {
+        }).sort("-creationDate").then(threads => {
             res.render("index", {
                 title: "Home - Questions",
                 user: req.user,
