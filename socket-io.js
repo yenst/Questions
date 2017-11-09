@@ -28,15 +28,12 @@ const onAuthorizeFail = function (data, message, error, accept) {
 /**
  * Helper functions
  */
-const processQuestion = function (question) {
-    let removeToken = function (string, token) {
-        return string.split(token)[0];
-    };
+const processQuestion = function (q) {
     let object = {
         question: "",
         tags: []
     };
-    let splitQuestion = question.split("#");
+    let splitQuestion = q.split("#");
     object.question = sanitizer.escape(splitQuestion[0]);
     for (let i = 1; i < splitQuestion.length; i++) {
         object.tags.push(sanitizer.escape(splitQuestion[i].trim()));
@@ -122,16 +119,22 @@ const eventHandler = {
             thread.save((err, savedThread) => {
                 if (err) clientSocket.emit("error_occurred", err);
                 else {
-                    let htmlForAdmins = pug.renderFile("views/partials/thread.pug", {
-                        thread: savedThread,
-                        isAdmin: true
-                    });
-                    let htmlForStudents = pug.renderFile("views/partials/thread.pug", {
-                        thread: savedThread,
-                        isAdmin: false
-                    });
-                    sendToAdmins("new_thread_available", htmlForAdmins);
-                    sendToStudents("new_thread_available", htmlForStudents);
+                    let dataForAdmins = {
+                        threadHTML: pug.renderFile("views/partials/thread.pug", {
+                            thread: savedThread,
+                            isAdmin: true,
+                        }),
+                        tags: savedThread.tags
+                    };
+                    let dataForStudents = {
+                        threadHTML: pug.renderFile("views/partials/thread.pug", {
+                            thread: savedThread,
+                            isAdmin: false,
+                        }),
+                        tags: savedThread.tags
+                    };
+                    sendToAdmins("new_thread_available", dataForAdmins);
+                    sendToStudents("new_thread_available", dataForStudents);
                 }
             });
         } else {
@@ -206,10 +209,9 @@ const eventHandler = {
                         })
                     });
                 });
-
             });
-
         }
+        else clientSocket.emit("error_occurred", "Please login to vote");
     },
     toggle_answer_approved: function (namespace, clientSocket, answerId) {
         if (clientSocket.request.user && clientSocket.request.user.isAdmin) {
@@ -284,12 +286,13 @@ const serverSocketInitiator = function (server, sessionStore) {
             key: "connect.sid", // the name of the cookie where express/connect stores its session_id
             secret: process.env.SESSION_KEY,
             store: sessionStore
-            // success: onAuthorizeSuccess, //Optional
-            // fail: onAuthorizeFail //Optional
+            //success: onAuthorizeSuccess, //Optional
+            //fail: onAuthorizeFail //Optional
         })
     );
 
     /**
+
      * Namespace /questions-live
      */
 
@@ -320,6 +323,9 @@ const serverSocketInitiator = function (server, sessionStore) {
                 })
                 .on("down_vote_thread", (threadId) => {
                     eventHandler.down_vote_thread(questions_live, clientSocket, threadId);
+                })
+                .on("open_class", (tag) => {
+                    eventHandler.openNewClass(clientSocket, tag);
                 })
                 .on("delete_thread", (threadId) => {
                     eventHandler.delete_thread(questions_live, clientSocket, threadId);

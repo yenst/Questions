@@ -1,7 +1,6 @@
 "use strict";
 
 const router = require("express").Router();
-
 const Thread = require("../models/thread");
 
 /**
@@ -22,7 +21,7 @@ router
                 path: "comments",
                 model: "Comment"
             }
-        }).then(threads => {
+        }).sort("-creationDate").then(threads => {
             res.render("index", {
                 title: "Home - Questions",
                 user: req.user,
@@ -43,6 +42,16 @@ router
         req.logout();
         req.session = null; //Remove session from sessionStore
         res.redirect('/');
-    });
+    })
+    .get('/gettags',function(req,res){
+        Thread.distinct('tags',function(error,tags){
+            res.send(tags);       });
+        
+    })
+    .get('/newClass/:tag', function (req, res) {
+        res.render("class", {
+            title: req.params.tag
+        });
+});
 
 module.exports = router;

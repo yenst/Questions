@@ -1,7 +1,8 @@
 "use strict";
+let tag = null;
+let newClass = false;
 
 const gInterface = (function () {
-
     //TODO use this function with callbacks
     let askToLogin = function () {
         gInterface.showError("Please login to continue.");
@@ -15,10 +16,9 @@ const gInterface = (function () {
                 if (socketModule.isConnected()) {
                     let $questionInput = $(e.target).find("input[name='question']");
                     socketModule.sendQuestion($questionInput.val());
-                    $('#questionFormModal').modal("hide");
+                    $("#questionFormModal").modal("hide");
                     $questionInput.val("");
-                }
-                else askToLogin();
+                } else askToLogin();
             });
             $("#answer_form").on("submit", function (e) {
                 e.preventDefault();
@@ -29,21 +29,24 @@ const gInterface = (function () {
                     $("#answerFormModal").modal("hide");
                     $answerInput.val("");
                     $threadIdInput.val("");
-                }
-                else askToLogin();
+                } else askToLogin();
             });
             $("#comment_form").on("submit", function (e) {
                 e.preventDefault();
                 if (socketModule.isConnected()) {
-                    let $answerInput = $(e.target).find("input[name='comment']");
+                    let $commentInput = $(e.target).find("input[name='comment']");
                     let $answerIdInput = $(e.target).find("input[name='answerId']");
                     let $threadIdInput = $(e.target).find("input[name='threadId']");
-                    socketModule.sendComment($threadIdInput.val(), $answerIdInput.val(), $answerInput.val());
+                    socketModule.sendComment(
+                        $threadIdInput.val(),
+                        $answerIdInput.val(),
+                        $commentInput.val()
+                    );
                     $("#commentFormModal").modal("hide");
-                    $answerInput.val("");
+                    $commentInput.val("");
                     $threadIdInput.val("");
-                }
-                else askToLogin();
+                    $answerIdInput.va("");
+                } else askToLogin();
             });
             $("#threads")
                 .on("click", ".answerButton", function (e) {
@@ -58,15 +61,29 @@ const gInterface = (function () {
                         $answerFormModal.modal("show");
                     } else askToLogin();
                 })
-                .on('click', ".answersVisibilityToggler", function (e) {
+                .on("click", ".answersVisibilityToggler", function (e) {
                     e.preventDefault();
-                    $(e.target).closest("a").find(".fa").toggleClass("fa-caret-down").toggleClass("fa-caret-up");
-                    $(e.target).closest(".card-body").find(".answers").toggle();
+                    $(e.target)
+                        .closest("a")
+                        .find(".fa")
+                        .toggleClass("fa-caret-down")
+                        .toggleClass("fa-caret-up");
+                    $(e.target)
+                        .closest(".card-body")
+                        .find(".answers")
+                        .toggle();
                 })
-                .on('click', ".commentsVisibilityToggler", function (e) {
+                .on("click", ".commentsVisibilityToggler", function (e) {
                     e.preventDefault();
-                    $(e.target).closest("a").find(".fa").toggleClass("fa-caret-down").toggleClass("fa-caret-up");
-                    $(e.target).closest(".answer").find(".comments").toggle();
+                    $(e.target)
+                        .closest("a")
+                        .find(".fa")
+                        .toggleClass("fa-caret-down")
+                        .toggleClass("fa-caret-up");
+                    $(e.target)
+                        .closest(".answer")
+                        .find(".comments")
+                        .toggle();
                 })
                 .on("click", ".commentButton", function (e) {
                     e.preventDefault();
@@ -77,7 +94,7 @@ const gInterface = (function () {
                         let answerId = $currentAnswer.attr("data-answer-id");
                         $("input[name='threadId']").attr("value", threadId);
                         $("input[name='answerId']").attr("value", answerId);
-                        let answer = $currentAnswer.find('.answerText').text();
+                        let answer = $currentAnswer.find(".answerText").text();
                         let $commentFormModal = $("#commentFormModal");
                         $commentFormModal.find(".threadAnswer").text(answer);
                         $commentFormModal.modal("show");
@@ -86,26 +103,28 @@ const gInterface = (function () {
                 .on("click", ".threadUpVoteBtn", function (e) {
                     e.preventDefault();
                     if (socketModule.isConnected()) {
-                        let threadId = $(e.target).closest(".thread").attr("data-thread-id");
+                        let threadId = $(e.target)
+                            .closest(".thread")
+                            .attr("data-thread-id");
                         socketModule.upVoteThread(threadId);
-                    }
-                    else askToLogin();
+                    } else askToLogin();
                 })
                 .on("click", ".threadDownVoteBtn", function (e) {
                     e.preventDefault();
                     if (socketModule.isConnected()) {
-                        let threadId = $(e.target).closest(".thread").attr("data-thread-id");
+                        let threadId = $(e.target)
+                            .closest(".thread")
+                            .attr("data-thread-id");
                         socketModule.downVoteThread(threadId);
-                    }
-                    else askToLogin();
+                    } else askToLogin();
                 })
                 .on("click", ".deleteThreadBtn", function (e) {
-                    e.preventDefault();
-                    let threadId = $(e.target).closest(".thread").attr("data-thread-id");
+                    let threadId = $(e.target)
+                        .closest(".thread")
+                        .attr("data-thread-id");
                     socketModule.deleteThread(threadId);
                 })
                 .on("click", ".deleteAnswerBtn", function (e) {
-                    e.preventDefault();
                     let $answer = $(e.target).closest(".answer");
                     let answerId = $answer.attr("data-answer-id");
                     let threadId = $answer.closest(".thread").attr("data-thread-id");
@@ -113,20 +132,28 @@ const gInterface = (function () {
                 })
                 .on("click", ".approveAnswerBtn", function (e) {
                     e.preventDefault();
-                    let answerId = $(e.target).closest(".answer").attr("data-answer-id");
+                    let answerId = $(e.target)
+                        .closest(".answer")
+                        .attr("data-answer-id");
                     socketModule.toggleAnswerApproved(answerId);
                 });
-            $('#askbutton').on('click', function (e) {
-                e.preventDefault();
-                if (socketModule.isConnected()) $('#questionFormModal').modal('show');
+            $("#askbutton").on("click", function (e) {
+                if (socketModule.isConnected()) $("#questionFormModal").modal("show");
                 else askToLogin();
             });
-            $('#search_threads_on_tag_form').on('submit', function (e) {
+            $("#search_threads_on_tag_form").on("submit", function (e) {
                 e.preventDefault();
                 let $tagInput = $(e.target).find('input[name="tag"]');
                 socketModule.findThreadsWithTag($tagInput.val());
                 $tagInput.val("");
-            })
+            });
+            $('#open_class').on('submit', function (e) {
+                e.preventDefault();
+                let $tagInput = $(e.target).find('input[name="tag"]');
+                let tag = $tagInput.val();
+                let newClass = '/newclass/';
+                window.location.href= newClass+tag;
+            });
         },
         showError: function (error) {
             let $errorModal = $("#errorModal");
@@ -137,12 +164,13 @@ const gInterface = (function () {
             $("#threads").prepend(threadHTML);
         },
         addAnswerForThread: function (threadId, answerHTML, amountAnswersOnThread) {
-            let $affectedThread = $("#threads").find(".thread[data-thread-id='" + threadId + "']");
+            let $affectedThread = $("#threads").find(
+                ".thread[data-thread-id='" + threadId + "']"
+            );
             $affectedThread.find(".amountAnswers").text(amountAnswersOnThread);
             let $answers = $affectedThread.find(".answers");
             $answers.prepend(answerHTML);
-            if (!$answers.is(":visible"))
-                $answers.toggle();
+            if (!$answers.is(":visible")) $answers.toggle();
             if ($affectedThread.find(".answerButton").text() !== "Answer")
                 $affectedThread.find(".answerButton").text("Answer");
         },
@@ -175,10 +203,27 @@ const gInterface = (function () {
                 .find(".answer[data-answer-id='" + answerId + "']")
                 .toggleClass("bg-light")
                 .toggleClass("bg-success");
+        },
+        autoComplete: function (data) {
+            $("#question").atwho({
+                at: "#",
+                data: data
+            });
+        },
+        initAutoComplete: function () {
+            $.get("/gettags", function (data) {
+            })
+                .done(function (data) {
+                    gInterface.autoComplete(data);
+                })
+                .fail(function (error) {
+                    console.log(error);
+                });
         }
-    }
+    };
 })();
 
 $(document).ready(function () {
     gInterface.bindEvents();
+    gInterface.initAutoComplete();
 });
