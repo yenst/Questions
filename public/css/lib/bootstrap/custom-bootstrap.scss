@@ -8,4 +8,9 @@ $theme-colors: (
         "success": rgb(147, 255, 156)
 );
 
+.solved-text {
+  color: #00cc00;
+}
+
+
 @import "./source_scss/bootstrap.scss";

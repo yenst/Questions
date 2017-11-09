@@ -205,8 +205,7 @@ const gInterface = (function () {
             let $solvedSpan = $affectedThread.find(".question span");
             if(isSolved) $solvedSpan.text("[SOLVED]");
             else $solvedSpan.text("");
-            $affectedThread.find(".answer[data-answer-id='" + answerId + "']")
-                .toggleClass("bg-light")
+            $affectedThread.find(".answer[data-answer-id='" + answerId + "'] div:first-child")
                 .toggleClass("bg-success");
         },
         autoComplete: function (data) {

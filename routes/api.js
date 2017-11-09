@@ -12,7 +12,7 @@ const functions = {
             if (err) return next(err); //Error wil get caught by error handler middleware
             else {
                 let threadsHTML = [];
-                Thread.find().sort("-creationDate").populate("answers").exec((err, threadss) => {
+                Thread.find().sort("-creationDate").populate("answers").exec((err, threads) => {
                     threads.forEach(thread => {
                         let html = pug.renderFile("views/partials/thread.pug", {thread: thread});
                         threadsHTML.push(html);

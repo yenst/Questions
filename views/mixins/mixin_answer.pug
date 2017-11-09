@@ -1,8 +1,8 @@
 include ./mixin_comment.pug
 
 mixin answer(answerObject, isAdmin)
-    li(class="answer list-group-item m-1 rounded " + (answerObject.isApproved ? "bg-success" : "bg-light") data-answer-id=answerObject._id)
-        div(class="row")
+    li(class="answer list-group-item my-1" data-answer-id=answerObject._id)
+        div(class="row py-1 rounded " + (answerObject.isApproved ? "bg-success" : ""))
             span(class="answerText col")!= answerObject.answer
             div(class="col-sm-2 col-md-3 text-right")
                 a(class="commentButton btn btn-primary text-light m-1" href="#")
@@ -15,13 +15,12 @@ mixin answer(answerObject, isAdmin)
                     a(class="approveAnswerBtn btn btn-secondary text-light m-1" href="#")
                         span(class="fa fa-check" aria-hidden="true")
                         span(class="sr-only") approve answer
-        div(class="row")
-            div(class="col text-center")
-                a(class="commentsVisibilityToggler text-primary" href="#")
-                    i(class="fa fa-caret-down")
-                    span(class="ml-2")
-                        span(class="amountComments")=answerObject.comments.length
-                        |  comments
+        div(class="row text-center")
+            a(class="col commentsVisibilityToggler text-primary" href="#")
+                i(class="fa fa-caret-down")
+                span(class="ml-2")
+                    span(class="amountComments")=answerObject.comments.length
+                    |  comments
         ul(class="comments fa-ul mt-2" style="display:none")
             each comment in answerObject.comments
                 +comment(comment)

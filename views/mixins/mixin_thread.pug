@@ -5,7 +5,7 @@ mixin thread(thread, isAdmin)
         div(class="card-header")
             div(class="row")
                 h6(class="question col-sm-10 my-0 card-title")
-                    span(class="font-weight-bold text-uppercase mr-1")= thread.hasApprovedAnswer ? "[SOLVED]" : ""
+                    span(class="font-weight-bold text-uppercase mr-1")= thread.isSolved ? "[SOLVED]" : ""
                     != thread.question
                 span(class="col-sm-2 text-right font-weight-light")
                     | #{thread.creationDate.getHours()}:#{thread.creationDate.getMinutes()}
