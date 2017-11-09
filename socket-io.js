@@ -215,15 +215,15 @@ const eventHandler = {
     },
     toggle_answer_approved: function (namespace, clientSocket, answerId) {
         if (clientSocket.request.user && clientSocket.request.user.isAdmin) {
-            Answer.findOne({_id: sanitizer.escape(answerId)}).then(answer => {
-                answer.isApproved = !answer.isApproved;
-                answer.save().then(() => {
+            Answer.findOne({_id: sanitizer.escape(answerId)}).populate("onThread").then(answer => {
+                answer.toggleIsApprovedAndSave().then( resolveData => {
                     namespace.emit("answer_approved_changed", {
-                        answerId: answer._id,
-                        threadId: answer.onThread
+                        answerId: resolveData.savedAnswer._id,
+                        threadId: resolveData.affectedThread._id,
+                        isSolved: resolveData.affectedThread.isSolved
                     });
                 }).catch(err => {
-                    clientSocket.emit("error_occurred", "Failed to save changes.");
+                    clientSocket.emit("error_occurred", "Failed to edit.");
                 });
             }).catch(err => {
                 clientSocket.emit("error_occurred", "Answer doesn't exist.");

@@ -4,11 +4,13 @@ mixin thread(thread, isAdmin)
     div(class="thread card bg-light mb-4 border-dark" data-thread-id=thread._id)
         div(class="card-header")
             div(class="row")
-                h6(class="question col-sm-10 my-0 card-title")!= thread.question
+                h6(class="question col-sm-10 my-0 card-title")
+                    span(class="font-weight-bold text-uppercase mr-1")= thread.hasApprovedAnswer ? "[SOLVED]" : ""
+                    != thread.question
                 span(class="col-sm-2 text-right font-weight-light")
                     | #{thread.creationDate.getHours()}:#{thread.creationDate.getMinutes()}
                     | #{thread.creationDate.getDate()}/#{thread.creationDate.getMonth()}/#{thread.creationDate.getYear() - 100}
-            div(class="tags row ml-1 mt-1")
+            div(class="tags row mx-1 mt-md-1")
                 each tag in thread.tags
                     span(class="badge badge-primary text-light")!= tag
         div(class="card-body")
@@ -24,7 +26,7 @@ mixin thread(thread, isAdmin)
                         span(class="sr-only") up vote
                 div(class="extraInfo col")
                 if isAdmin
-                    div(class="col-1 text-center")
+                    div(class="col-1 text-center mr-1")
                         a(class="deleteThreadBtn row btn-sm btn-secondary justify-content-center" href="#")
                             i(class="fa fa-2x fa-trash")
                             span(class="sr-only") delete

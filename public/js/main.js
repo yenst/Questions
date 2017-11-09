@@ -45,7 +45,7 @@ const gInterface = (function () {
                     $("#commentFormModal").modal("hide");
                     $commentInput.val("");
                     $threadIdInput.val("");
-                    $answerIdInput.va("");
+                    $answerIdInput.val("");
                 } else askToLogin();
             });
             $("#threads")
@@ -119,12 +119,14 @@ const gInterface = (function () {
                     } else askToLogin();
                 })
                 .on("click", ".deleteThreadBtn", function (e) {
+                    e.preventDefault();
                     let threadId = $(e.target)
                         .closest(".thread")
                         .attr("data-thread-id");
                     socketModule.deleteThread(threadId);
                 })
                 .on("click", ".deleteAnswerBtn", function (e) {
+                    e.preventDefault();
                     let $answer = $(e.target).closest(".answer");
                     let answerId = $answer.attr("data-answer-id");
                     let threadId = $answer.closest(".thread").attr("data-thread-id");
@@ -138,6 +140,7 @@ const gInterface = (function () {
                     socketModule.toggleAnswerApproved(answerId);
                 });
             $("#askbutton").on("click", function (e) {
+                e.preventDefault();
                 if (socketModule.isConnected()) $("#questionFormModal").modal("show");
                 else askToLogin();
             });
@@ -197,10 +200,12 @@ const gInterface = (function () {
             $amountAnswers.text($amountAnswers.text() - 1);
             $affectedThread.find(".answer[data-answer-id='" + answerId + "']").remove();
         },
-        setAnswerApproved: function (answerId, threadId) {
-            $("#threads")
-                .find(".thread[data-thread-id='" + threadId + "']")
-                .find(".answer[data-answer-id='" + answerId + "']")
+        setAnswerApproved: function (answerId, threadId, isSolved) {
+            let $affectedThread = $("#threads").find(".thread[data-thread-id='" + threadId + "']");
+            let $solvedSpan = $affectedThread.find(".question span");
+            if(isSolved) $solvedSpan.text("[SOLVED]");
+            else $solvedSpan.text("");
+            $affectedThread.find(".answer[data-answer-id='" + answerId + "']")
                 .toggleClass("bg-light")
                 .toggleClass("bg-success");
         },

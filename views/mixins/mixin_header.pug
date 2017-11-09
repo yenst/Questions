@@ -1,6 +1,6 @@
 mixin header(user)
     header
-        nav(class="navbar fixed-top navbar-expand-md navbar-dark bg-primary py-1 px-2" role="navigation")
+        nav(class="navbar fixed-top navbar-dark bg-primary py-1 px-2 " + (user ? "navbar-expand-lg" : "navbar-expand-sm") role="navigation")
             a(class="navbar-brand my-0 h1" href="/") Questions
             button(class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation")
                 i(class="navbar-toggler-icon")
@@ -22,15 +22,15 @@ mixin header(user)
                     if user && user.isAdmin
                         li(class="nav-item")
                             span(class="navbar-text")
-                                |(Admin mode)
+                                | (Admin mode)
 
                 if user
-                    form(class="form-inline my-2" action="#" id="open_class")
+                    form(class="form-inline my-1" action="#" id="open_class")
                         input(class="form-control mr-sm-2" type="search" name="tag" placeholder="Tag" aria-label="Search")
-                        button(class="btn btn-outline-light" type="submit") Open class
+                        button(class="btn btn-outline-light my-1 mr-sm-2" type="submit") Open class
 
 
-                    form(class="form-inline my-2" action="#" id="search_threads_on_tag_form")
+                    form(class="form-inline my-1" action="#" id="search_threads_on_tag_form")
                         input(class="form-control mr-sm-2" type="search" name="tag" placeholder="Tag" aria-label="Search")
-                        button(class="btn btn-outline-light" type="submit")
+                        button(class="btn btn-outline-light my-1" type="submit")
                             i(class="fa fa-search")
