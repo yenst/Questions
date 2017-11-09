@@ -26,7 +26,7 @@ const socketModule = (function () {
             gInterface.addAnswerForThread(data.forThread, data.answerHTML, data.amountAnswersOnThread);
         })
         .on("new_comment_available", function (data) {
-            gInterface.addCommentToAnswer(data.forAnswer, data.commentHTML, data.amountOfComments);
+            gInterface.addCommentToAnswer(data.forAnswer, data.commentHTML, data.amountComments);
         })
         .on("threads", function (threadsHTML) {
             gInterface.clearThreads();

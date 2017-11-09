@@ -12,40 +12,39 @@ const Tag = require("./models/tag");
 /**
  * Passport and socket.io functions
  */
-const onAuthorizeSuccess = function(data, accept) {
-  console.log("successful connection to socket.io");
-  // The accept-callback still allows us to decide whether to
-  // accept the connection or not.
-  accept(null, true);
+const onAuthorizeSuccess = function (data, accept) {
+    console.log("successful connection to socket.io");
+    // The accept-callback still allows us to decide whether to
+    // accept the connection or not.
+    accept(null, true);
 };
-const onAuthorizeFail = function(data, message, error, accept) {
-  if (error) throw new Error(message);
-  console.log("failed connection to socket.io:", message);
-  // We use this callback to log all of our failed connections.
-  accept(null, false);
+const onAuthorizeFail = function (data, message, error, accept) {
+    if (error) throw new Error(message);
+    console.log("failed connection to socket.io:", message);
+    // We use this callback to log all of our failed connections.
+    accept(null, false);
 };
 
 /**
  * Helper functions
  */
-const processQuestion = function(q) {
-  let object = {
-    question: "",
-    tags: []
-  };
-  let splitQuestion = q.split("#");
-  object.question = sanitizer.escape(splitQuestion[0]);
-  for (let i = 1; i < splitQuestion.length; i++) {
-    object.tags.push(sanitizer.escape(splitQuestion[i].trim()));
-  }
-  return object;
+const processQuestion = function (q) {
+    let object = {
+        question: "",
+        tags: []
+    };
+    let splitQuestion = q.split("#");
+    object.question = sanitizer.escape(splitQuestion[0]);
+    for (let i = 1; i < splitQuestion.length; i++) {
+        object.tags.push(sanitizer.escape(splitQuestion[i].trim()));
+    }
+    return object;
 };
 
 /**
  * Socket.io event handlers
  */
 const eventHandler = {
-
     delete_thread: function (namespace, clientSocket, threadId) {
         if (clientSocket.request.user && clientSocket.request.user.isAdmin) {
             Thread.findOne({_id: sanitizer.escape(threadId)}).then((thread) => {
@@ -108,11 +107,10 @@ const eventHandler = {
             });
         } else clientSocket.emit("error_occurred", "Please login to vote");
     },
-
     new_question: function (clientSocket, question) {
         //TODO Deze check wordt al uitgevoerd in "model/thread.js"
-        let questionObject = processQuestion(question);
         if (clientSocket.request.user) {
+            let questionObject = processQuestion(question);
             let thread = new Thread({
                 question: questionObject.question,
                 author: sanitizer.escape(clientSocket.request.user.uid),
@@ -135,8 +133,6 @@ const eventHandler = {
                         }),
                         tags: savedThread.tags
                     };
-
-
                     sendToAdmins("new_thread_available", dataForAdmins);
                     sendToStudents("new_thread_available", dataForStudents);
                 }
@@ -184,13 +180,9 @@ const eventHandler = {
                 });
 
             });
-          }
-     else clientSocket.emit("error_occurred", "Please login to vote");
-
-  },
-
-
-
+        }
+        else clientSocket.emit("error_occurred", "Please login to vote");
+    },
     new_comment: function (namespace, clientSocket, data) {
         if (clientSocket.request.user) {
             Thread.findOne({_id: sanitizer.escape(data.threadId)}).exec((err, returnedThread) => {
@@ -211,16 +203,15 @@ const eventHandler = {
                             let html = pug.renderFile("views/partials/comment.pug", {commentObject: savedComment});
                             namespace.emit("new_comment_available", {
                                 commentHTML: html,
-                                forAnswer: savedAnswer._id
+                                forAnswer: savedAnswer._id,
+                                amountComments: savedAnswer.comments.length
                             });
                         })
                     });
                 });
-
             });
-
         }
-
+        else clientSocket.emit("error_occurred", "Please login to vote");
     },
     toggle_answer_approved: function (namespace, clientSocket, answerId) {
         if (clientSocket.request.user && clientSocket.request.user.isAdmin) {
@@ -260,8 +251,8 @@ const eventHandler = {
             clientSocket.emit("error_occurred", "Failed to get threads.");
         });
 
-    
-  }
+
+    }
 };
 
 /**
@@ -283,10 +274,10 @@ const sendToStudents = function (event, data) {
 /**
  * The server socket
  */
-const serverSocketInitiator = function(server, sessionStore) {
-  const io = require("socket.io")(server);
+const serverSocketInitiator = function (server, sessionStore) {
+    const io = require("socket.io")(server);
 
-  /**
+    /**
      * Access passport user information from a socket.io connection.
      */
     io.use(
@@ -333,8 +324,8 @@ const serverSocketInitiator = function(server, sessionStore) {
                 .on("down_vote_thread", (threadId) => {
                     eventHandler.down_vote_thread(questions_live, clientSocket, threadId);
                 })
-                .on("open_class", (tag) =>{
-                    eventHandler.openNewClass(clientSocket,tag);
+                .on("open_class", (tag) => {
+                    eventHandler.openNewClass(clientSocket, tag);
                 })
                 .on("delete_thread", (threadId) => {
                     eventHandler.delete_thread(questions_live, clientSocket, threadId);
@@ -356,7 +347,7 @@ const serverSocketInitiator = function(server, sessionStore) {
             })
 
         });
-    
+
 };
 
 module.exports = serverSocketInitiator;
