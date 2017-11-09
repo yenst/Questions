@@ -5,12 +5,15 @@ mixin thread(thread, isAdmin)
         div(class="card-header")
             div(class="row")
                 h6(class="question col-sm-10 my-0 card-title")!= thread.question
+
                 span(class="col-sm-2 text-right font-weight-light")
                     | #{thread.creationDate.getHours()}:#{thread.creationDate.getMinutes()}
                     | #{thread.creationDate.getDate()}/#{thread.creationDate.getMonth()}/#{thread.creationDate.getYear() - 100}
+
             div(class="tags row ml-1 mt-1")
                 each tag in thread.tags
                     span(class="badge badge-primary text-light")!= tag
+
         div(class="card-body")
             div(class="row text-light mx-sm-2")
                 div(class="col-1")
@@ -23,6 +26,8 @@ mixin thread(thread, isAdmin)
                         i(class="fa fa-2x fa-chevron-down")
                         span(class="sr-only") up vote
                 div(class="extraInfo col")
+                    each image in thread.images
+                        img(src=image class='row img-fluid')
                 if isAdmin
                     div(class="col-1 text-center")
                         a(class="deleteThreadBtn row btn-sm btn-secondary justify-content-center" href="#")

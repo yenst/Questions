@@ -14,6 +14,8 @@ mixin block(answerObject, isAdmin)
                 a(class="approveAnswerBtn btn btn-secondary text-light m-1" href="#")
                     span(class="fa fa-check" aria-hidden="true")
                     span(class="sr-only") approve answer
+    each image in answerObject.images
+        img(src=image class='img-fluid row')
     div(class="row")
             div(class="col text-center")
                 a(class="commentsVisibilityToggler text-primary" href="#")

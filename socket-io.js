@@ -107,14 +107,15 @@ const eventHandler = {
             });
         } else clientSocket.emit("error_occurred", "Please login to vote");
     },
-    new_question: function (clientSocket, question) {
+    new_question: function (clientSocket, question, images) {
         //TODO Deze check wordt al uitgevoerd in "model/thread.js"
         if (clientSocket.request.user) {
             let questionObject = processQuestion(question);
             let thread = new Thread({
                 question: questionObject.question,
                 author: sanitizer.escape(clientSocket.request.user.uid),
-                tags: questionObject.tags
+                tags: questionObject.tags,
+                images: images
             });
             thread.save((err, savedThread) => {
                 if (err) clientSocket.emit("error_occurred", err);
@@ -148,7 +149,8 @@ const eventHandler = {
                 let answer = new Answer({
                     answer: sanitizer.escape(data.answer),
                     author: sanitizer.escape(clientSocket.request.user.uid),
-                    onThread: thread._id
+                    onThread: thread._id,
+                    images: data.images
                 });
                 answer.save((err, savedAnswer) => {
                     if (err) clientSocket.emit("error_occurred", err);
@@ -306,8 +308,8 @@ const serverSocketInitiator = function (server, sessionStore) {
             }
             clientSocket.emit("connection_confirmation", "connected to socket in room 'questions-live'");
             clientSocket
-                .on("new_question", question => {
-                    eventHandler.new_question(clientSocket, question);
+                .on("new_question", (question,images) => {
+                    eventHandler.new_question(clientSocket, question,images);
                 })
                 .on("new_answer", data => {
                     eventHandler.new_answer(clientSocket, data);
