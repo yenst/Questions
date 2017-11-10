@@ -33,7 +33,6 @@ const gInterface = (function () {
                     images = [];
                     console.log(images)
                 });
-
             $("#answer_form").on("submit", function (e) {
                 e.preventDefault();
                 if (socketModule.isConnected()) {
@@ -280,7 +279,7 @@ const gInterface = (function () {
             let $solvedSpan = $affectedThread.find(".solvedText");
             if (isSolved) $solvedSpan.show();
             else $solvedSpan.hide();
-            $affectedThread.find(".answer[data-answer-id='" + answerId + "']").find(".answerText").parent()
+            $(".answer[data-answer-id='" + answerId + "'] > div:first-child")
                 .toggleClass("bg-success");
         },
         autoComplete: function (data) {
@@ -298,9 +297,6 @@ const gInterface = (function () {
                 .fail(function (error) {
                     console.log(error);
                 });
-        },
-        initToopTips: function() {
-            $('[data-toggle="tooltip"]').tooltip();
         },
         getCredits: function(data){
             $.get("/getcredits",function(data){
@@ -322,6 +318,5 @@ const gInterface = (function () {
 $(document).ready(function () {
     gInterface.bindEvents();
     gInterface.initAutoComplete();
-    gInterface.initToopTips();
     gInterface.getCredits();
 });

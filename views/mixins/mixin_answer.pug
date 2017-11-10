@@ -2,7 +2,7 @@ include ./mixin_comment.pug
 
 mixin answer(answerObject, isAdmin)
     li(class="answer list-group-item my-1 bg-light border-primary border-bottom-0" data-answer-id=answerObject._id)
-        div(class="row py-1 rounded " + (answerObject.isApproved ? "bg-success" : ""))
+        div(class="row py-2 rounded " + (answerObject.isApproved ? "bg-success" : ""))
             div(class="col-1")
                 a(class="answerUpVoteBtn row btn-sm btn-outline-primary justify-content-center" href="#")
                     i(class="fa fa-2x fa-angle-up")
@@ -16,7 +16,7 @@ mixin answer(answerObject, isAdmin)
                 span(class="answerText")!= answerObject.answer
                 each image in answerObject.images
                     img(src=image class='img-fluid rounded img-thumbnail')
-            div(class="col-1 text-center")
+            div(class="col-1 text-center mr-2")
                 if answerObject.author.isAdmin
                     span(class="btn p-0 row text-secondary" data-toggle="tooltip" data-placement="bottom" title="Answer by teacher")
                         i(class="fa fa-graduation-cap" aria-hidden="true")
