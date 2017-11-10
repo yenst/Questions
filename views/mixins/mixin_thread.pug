@@ -6,11 +6,13 @@ mixin thread(thread, isAdmin)
         div(class="card-header")
             div(class="row")
                 h6(class="col-sm-10 my-0 card-title")
-                    span(class="font-weight-bold text-uppercase mr-1")= thread.isSolved ? "[SOLVED]" : ""
+                    span(class="solvedText font-weight-bold text-uppercase mr-1 mb-1" style= thread.isSolved ? "display: block": "display: none") [SOLVED]
                     span(class='question')!= thread.question
-                small(class="col-sm-2 text-right font-weight-light")
-                    | #{thread.creationDate.getHours()}:#{thread.creationDate.getMinutes()}
-                    | #{thread.creationDate.getDate()}/#{thread.creationDate.getMonth()}/#{thread.creationDate.getYear() - 100}
+                div(class='col-sm')
+                    small(class="row font-weight-light justify-content-end mx-auto")
+                        | #{thread.creationDate.getHours()}:#{thread.creationDate.getMinutes()}
+                    small(class="row font-weight-light justify-content-end mx-auto")
+                        | #{thread.creationDate.getDate()}/#{thread.creationDate.getMonth()}/#{thread.creationDate.getYear() - 100}
             div(class="tags row mx-1 mt-md-1")
                 each tag in thread.tags
                     +tag(tag)
@@ -21,12 +23,12 @@ mixin thread(thread, isAdmin)
             div(class="row text-light mx-sm-2")
                 div(class="col-1")
                     a(class="threadUpVoteBtn row btn-sm btn-outline-primary justify-content-center" href="#")
-                        i(class="fa fa-2x fa-chevron-up")
+                        i(class="fa fa-2x fa-angle-up")
                         span(class="sr-only") up vote
                     div(class="row justify-content-center")
-                        span(class="votes text-dark")= thread.votes
+                        span(class="threadVotes text-dark")= thread.votes
                     a(class="threadDownVoteBtn row btn-sm btn-outline-primary justify-content-center" href="#")
-                        i(class="fa fa-2x fa-chevron-down")
+                        i(class="fa fa-2x fa-angle-down")
                         span(class="sr-only") up vote
                 div(class="extraInfo col")
                 if isAdmin

@@ -94,7 +94,7 @@ const eventHandler = {
     down_vote_thread: function (namespace, clientSocket, threadId) {
         if (clientSocket.request.user) {
             Thread.findOne({_id: sanitizer.escape(threadId)}).exec((err, thread) => {
-                if (err) return clientSocket.emit("error_occurred", "Thread doesn't exist");
+                if (err) return clientSocket.emit("error_occurred", "Thread doesn't exist or has been removed.");
                 thread.downVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
                     thread.save((err, savedThread) => {
                         if (err) return console.error(err);
@@ -275,6 +275,38 @@ const eventHandler = {
                 clientSocket.emit("error_occurred", "Thread doesn't exist.");
             })
         } else clientSocket.emit("error_occurred", "Please login to vote");
+    },
+    up_vote_answer: function (namespace, clientSocket, answerId) {
+        if (clientSocket.request.user) {
+            Answer.findOne({_id: sanitizer.escape(answerId)}).exec((err, answer) => {
+                if (err) return clientSocket.emit("error_occurred", "Answer doesn't exist or has been removed.");
+                answer.upVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
+                    answer.save((err, savedAnswer) => {
+                        if (err) return console.error(err);
+                        namespace.emit("answer_voted", {
+                            answerId: savedAnswer._id,
+                            votes: savedAnswer.votes
+                        })
+                    })
+                }).catch(err => clientSocket.emit("error_occurred", err));
+            });
+        } else clientSocket.emit("error_occurred", "Please login to vote");
+    },
+    down_vote_answer: function (namespace, clientSocket, answerId) {
+        if (clientSocket.request.user) {
+            Answer.findOne({_id: sanitizer.escape(answerId)}).exec((err, answer) => {
+                if (err) return clientSocket.emit("error_occurred", "Answer doesn't exist or has been removed.");
+                answer.downVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
+                    answer.save((err, savedAnswer) => {
+                        if (err) return console.error(err);
+                        namespace.emit("answer_voted", {
+                            answerId: savedAnswer._id,
+                            votes: savedAnswer.votes
+                        })
+                    })
+                }).catch(err => clientSocket.emit("error_occurred", err));
+            });
+        } else clientSocket.emit("error_occurred", "Please login to vote");
     }
 };
 
@@ -361,6 +393,12 @@ const serverSocketInitiator = function (server, sessionStore) {
                 })
                 .on("add_tag_to_thread", data => {
                     eventHandler.add_tag_to_thread(questions_live, clientSocket, data)
+                })
+                .on("up_vote_answer", answerId => {
+                    eventHandler.up_vote_answer(questions_live, clientSocket, answerId)
+                })
+                .on("down_vote_answer", answerId => {
+                    eventHandler.down_vote_answer(questions_live, clientSocket, answerId);
                 });
             clientSocket.on("disconnect", () => {
                 if (clientSocket.request.user.isAdmin) {

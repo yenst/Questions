@@ -15,10 +15,10 @@ const socketModule = (function () {
             gInterface.showError(error);
         })
         .on("new_thread_available", function (data) {
-            if(tag === null){
+            if (tag === null) {
                 gInterface.addThread(data.threadHTML);
-            }else if(data.tags.includes(tag)){
-                new Notification("Nieuwe vraag: "+tag);
+            } else if (data.tags.includes(tag)) {
+                new Notification("Nieuwe vraag: " + tag);
                 gInterface.addThread(data.threadHTML);
             }
         })
@@ -36,6 +36,9 @@ const socketModule = (function () {
         })
         .on("thread_voted", function (data) {
             gInterface.updateThreadVotes(data.threadId, data.votes);
+        })
+        .on("answer_voted", function (data) {
+            gInterface.updateAnswerVotes(data.answerId, data.votes);
         })
         .on("deleted_thread", function (threadId) {
             gInterface.removeThread(threadId);
@@ -83,6 +86,12 @@ const socketModule = (function () {
         },
         addTag: function (threadId, tag) {
             socket.emit("add_tag_to_thread", {threadId, tag});
+        },
+        upVoteAnswer: function (answerId) {
+            socket.emit("up_vote_answer", answerId);
+        },
+        downVoteAnswer: function (answerId) {
+            socket.emit("down_vote_answer", answerId);
         }
     }
 })();

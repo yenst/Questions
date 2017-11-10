@@ -39,27 +39,6 @@ AnswerSchema.methods.toggleIsApprovedAndSave = function () {
             }).catch(err => {return err})
         }).catch(err => reject(err));
     });
-
-
-    // let self = this;
-    // return new Promise(function (resolve, reject) {
-    //     mongoose.model("Thread").findOne({_id: self.onThread}).populate("answers").then(thread => {
-    //         self.isApproved = !self.isApproved;
-    //         let hasOtherApprovedAnswer = false;
-    //         for (let i = 0; i < thread.answers.length; i++){
-    //             let answer = thread.answers[i];
-    //             if (answer._id != self._id && answer.isApproved) {
-    //                 hasOtherApprovedAnswer = true;
-    //                 break;
-    //             }
-    //         }
-    //         thread.hasApprovedAnswer = hasOtherApprovedAnswer;
-    //         thread.save();
-    //         self.save().then(savedAnswer => {
-    //             resolve(savedAnswer)
-    //         }).catch(err => reject(err));
-    //     }).catch(err => reject(err));
-    // });
 };
 
 AnswerSchema.pre("remove", function (next) {
@@ -72,5 +51,47 @@ AnswerSchema.pre("remove", function (next) {
     next();
 });
 
-const Answer = mongoose.model("Answer", AnswerSchema);
-module.exports = Answer;
+AnswerSchema.methods.upVote = function (userId) {
+    let self = this;
+    return new Promise(function (resolve, reject) {
+        if (self.upVotedUIDs.find((uid) => {
+                return uid == userId
+            })) {
+            reject("You have already up voted this.");
+        } else {
+            if (self.downVotedUIDs.find((uid) => {
+                    return uid == userId
+                })) {
+                let index = self.downVotedUIDs.indexOf(userId);
+                self.downVotedUIDs.splice(index, 1);
+            } else {
+                self.upVotedUIDs.push(userId);
+            }
+            self.votes++;
+            resolve();
+        }
+    });
+};
+AnswerSchema.methods.downVote = function (userId) {
+    let self = this;
+    return new Promise(function (resolve, reject) {
+        if (self.downVotedUIDs.find((uid) => {
+                return uid == userId
+            })) {
+            reject("You have already down voted this.");
+        } else {
+            if (self.upVotedUIDs.find((uid) => {
+                    return uid == userId
+                })) {
+                let index = self.upVotedUIDs.indexOf(userId);
+                self.upVotedUIDs.splice(index, 1);
+            } else {
+                self.downVotedUIDs.push(userId);
+            }
+            self.votes--;
+            resolve();
+        }
+    });
+};
+
+module.exports = mongoose.model("Answer", AnswerSchema);
