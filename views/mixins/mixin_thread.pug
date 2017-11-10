@@ -48,7 +48,7 @@ mixin thread(thread, isAdmin)
                         i(class="fa fa-caret-down")
                         span(class="ml-2")
                             span(class="amountAnswers")=thread.answers.length
-                            |  answers
+                            
             ul(class="answers row list-group list-group-flush" style="display: none")
                 each answer in thread.answers
                     +answer(answer, isAdmin)

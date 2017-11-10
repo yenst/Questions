@@ -1,3 +1,30 @@
 body {
     background: #ffffff;
 }
+
+.text-howest{
+    color:#e3147e;
+}
+
+.comment{
+    margin-left:2px;
+    margin-right:2px;
+    border-bottom: white 1px solid;
+    padding-top:20px;
+}
+
+.comments-block{
+    border-bottom: #D9DADB 1px solid;
+    padding-bottom:20px;
+  
+    margin-bottom:10px;
+}
+
+.comment-text{
+    padding-top:10px;
+}
+
+.answerButton{
+    margin-bottom:10px;
+}
+

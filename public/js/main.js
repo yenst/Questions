@@ -272,6 +272,16 @@ const gInterface = (function () {
                     console.log(error);
                 });
         },
+        initToopTips: function() {
+            $('[data-toggle="tooltip"]').tooltip();
+        },
+        getCredits: function(data){
+            $.get("/getcredits",function(data){
+
+            }).done(function(data){
+            console.log(data);
+            });
+        },
         addTagToThread: function (threadId, tagHTML) {
             let $tags = $("#threads").find(".thread[data-thread-id='" + threadId + "']").find(".tags");
             let $addTagBtn = $tags.find(".addTagBtn");
@@ -285,4 +295,6 @@ const gInterface = (function () {
 $(document).ready(function () {
     gInterface.bindEvents();
     gInterface.initAutoComplete();
+    gInterface.initToopTips();
+    gInterface.getCredits();
 });

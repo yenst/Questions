@@ -1,4 +1,13 @@
 mixin comment(commentObject)
     li(class="comment")
-        i(class="fa fa-li fa-commenting")
-        span!= commentObject.comment
+        div(class="row rounded offset-1 comment-text")
+            div(class="col-10")
+            
+                span!= commentObject.comment
+            if commentObject.author.isAdmin
+                a(class="btn btn-primary-text-light col-1" href="#" disabled data-toggle="tooltip" data-placement="bottom" title="Answer by teacher")
+
+                    i(class="fa fa-graduation-cap text-howest" aria-hidden="true")
+
+    
+    
