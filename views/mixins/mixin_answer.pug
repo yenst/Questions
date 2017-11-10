@@ -1,7 +1,7 @@
 include ./mixin_comment.pug
 
 mixin answer(answerObject, isAdmin)
-    li(class="answer list-group-item my-1" data-answer-id=answerObject._id)
+    li(class="answer list-group-item my-1 bg-light border-primary" data-answer-id=answerObject._id)
         div(class="row py-1 rounded " + (answerObject.isApproved ? "bg-success" : ""))
             div(class="col-1")
                 a(class="answerUpVoteBtn row btn-sm btn-outline-primary justify-content-center" href="#")
@@ -28,8 +28,8 @@ mixin answer(answerObject, isAdmin)
                         span(class="fa fa-check" aria-hidden="true")
                         span(class="sr-only") approve answer
         each image in answerObject.images
-            img(src=image class='img-fluid row')
-        div(class="row text-center")
+            img(src=image class='img-fluid row border')
+        div(class="row text-center my-2")
             div(class="col")
                 a(class="col commentsVisibilityToggler text-primary" href="#")
                     i(class="fa fa-caret-down")

@@ -32,14 +32,14 @@ mixin thread(thread, isAdmin)
                         span(class="sr-only") up vote
                 div(class="extraInfo col")
                     each image in thread.images
-                        img(src=image class='row img-fluid')
+                        img(src=image class='row img-fluid border')
                 if isAdmin
                     div(class="col-1 text-center mr-1")
                         a(class="deleteThreadBtn row btn-sm btn-secondary justify-content-center" href="#")
                             i(class="fa fa-2x fa-trash")
                             span(class="sr-only") delete
             div(class="row")
-                a(class="answerButton mx-auto btn btn-primary text-light" href="#")
+                a(class="answerButton mx-auto btn btn-primary text-light my-2" href="#")
                     if(thread.answers.length > 0)
                         | Answer
                     else
