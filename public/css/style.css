@@ -38,3 +38,19 @@ body {
 .answerImages img{
     max-height: 500px;
 }
+
+.badge-gold{
+    color:#FFD700	;
+}
+
+.badge-silver{
+    color:#D3D3D3	;
+}
+
+.badge-bronze{
+    color: #cc6633 ;
+}
+
+.badge-default{
+    color: white;
+}

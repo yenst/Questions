@@ -60,9 +60,12 @@ router
         });
 })
 .get('/getcredits',function(req,res){
-        (User.findById(req.user.uid),function(user){
-            res.send(user.credits);
+    
+        User.findById(req.user.uid,function(err,user){
+            res.json(user.credits);
         });
+        
+        
 
     
 
