@@ -216,7 +216,7 @@ const eventHandler = {
     toggle_answer_approved: function (namespace, clientSocket, answerId) {
         if (clientSocket.request.user && clientSocket.request.user.isAdmin) {
             Answer.findOne({_id: sanitizer.escape(answerId)}).populate("onThread").then(answer => {
-                answer.toggleIsApprovedAndSave().then( resolveData => {
+                answer.toggleIsApprovedAndSave().then(resolveData => {
                     namespace.emit("answer_approved_changed", {
                         answerId: resolveData.savedAnswer._id,
                         threadId: resolveData.affectedThread._id,
@@ -252,6 +252,29 @@ const eventHandler = {
         });
 
 
+    },
+    add_tag_to_thread: function (namespace, clientSocket, data) {
+        if (clientSocket.request.user) {
+            Thread.findOne({_id: sanitizer.escape(data.threadId)}).then(thread => {
+                let tag = sanitizer.escape(data.tag);
+                if (!thread.tags.includes(tag)) {
+                    thread.tags.push(tag);
+                    thread.save().then(savedThread => {
+                        let tagHTML = pug.renderFile("views/partials/tag.pug", {tag: tag});
+                        namespace.emit("tag_added_to_thread", {
+                            threadId: savedThread._id,
+                            tagHTML: tagHTML
+                        })
+                    }).catch(err => {
+                        clientSocket.emit("error_occurred", "Failed to save changes.");
+                    })
+                } else {
+                    clientSocket.emit("error_occurred", "Tag already added.");
+                }
+            }).catch(err => {
+                clientSocket.emit("error_occurred", "Thread doesn't exist.");
+            })
+        } else clientSocket.emit("error_occurred", "Please login to vote");
     }
 };
 
@@ -335,6 +358,9 @@ const serverSocketInitiator = function (server, sessionStore) {
                 })
                 .on("toggle_answer_approved", answerId => {
                     eventHandler.toggle_answer_approved(questions_live, clientSocket, answerId)
+                })
+                .on("add_tag_to_thread", data => {
+                    eventHandler.add_tag_to_thread(questions_live, clientSocket, data)
                 });
             clientSocket.on("disconnect", () => {
                 if (clientSocket.request.user.isAdmin) {

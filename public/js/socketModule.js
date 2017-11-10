@@ -45,6 +45,9 @@ const socketModule = (function () {
         })
         .on("answer_approved_changed", function (data) {
             gInterface.setAnswerApproved(data.answerId, data.threadId, data.isSolved);
+        })
+        .on("tag_added_to_thread", function (data) {
+            gInterface.addTagToThread(data.threadId, data.tagHTML);
         });
 
     return {
@@ -77,6 +80,9 @@ const socketModule = (function () {
         },
         toggleAnswerApproved: function (answerId) {
             socket.emit("toggle_answer_approved", answerId);
+        },
+        addTag: function (threadId, tag) {
+            socket.emit("add_tag_to_thread", {threadId, tag});
         }
     }
 })();

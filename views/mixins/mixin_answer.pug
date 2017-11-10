@@ -16,11 +16,12 @@ mixin answer(answerObject, isAdmin)
                         span(class="fa fa-check" aria-hidden="true")
                         span(class="sr-only") approve answer
         div(class="row text-center")
-            a(class="col commentsVisibilityToggler text-primary" href="#")
-                i(class="fa fa-caret-down")
-                span(class="ml-2")
-                    span(class="amountComments")=answerObject.comments.length
-                    |  comments
+            div(class="col")
+                a(class="col commentsVisibilityToggler text-primary" href="#")
+                    i(class="fa fa-caret-down")
+                    span(class="ml-2")
+                        span(class="amountComments")=answerObject.comments.length
+                        |  comments
         ul(class="comments fa-ul mt-2" style="display:none")
             each comment in answerObject.comments
                 +comment(comment)

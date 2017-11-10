@@ -11,6 +11,7 @@ const gInterface = (function () {
     return {
         bindEvents: function () {
             let self = this;
+            $("body").tooltip({selector: '[data-toggle="tooltip"]'});
             $("#question_form").on("submit", function (e) {
                 e.preventDefault();
                 if (socketModule.isConnected()) {
@@ -48,15 +49,29 @@ const gInterface = (function () {
                     $answerIdInput.val("");
                 } else askToLogin();
             });
+            $("#tag_form").on("submit", function (e) {
+                e.preventDefault();
+                if (socketModule.isConnected()) {
+                    let $tagInput = $(e.target).find("input[name='tag']");
+                    let $threadIdInput = $(e.target).find("input[name='threadId']");
+                    socketModule.addTag(
+                        $threadIdInput.val(),
+                        $tagInput.val()
+                    );
+                    $("#tagFormModal").modal("hide");
+                    $threadIdInput.val("");
+                    $tagInput.val("");
+                } else askToLogin();
+            });
             $("#threads")
                 .on("click", ".answerButton", function (e) {
                     e.preventDefault();
                     if (socketModule.isConnected()) {
                         let $currentThread = $(e.target).closest(".thread");
                         let threadId = $currentThread.attr("data-thread-id");
-                        $("input[name='threadId']").attr("value", threadId);
                         let threadQuestion = $currentThread.find(".question").text();
                         let $answerFormModal = $("#answerFormModal");
+                        $answerFormModal.find("input[name='threadId']").attr("value", threadId);
                         $answerFormModal.find(".threadQuestion").text(threadQuestion);
                         $answerFormModal.modal("show");
                     } else askToLogin();
@@ -138,6 +153,18 @@ const gInterface = (function () {
                         .closest(".answer")
                         .attr("data-answer-id");
                     socketModule.toggleAnswerApproved(answerId);
+                })
+                .on("click", ".addTagBtn", function (e) {
+                    e.preventDefault();
+                    if (socketModule.isConnected()) {
+                        let $currentThread = $(e.target).closest(".thread");
+                        let threadId = $currentThread.attr("data-thread-id");
+                        let threadQuestion = $currentThread.find(".question").text();
+                        let $tagFormModal = $("#tagFormModal");
+                        $tagFormModal.find("input[name='threadId']").attr("value", threadId);
+                        $tagFormModal.find(".threadQuestion").text(threadQuestion);
+                        $tagFormModal.modal("show");
+                    } else askToLogin();
                 });
             $("#askbutton").on("click", function (e) {
                 e.preventDefault();
@@ -155,7 +182,7 @@ const gInterface = (function () {
                 let $tagInput = $(e.target).find('input[name="tag"]');
                 let tag = $tagInput.val();
                 let newClass = '/newclass/';
-                window.location.href= newClass+tag;
+                window.location.href = newClass + tag;
             });
         },
         showError: function (error) {
@@ -203,9 +230,9 @@ const gInterface = (function () {
         setAnswerApproved: function (answerId, threadId, isSolved) {
             let $affectedThread = $("#threads").find(".thread[data-thread-id='" + threadId + "']");
             let $solvedSpan = $affectedThread.find(".question span");
-            if(isSolved) $solvedSpan.text("[SOLVED]");
+            if (isSolved) $solvedSpan.text("[SOLVED]");
             else $solvedSpan.text("");
-            $affectedThread.find(".answer[data-answer-id='" + answerId + "'] div:first-child")
+            $affectedThread.find(".answer[data-answer-id='" + answerId + "']").find(".answerText").parent()
                 .toggleClass("bg-success");
         },
         autoComplete: function (data) {
@@ -223,6 +250,13 @@ const gInterface = (function () {
                 .fail(function (error) {
                     console.log(error);
                 });
+        },
+        addTagToThread: function (threadId, tagHTML) {
+            let $tags = $("#threads").find(".thread[data-thread-id='" + threadId + "']").find(".tags");
+            let $addTagBtn = $tags.find(".addTagBtn");
+            $addTagBtn.remove();
+            $tags.append(tagHTML);
+            $tags.append($addTagBtn);
         }
     };
 })();
