@@ -219,6 +219,16 @@ const gInterface = (function () {
                 .fail(function (error) {
                     console.log(error);
                 });
+        },
+        initToopTips: function() {
+            $('[data-toggle="tooltip"]').tooltip();            
+        },
+        getCredits: function(data){
+            $.get("/getcredits",function(data){
+                
+            }).done(function(data){
+            console.log(data);
+            });
         }
     };
 })();
@@ -226,4 +236,6 @@ const gInterface = (function () {
 $(document).ready(function () {
     gInterface.bindEvents();
     gInterface.initAutoComplete();
+    gInterface.initToopTips();
+    gInterface.getCredits();
 });

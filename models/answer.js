@@ -24,5 +24,7 @@ AnswerSchema.pre("remove", function (next) {
     next();
 });
 
+
+
 const Answer = mongoose.model("Answer", AnswerSchema);
 module.exports = Answer;

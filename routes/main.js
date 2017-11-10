@@ -2,6 +2,7 @@
 
 const router = require("express").Router();
 const Thread = require("../models/thread");
+const User = require("../models/user");
 
 /**
  * TODO implement pagination
@@ -18,18 +19,23 @@ router
         Thread.find({}).populate({
             path: "answers",
             populate: {
-                path: "comments",
-                model: "Comment"
+                path: "comments author",
+                populate:{
+                    path:"author",
+                },
             }
         }).sort("-creationDate").then(threads => {
-            res.render("index", {
-                title: "Home - Questions",
-                user: req.user,
-                threads: threads
-            });
+                res.render("index", {
+                    title: "Home - Questions",
+                    user: req.user,
+                    threads: threads,
+                    
+                });
+            
+            
         }).catch(err => {
             res.render('error', {
-                title: error,
+                title: err,
                 errorMsg: "Unable to load threads."
             })
         });
@@ -52,6 +58,14 @@ router
         res.render("class", {
             title: req.params.tag
         });
+})
+.get('/getcredits',function(req,res){
+        (User.findById(req.user.uid),function(user){
+            res.send(user.credits);
+        });
+
+    
+
 });
 
 module.exports = router;
