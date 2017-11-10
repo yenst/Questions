@@ -31,6 +31,8 @@ mixin thread(thread, isAdmin)
                         i(class="fa fa-2x fa-angle-down")
                         span(class="sr-only") up vote
                 div(class="extraInfo col")
+                    each image in thread.images
+                        img(src=image class='row img-fluid')
                 if isAdmin
                     div(class="col-1 text-center mr-1")
                         a(class="deleteThreadBtn row btn-sm btn-secondary justify-content-center" href="#")
@@ -48,7 +50,6 @@ mixin thread(thread, isAdmin)
                         i(class="fa fa-caret-down")
                         span(class="ml-2")
                             span(class="amountAnswers")=thread.answers.length
-                            
             ul(class="answers row list-group list-group-flush" style="display: none")
                 each answer in thread.answers
                     +answer(answer, isAdmin)

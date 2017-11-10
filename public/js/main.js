@@ -1,6 +1,7 @@
 "use strict";
 let tag = null;
 let newClass = false;
+let images = [];
 
 const gInterface = (function () {
     //TODO use this function with callbacks
@@ -15,18 +16,30 @@ const gInterface = (function () {
             $("#question_form").on("submit", function (e) {
                 e.preventDefault();
                 if (socketModule.isConnected()) {
-                    let $questionInput = $(e.target).find("input[name='question']");
-                    socketModule.sendQuestion($questionInput.val());
+                    let $questionInput = $(e.target).find("#question");
+                    let $question = $questionInput.val();
+                    console.log($questionInput.val());
+                    if($question === ""){
+                        $question=" ";
+                    }
+                    socketModule.sendQuestion($question,images);
                     $("#questionFormModal").modal("hide");
                     $questionInput.val("");
                 } else askToLogin();
             });
+            $('.modal').on('hidden.bs.modal', function (e) {
+                    $('.formText').val("");
+                    $('.pasteImage').html("");
+                    images = [];
+                    console.log(images)
+                });
+
             $("#answer_form").on("submit", function (e) {
                 e.preventDefault();
                 if (socketModule.isConnected()) {
-                    let $answerInput = $(e.target).find("input[name='answer']");
+                    let $answerInput = $(e.target).find("#answer");
                     let $threadIdInput = $(e.target).find("input[name='threadId']");
-                    socketModule.sendAnswer($threadIdInput.val(), $answerInput.val());
+                    socketModule.sendAnswer($threadIdInput.val(), $answerInput.val(), images);
                     $("#answerFormModal").modal("hide");
                     $answerInput.val("");
                     $threadIdInput.val("");
@@ -202,6 +215,20 @@ const gInterface = (function () {
                 let newClass = '/newclass/';
                 window.location.href = newClass + tag;
             });
+            $('.pasteableTextArea').pastableTextarea()
+                .on('pasteImage', function (ev, data){
+                $('.pasteImage').prepend('<img class="img-fluid" src="'+data.dataURL+'"></img>');
+                let image = data.dataURL;
+                images.push(image);
+            }).on('pasteImageError', function(ev, data){
+                alert('Oops: ' + data.message);
+                if(data.url){
+                    alert('But we got its url anyway:' + data.url)
+                }
+            }).on('pasteText', function (ev, data){
+                console.log("text: " + data.text);
+            });
+
         },
         showError: function (error) {
             let $errorModal = $("#errorModal");

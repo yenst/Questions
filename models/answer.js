@@ -12,6 +12,7 @@ let AnswerSchema = Schema({
     upVotedUIDs: [{type: Schema.ObjectId, ref: "User"}],
     downVotedUIDs: [{type: Schema.ObjectId, ref: "User"}],
     comments: [{type: Schema.ObjectId, ref: "Comment"}],
+    images: [{type: String}]
 });
 
 /**

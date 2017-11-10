@@ -54,11 +54,11 @@ const socketModule = (function () {
         });
 
     return {
-        sendQuestion: function (question) {
-            socket.emit("new_question", question);
+        sendQuestion: function (question, images) {
+            socket.emit("new_question", question, images);
         },
-        sendAnswer: function (threadId, answer) {
-            socket.emit("new_answer", {threadId, answer});
+        sendAnswer: function (threadId, answer,images) {
+            socket.emit("new_answer", {threadId, answer,images});
         },
         sendComment: function (threadId, answerId, comment) {
             socket.emit("new_comment", {threadId, answerId, comment});

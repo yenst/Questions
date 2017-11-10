@@ -27,6 +27,8 @@ mixin answer(answerObject, isAdmin)
                     a(class="approveAnswerBtn btn btn-secondary text-light m-1" href="#")
                         span(class="fa fa-check" aria-hidden="true")
                         span(class="sr-only") approve answer
+        each image in answerObject.images
+            img(src=image class='img-fluid row')
         div(class="row text-center")
             div(class="col")
                 a(class="col commentsVisibilityToggler text-primary" href="#")
