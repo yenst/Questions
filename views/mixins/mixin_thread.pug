@@ -32,7 +32,7 @@ mixin thread(thread, isAdmin)
                         span(class="sr-only") up vote
                 div(class="extraInfo col")
                     each image in thread.images
-                        img(src=image class='row img-fluid border')
+                        img(src=image class='img-fluid rounded img-thumbnail')
                 if isAdmin
                     div(class="col-1 text-center mr-1")
                         a(class="deleteThreadBtn row btn-sm btn-secondary justify-content-center" href="#")

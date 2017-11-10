@@ -1,7 +1,7 @@
 include ./mixin_comment.pug
 
 mixin answer(answerObject, isAdmin)
-    li(class="answer list-group-item my-1 bg-light border-primary" data-answer-id=answerObject._id)
+    li(class="answer list-group-item my-1 bg-light border-primary border-bottom-0" data-answer-id=answerObject._id)
         div(class="row py-1 rounded " + (answerObject.isApproved ? "bg-success" : ""))
             div(class="col-1")
                 a(class="answerUpVoteBtn row btn-sm btn-outline-primary justify-content-center" href="#")
@@ -12,7 +12,10 @@ mixin answer(answerObject, isAdmin)
                 a(class="answerDownVoteBtn row btn-sm btn-outline-primary justify-content-center" href="#")
                     i(class="fa fa-2x fa-angle-down")
                     span(class="sr-only") up vote
-            span(class="answerText col")!= answerObject.answer
+            div(class="col")
+                span(class="answerText")!= answerObject.answer
+                each image in answerObject.images
+                    img(src=image class='img-fluid rounded img-thumbnail')
             div(class="col-sm-2 col-md-3 text-right")
                 if answerObject.author.isAdmin
                     a(class="btn btn-primary-text-light m-1" href="#" disabled data-toggle="tooltip" data-placement="bottom" title="Answer by teacher")
@@ -27,8 +30,6 @@ mixin answer(answerObject, isAdmin)
                     a(class="approveAnswerBtn btn btn-secondary text-light m-1" href="#")
                         span(class="fa fa-check" aria-hidden="true")
                         span(class="sr-only") approve answer
-        each image in answerObject.images
-            img(src=image class='img-fluid row border')
         div(class="row text-center my-2")
             div(class="col")
                 a(class="col commentsVisibilityToggler text-primary" href="#")
