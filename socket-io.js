@@ -80,6 +80,14 @@ const eventHandler = {
         if (clientSocket.request.user) {
             Thread.findOne({_id: sanitizer.escape(threadId)}).exec((err, thread) => {
                 if (err) return clientSocket.emit("error_occurred", "Thread doesn't exist");
+                Thread.findById(threadId).populate('author').then(function(populatedThread){
+                    User.findById(populatedThread.author._id).then(function(user){
+                        user.credits += 1;
+                        user.save((err,savedUser)=>{
+                            console.log(savedUser);
+                        })
+                    })
+                })
                 thread.upVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
                     thread.save((err, savedThread) => {
                         if (err) return console.error(err);
@@ -96,6 +104,14 @@ const eventHandler = {
         if (clientSocket.request.user) {
             Thread.findOne({_id: sanitizer.escape(threadId)}).exec((err, thread) => {
                 if (err) return clientSocket.emit("error_occurred", "Thread doesn't exist");
+                Thread.findById(threadId).populate('author').then(function(populatedThread){
+                    User.findById(populatedThread.author._id).then(function(user){
+                        user.credits -= 1;
+                        user.save((err,savedUser)=>{
+                            console.log(savedUser);
+                        })
+                    })
+                })
                 thread.downVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
                     thread.save((err, savedThread) => {
                         if (err) return console.error(err);
@@ -252,6 +268,20 @@ const eventHandler = {
     toggle_answer_approved: function (namespace, clientSocket, answerId) {
         if (clientSocket.request.user && clientSocket.request.user.isAdmin) {
             Answer.findOne({_id: sanitizer.escape(answerId)}).populate("onThread").then(answer => {
+                Answer.findById(answerId).populate('author').then(function(populatedAnswer){
+                    User.findById(populatedAnswer.author._id).then(function(user){
+                        if(populatedAnswer.isSolved){
+                            user.credits -= 5;
+                            
+                        }
+                        else{
+                            user.credits += 5;
+                        }
+                        user.save((err,savedUser)=>{
+                            console.log(savedUser);
+                        })
+                    })
+                })
                 answer.toggleIsApprovedAndSave().then(resolveData => {
                     namespace.emit("answer_approved_changed", {
                         answerId: resolveData.savedAnswer._id,
@@ -314,15 +344,26 @@ const eventHandler = {
         if (clientSocket.request.user) {
             Answer.findOne({_id: sanitizer.escape(answerId)}).exec((err, answer) => {
                 if (err) return clientSocket.emit("error_occurred", "Answer doesn't exist or has been removed.");
-                answer.upVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
-                    answer.save((err, savedAnswer) => {
-                        if (err) return console.error(err);
-                        namespace.emit("answer_voted", {
-                            answerId: savedAnswer._id,
-                            votes: savedAnswer.votes
+                Answer.findOne({_id:answerId}).populate('author').then(function(populatedAnswer){
+                    User.findById(populatedAnswer.author._id).then(function(user){
+                        user.credits += 1;
+                        user.save((err,savedUser)=>{
+                            console.log(savedUser);
                         })
                     })
-                }).catch(err => clientSocket.emit("error_occurred", err));
+                    populatedAnswer.upVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
+                        populatedAnswer.save((err, savedAnswer) => {
+                            if (err) return console.error(err);
+                            namespace.emit("answer_voted", {
+                                answerId: savedAnswer._id,
+                                votes: savedAnswer.votes
+                            })
+                        })
+                    }).catch(err => clientSocket.emit("error_occurred", err));
+                }).catch(function(err){
+                    console.log(err);
+                })
+                
             });
         } else clientSocket.emit("error_occurred", "Please login to vote");
     },
@@ -330,6 +371,14 @@ const eventHandler = {
         if (clientSocket.request.user) {
             Answer.findOne({_id: sanitizer.escape(answerId)}).exec((err, answer) => {
                 if (err) return clientSocket.emit("error_occurred", "Answer doesn't exist or has been removed.");
+                Answer.findById(answerId).populate('author').then(function(populatedAnswer){
+                    User.findById(populatedAnswer.author._id).then(function(user){
+                        user.credits -= 1;
+                        user.save((err,savedUser)=>{
+                            console.log(savedUser);
+                        })
+                    })
+                })
                 answer.downVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
                     answer.save((err, savedAnswer) => {
                         if (err) return console.error(err);
