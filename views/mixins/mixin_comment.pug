@@ -2,5 +2,5 @@ mixin comment(commentObject)
     li(class="comment bg-light list-group-item comment-text d-flex")
         span(class="col")!= commentObject.comment
         if commentObject.author.isAdmin
-            span(class="btn p-0 row text-secondary" data-toggle="tooltip" data-placement="bottom" title="Answer by teacher")
+            span(class="btn p-0 col-1 row text-secondary" data-toggle="tooltip" data-placement="bottom" title="Answer by teacher")
                 i(class="fa fa-graduation-cap" aria-hidden="true")

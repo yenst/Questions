@@ -20,19 +20,19 @@ router
             path: "answers",
             populate: {
                 path: "comments author",
-                populate:{
-                    path:"author",
+                populate: {
+                    path: "author",
                 },
             }
         }).sort("-creationDate").then(threads => {
-                res.render("index", {
-                    title: "Home - Questions",
-                    user: req.user,
-                    threads: threads,
-                    
-                });
-            
-            
+            res.render("index", {
+                title: "Home - Questions",
+                user: req.user,
+                threads: threads,
+
+            });
+
+
         }).catch(err => {
             res.render('error', {
                 title: err,
@@ -49,23 +49,21 @@ router
         req.session = null; //Remove session from sessionStore
         res.redirect('/');
     })
-    .get('/gettags',function(req,res){
-        Thread.distinct('tags',function(error,tags){
-            res.send(tags);       });
-        
+    .get('/gettags', function (req, res) {
+        Thread.distinct('tags', function (error, tags) {
+            res.send(tags);
+        });
+
     })
     .get('/newClass/:tag', function (req, res) {
         res.render("class", {
             title: req.params.tag
         });
-})
-.get('/getcredits',function(req,res){
-        (User.findById(req.user.uid),function(user){
-            res.send(user.credits);
-        });
-
-    
-
-});
+    });
+    // .get('/getcredits', function (req, res) {
+    //     (User.findById(req.user.uid), function (user) {
+    //         res.send(user.credits);
+    //     });
+    // });
 
 module.exports = router;
