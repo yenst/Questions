@@ -1,8 +1,6 @@
 mixin comment(commentObject)
-    li(class="comment border-left-0 border-right-0 border-primary p-0")
-        div(class="row rounded offset-1 comment-text")
-            div(class="col-10")
-                span!= commentObject.comment
-            if commentObject.author.isAdmin
-                a(class="btn btn-primary-text-light col-1" href="#" disabled data-toggle="tooltip" data-placement="bottom" title="Answer by teacher")
-                    i(class="fa fa-graduation-cap text-howest" aria-hidden="true")
+    li(class="comment bg-light list-group-item comment-text d-flex")
+        span(class="col")!= commentObject.comment
+        if commentObject.author.isAdmin
+            span(class="btn p-0 row text-secondary" data-toggle="tooltip" data-placement="bottom" title="Answer by teacher")
+                i(class="fa fa-graduation-cap" aria-hidden="true")

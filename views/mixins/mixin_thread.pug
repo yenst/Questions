@@ -33,9 +33,12 @@ mixin thread(thread, isAdmin)
                 div(class="extraInfo col")
                     each image in thread.images
                         img(src=image class='img-fluid rounded img-thumbnail')
-                if isAdmin
-                    div(class="col-1 text-center mr-1")
-                        a(class="deleteThreadBtn row btn-sm btn-secondary justify-content-center" href="#")
+                div(class="col-1 text-center mr-1")
+                    a(class="deleteThreadBtn row btn-sm btn-secondary justify-content-center" href="#" data-toggle="tooltip" data-placement="bottom" title="Delete this thread")
+                        i(class="fa fa-2x fa-")
+                        span(class="sr-only") Answer question
+                    if isAdmin
+                        a(class="deleteThreadBtn row btn-sm btn-secondary justify-content-center" href="#" data-toggle="tooltip" data-placement="bottom" title="Delete this thread")
                             i(class="fa fa-2x fa-trash")
                             span(class="sr-only") delete
             div(class="row")
@@ -50,6 +53,6 @@ mixin thread(thread, isAdmin)
                         i(class="fa fa-caret-down")
                         span(class="ml-2")
                             span(class="amountAnswers")=thread.answers.length
-            ul(class="answers row list-group list-group-flush" style="display: none")
+            ul(class="answers list-group-flush p-0" style="display: none")
                 each answer in thread.answers
                     +answer(answer, isAdmin)
