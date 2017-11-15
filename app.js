@@ -134,7 +134,8 @@ passport.use(new GoogleStrategy({
             }, function (err, user) {
                 let dataForSession = {
                     uid: user._id,
-                    isAdmin: user.isAdmin
+                    isAdmin: user.isAdmin,
+                    credits: user.credits
                 };
                 done(null, dataForSession);
             });

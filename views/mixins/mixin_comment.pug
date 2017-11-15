@@ -2,7 +2,7 @@ mixin comment(commentObject)
     li(class="comment bg-light list-group-item comment-text d-flex")
         div(class="col")
             span!= commentObject.comment
-        span(class="justify-content-center m-1 row text-secondary" disabled data-toggle="tooltip" data-placement="bottom" title="Current credits from user: "+commentObject.author.credits)
+        span(class="justify-content-center m-1 row text-secondary" data-toggle="tooltip" data-placement="bottom" title="Current credits from user: "+commentObject.author.credits)
                 if commentObject.author.credits >= 300
                     i(class="fa fa-trophy badge-gold 2x" aria-hidden="true")
                 if 300 > commentObject.author.credits && commentObject.author.credits >= 150

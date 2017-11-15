@@ -1,5 +1,17 @@
 form(class="form-inline my-2 justify-content-center" id="question_form")
-    label(class="sr-only" for="question") Ask a question
-    textarea(id="question" name='question' class="form-control mr-sm-2 w-75 formText pasteableTextArea" placeholder="Ask a question")
-    button(class="btn btn-secondary" type="submit") Ask
-    div(class="pasteImage row")
+    div(class="container")
+        div(class="row")
+            label(class="sr-only" for="question") Ask a question
+            textarea(id="question" name='question' class="form-control w-100 formText pasteableTextArea" rows="3" placeholder="Ask a question")
+        if user && user.isAdmin
+            div(class="row form-check mt-2")
+                label(class="form-check-label")
+                    input(class="form-check-input" type="checkbox")
+                    | Create poll
+            div(class="row")
+                label(class="sr-only" for="choice") Add a choice
+                input(class="control" type="text" id="choice")
+
+        div(class="row mt-2")
+            button(class="btn btn-secondary" type="submit") Submit
+        div(class="pasteImage row")

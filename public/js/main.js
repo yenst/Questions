@@ -282,29 +282,17 @@ const gInterface = (function () {
             $(".answer[data-answer-id='" + answerId + "'] > div:first-child")
                 .toggleClass("bg-success");
         },
-        autoComplete: function (data) {
-            $("#question").atwho({
-                at: "#",
-                data: data
-            });
-        },
         initAutoComplete: function () {
-            $.get("/gettags", function (data) {
-            })
+            $.get("/gettags")
                 .done(function (data) {
-                    gInterface.autoComplete(data);
+                    $("#question").atwho({
+                        at: "#",
+                        data: data
+                    });
                 })
                 .fail(function (error) {
                     console.log(error);
                 });
-        },
-        getCredits: function(data){
-            $.get("/getcredits",function(data){
-
-            }).done(function(data){
-                console.log(data);
-                gInterface.updateBadge(data);
-            });
         },
         addTagToThread: function (threadId, tagHTML) {
             let $tags = $("#threads").find(".thread[data-thread-id='" + threadId + "']").find(".tags");
@@ -312,23 +300,6 @@ const gInterface = (function () {
             $addTagBtn.remove();
             $tags.append(tagHTML);
             $tags.append($addTagBtn);
-        },
-        updateBadge: function(credits){
-            let color = gInterface.processBadge(credits);
-            let html = '<i class="fa fa-trophy fa-2x '+ color+' " aria-hidden="true"></i> <span class="text-light">(' + credits + ')</span>';  
-            
-            console.log(html);
-            $('#credits-header').html(html);
-        },
-
-        processBadge: function(credits){
-                
-                if(credits >=300){return 'badge-gold';}
-                if(credits >=150){return 'badge-silver';}
-                if(credits >=50){return 'badge-bronze';}
-                else{'badge-default';}                
-            
-
         }
     };
 })();

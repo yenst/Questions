@@ -1,3 +1,4 @@
+//- TODO refactor if checks
 mixin header(user)
     header
         nav(class="navbar fixed-top navbar-dark bg-primary py-1 px-2 " + (user ? "navbar-expand-lg" : "navbar-expand-sm") role="navigation")
@@ -12,6 +13,20 @@ mixin header(user)
                     if user
                         li(class="nav-item")
                             a(class="nav-link text-light" href='/logout') Logout
+                        if user.isAdmin
+                            li(class="nav-item")
+                                span(class="navbar-text" )
+                                    span(class="mr-1") (Admin mode)
+                                    span(data-toggle="tooltip" data-placement="bottom" title="Your credits")
+                                        if user.credits >= 300
+                                            i(class="fa fa-trophy mr-1 badge-gold 2x" aria-hidden="true")
+                                        if 300 > user.credits && user.credits >= 150
+                                            i(class="fa fa-trophy mr-1 badge-silver 2x" aria-hidden="true")
+                                        if 150 > user.credits && user.credits >= 50
+                                            i(class="fa fa-trophy mr-1 badge-bronze 2x" aria-hidden="true")
+                                        else
+                                            i(class="fa fa-trophy mr-1 badge-default 2x" aria-hidden="true")
+                                        | #{user.credits}
                     else
                         li(class="nav-item dropdown")
                             a(class="nav-link dropdown-toggle text-light" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false") Login
@@ -19,11 +34,7 @@ mixin header(user)
                                 h6(class="dropdown-header") Your Howest account is a Google account
                                 a(class="btn btn-block btn-social btn-google" href='/auth/google') Sign in with Google
                                     i(class="fa fa-google")
-                    if user && user.isAdmin
-                        li(class="nav-item")
-                            span(class="navbar-text")
-                                | (Admin mode)
-                    li(id="credits-header")
+
                 if user
                     form(class="form-inline my-1" action="#" id="open_class")
                         input(class="form-control mr-sm-2" type="search" name="tag" placeholder="Tag" aria-label="Search")

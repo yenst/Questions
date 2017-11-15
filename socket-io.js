@@ -270,9 +270,8 @@ const eventHandler = {
             Answer.findOne({_id: sanitizer.escape(answerId)}).populate("onThread").then(answer => {
                 Answer.findById(answerId).populate('author').then(function(populatedAnswer){
                     User.findById(populatedAnswer.author._id).then(function(user){
-                        if(populatedAnswer.isSolved){
+                        if(populatedAnswer.isApproved){
                             user.credits -= 5;
-                            
                         }
                         else{
                             user.credits += 5;
@@ -281,7 +280,7 @@ const eventHandler = {
                             console.log(savedUser);
                         })
                     })
-                })
+                });
                 answer.toggleIsApprovedAndSave().then(resolveData => {
                     namespace.emit("answer_approved_changed", {
                         answerId: resolveData.savedAnswer._id,
@@ -350,7 +349,7 @@ const eventHandler = {
                         user.save((err,savedUser)=>{
                             console.log(savedUser);
                         })
-                    })
+                    });
                     populatedAnswer.upVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
                         populatedAnswer.save((err, savedAnswer) => {
                             if (err) return console.error(err);
@@ -378,7 +377,7 @@ const eventHandler = {
                             console.log(savedUser);
                         })
                     })
-                })
+                });
                 answer.downVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
                     answer.save((err, savedAnswer) => {
                         if (err) return console.error(err);
