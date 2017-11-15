@@ -59,11 +59,11 @@ router
         res.render("class", {
             title: req.params.tag
         });
-    });
-    // .get('/getcredits', function (req, res) {
-    //     (User.findById(req.user.uid), function (user) {
-    //         res.send(user.credits);
-    //     });
-    // });
+    })
+    .get('/getcredits',function(req,res){
+        User.findById(req.user.uid,function(err,user){
+            res.json(user.credits);
+        });
+});
 
 module.exports = router;

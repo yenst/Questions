@@ -302,7 +302,8 @@ const gInterface = (function () {
             $.get("/getcredits",function(data){
 
             }).done(function(data){
-            console.log(data);
+                console.log(data);
+                gInterface.updateBadge(data);
             });
         },
         addTagToThread: function (threadId, tagHTML) {
@@ -311,6 +312,23 @@ const gInterface = (function () {
             $addTagBtn.remove();
             $tags.append(tagHTML);
             $tags.append($addTagBtn);
+        },
+        updateBadge: function(credits){
+            let color = gInterface.processBadge(credits);
+            let html = '<i class="fa fa-trophy fa-2x '+ color+' " aria-hidden="true"></i> <span class="text-light">(' + credits + ')</span>';  
+            
+            console.log(html);
+            $('#credits-header').html(html);
+        },
+
+        processBadge: function(credits){
+                
+                if(credits >=300){return 'badge-gold';}
+                if(credits >=150){return 'badge-silver';}
+                if(credits >=50){return 'badge-bronze';}
+                else{'badge-default';}                
+            
+
         }
     };
 })();
