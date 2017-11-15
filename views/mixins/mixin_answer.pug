@@ -17,7 +17,7 @@ mixin answer(answerObject, isAdmin)
                 each image in answerObject.images
                     img(src=image class='img-fluid rounded img-thumbnail')
             div(class="col-1 text-center mr-2")
-                a(class="row my-1 btn-sm btn-primary text-light justify-content-center" href="#" disabled data-toggle="tooltip" data-placement="bottom" title="current credits from user: "+answerObject.author.credits)
+                span(class="justify-content-center m-2 row text-secondary" disabled data-toggle="tooltip" data-placement="bottom" title="Current credits from user: "+answerObject.author.credits)
                     if answerObject.author.credits >= 300
                         i(class="fa fa-trophy badge-gold 2x" aria-hidden="true")
                     if 300 > answerObject.author.credits && answerObject.author.credits >= 150
@@ -27,7 +27,7 @@ mixin answer(answerObject, isAdmin)
                     if 50 > answerObject.author.credits
                         i(class="fa fa-trophy badge-default 2x" aria-hidden="true")
                 if answerObject.author.isAdmin
-                    span(class="btn p-0 row text-secondary" data-toggle="tooltip" data-placement="bottom" title="Answer by teacher")
+                    span(class="justify-content-center m-2 row text-secondary" data-toggle="tooltip" data-placement="bottom" title="Answer by teacher")
                         i(class="fa fa-graduation-cap" aria-hidden="true")
                 a(class="commentButton row my-1 btn-sm btn-primary text-light justify-content-center" href="#" data-toggle="tooltip" data-placement="bottom" title="Add a comment")
                     span(class="fa fa-comment" aria-hidden="true")
@@ -45,6 +45,6 @@ mixin answer(answerObject, isAdmin)
                     i(class="fa fa-caret-down")
                     span(class="ml-2")
                         span(class="amountComments")=answerObject.comments.length
-        ul(class="comments fa-ul mt-2" style="display:none")
+        ul(class="comments fa-ul mt-2" style="display:none; font-size: 0.85rem;")
             each comment in answerObject.comments
                 +comment(comment)

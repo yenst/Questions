@@ -1,17 +1,16 @@
 mixin comment(commentObject)
     li(class="comment bg-light list-group-item comment-text d-flex")
-        div(class="row rounded offset-1 comment-text")
-            div(class="col")
-                span!= commentObject.comment
-            span(class="btn btn-primary-text-light col-1" disabled data-toggle="tooltip" data-placement="bottom" title="current credits from user: "+commentObject.author.credits)
-                    if commentObject.author.credits >= 300
-                        i(class="fa fa-trophy badge-gold 2x" aria-hidden="true")
-                    if 300 > commentObject.author.credits && commentObject.author.credits >= 150
-                        i(class="fa fa-trophy badge-silver 2x" aria-hidden="true")
-                    if 150 > commentObject.author.credits && commentObject.author.credits >= 50
-                        i(class="fa fa-trophy badge-bronze 2x" aria-hidden="true")
-                    if 50 > commentObject.author.credits
-                        i(class="fa fa-trophy badge-default 2x" aria-hidden="true")
-            if commentObject.author.isAdmin
-                span(class="btn p-0 col-1 row text-secondary" data-toggle="tooltip" data-placement="bottom" title="Answer by teacher")
-                    i(class="fa fa-graduation-cap" aria-hidden="true")
+        div(class="col")
+            span!= commentObject.comment
+        span(class="justify-content-center m-1 row text-secondary" disabled data-toggle="tooltip" data-placement="bottom" title="Current credits from user: "+commentObject.author.credits)
+                if commentObject.author.credits >= 300
+                    i(class="fa fa-trophy badge-gold 2x" aria-hidden="true")
+                if 300 > commentObject.author.credits && commentObject.author.credits >= 150
+                    i(class="fa fa-trophy badge-silver 2x" aria-hidden="true")
+                if 150 > commentObject.author.credits && commentObject.author.credits >= 50
+                    i(class="fa fa-trophy badge-bronze 2x" aria-hidden="true")
+                if 50 > commentObject.author.credits
+                    i(class="fa fa-trophy badge-default 2x" aria-hidden="true")
+        if commentObject.author.isAdmin
+            span(class="justify-content-center m-1 row text-secondary" data-toggle="tooltip" data-placement="bottom" title="Answer by teacher")
+                i(class="fa fa-graduation-cap" aria-hidden="true")
