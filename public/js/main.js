@@ -44,6 +44,18 @@ const gInterface = (function () {
                     $threadIdInput.val("");
                 } else askToLogin();
             });
+            $("#alias_form").on("submit",function(e){
+                $("#aliasFormModal").modal("hide");
+                e.preventDefault();
+                name = $(e.target).find("input[name='alias']").val();
+                $.post("/edit-alias",{
+                    new_name:name
+                },
+            function(data,status){})
+            .done(function(response){
+                window.location.href = response.redirect;
+            })
+            });
             $("#comment_form").on("submit", function (e) {
                 e.preventDefault();
                 if (socketModule.isConnected()) {
@@ -201,6 +213,7 @@ const gInterface = (function () {
                 if (socketModule.isConnected()) $("#questionFormModal").modal("show");
                 else askToLogin();
             });
+        
             $("#search_threads_on_tag_form").on("submit", function (e) {
                 e.preventDefault();
                 let $tagInput = $(e.target).find('input[name="tag"]');
@@ -226,6 +239,11 @@ const gInterface = (function () {
                 }
             }).on('pasteText', function (ev, data){
                 console.log("text: " + data.text);
+            });
+            $('#btn-alias').on('click',function(e){
+                e.preventDefault();
+                if (socketModule.isConnected()) $("#aliasFormModal").modal("show");
+                else askToLogin();
             });
 
         },
@@ -315,18 +333,18 @@ const gInterface = (function () {
         },
         updateBadge: function(credits){
             let color = gInterface.processBadge(credits);
-            let html = '<i class="fa fa-trophy fa-2x '+ color+' " aria-hidden="true"></i> <span class="text-light">(' + credits + ')</span>';  
+            let html = '<i class="fa fa-trophy '+color+'" aria-hidden="true"></i>';  
             
             console.log(html);
             $('#credits-header').html(html);
         },
 
         processBadge: function(credits){
-                
+                console.log(credits);
                 if(credits >=300){return 'badge-gold';}
                 if(credits >=150){return 'badge-silver';}
                 if(credits >=50){return 'badge-bronze';}
-                else{'badge-default';}                
+                else{return 'badge-default';}                
             
 
         }

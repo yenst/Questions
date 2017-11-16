@@ -176,6 +176,7 @@ const eventHandler = {
                     images: data.images
                 });
                 answer.save((err, savedAnswer) => {
+                    console.log(savedAnswer);
                     Answer.findOne({_id:savedAnswer._id}).populate('author').then(function(populatedAnswer){
                         if (err) clientSocket.emit("error_occurred", err);
                         else {

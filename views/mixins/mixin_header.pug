@@ -1,3 +1,4 @@
+
 mixin header(user)
     header
         nav(class="navbar fixed-top navbar-dark bg-primary py-1 px-2 " + (user ? "navbar-expand-lg" : "navbar-expand-sm") role="navigation")
@@ -23,7 +24,11 @@ mixin header(user)
                         li(class="nav-item")
                             span(class="navbar-text")
                                 | (Admin mode)
-                    li(id="credits-header")
+                   
+                    if user
+                        li(id="credits-header" class="nav-item nav-link")
+                        li(id="alias-header" class="nav-item")
+                                a(id="btn-alias" class="nav-link text-light" href="#")=user.alias
                 if user
                     form(class="form-inline my-1" action="#" id="open_class")
                         input(class="form-control mr-sm-2" type="search" name="tag" placeholder="Tag" aria-label="Search")

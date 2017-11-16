@@ -14,7 +14,8 @@ const UserSchema = Schema({
     answers: [{type: Schema.ObjectId, ref: "Answer"}],
     comments: [{type: Schema.ObjectId, ref: "Answer"}],
     approvedAnswers: {type: Number, default: 0},
-    credits:{type:Number, default: 0}
+    credits:{type:Number, default: 0},
+    alias:{type:String,default:"test"}
 });
 UserSchema.plugin(findOneOrCreate);
 
