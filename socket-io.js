@@ -3,6 +3,8 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const passportSocketIo = require("passport.socketio");
 const sanitizer = require("sanitizer");
+const mongoose = require("mongoose");
+const async = require("async");
 
 const Thread = require("./models/thread");
 const Answer = require("./models/answer");
@@ -13,33 +15,33 @@ const User = require("./models/user");
 /**
  * Passport and socket.io functions
  */
-const onAuthorizeSuccess = function(data, accept) {
-  console.log("successful connection to socket.io");
-  // The accept-callback still allows us to decide whether to
-  // accept the connection or not.
-  accept(null, true);
+const onAuthorizeSuccess = function (data, accept) {
+    console.log("successful connection to socket.io");
+    // The accept-callback still allows us to decide whether to
+    // accept the connection or not.
+    accept(null, true);
 };
-const onAuthorizeFail = function(data, message, error, accept) {
-  if (error) throw new Error(message);
-  console.log("failed connection to socket.io:", message);
-  // We use this callback to log all of our failed connections.
-  accept(null, false);
+const onAuthorizeFail = function (data, message, error, accept) {
+    if (error) throw new Error(message);
+    console.log("failed connection to socket.io:", message);
+    // We use this callback to log all of our failed connections.
+    accept(null, false);
 };
 
 /**
  * Helper functions
  */
-const processQuestion = function(q) {
-  let object = {
-    question: "",
-    tags: []
-  };
-  let splitQuestion = q.split("#");
-  object.question = sanitizer.escape(splitQuestion[0]);
-  for (let i = 1; i < splitQuestion.length; i++) {
-    object.tags.push(sanitizer.escape(splitQuestion[i].trim()));
-  }
-  return object;
+const processQuestion = function (q) {
+    let object = {
+        question: "",
+        tags: []
+    };
+    let splitQuestion = q.split("#");
+    object.question = sanitizer.escape(splitQuestion[0]);
+    for (let i = 1; i < splitQuestion.length; i++) {
+        object.tags.push(sanitizer.escape(splitQuestion[i].trim()));
+    }
+    return object;
 };
 
 /**
@@ -80,10 +82,10 @@ const eventHandler = {
         if (clientSocket.request.user) {
             Thread.findOne({_id: sanitizer.escape(threadId)}).exec((err, thread) => {
                 if (err) return clientSocket.emit("error_occurred", "Thread doesn't exist");
-                Thread.findById(threadId).populate('author').then(function(populatedThread){
-                    User.findById(populatedThread.author._id).then(function(user){
+                Thread.findById(threadId).populate('author').then(function (populatedThread) {
+                    User.findById(populatedThread.author._id).then(function (user) {
                         user.credits += 1;
-                        user.save((err,savedUser)=>{
+                        user.save((err, savedUser) => {
                             console.log(savedUser);
                         })
                     })
@@ -104,10 +106,10 @@ const eventHandler = {
         if (clientSocket.request.user) {
             Thread.findOne({_id: sanitizer.escape(threadId)}).exec((err, thread) => {
                 if (err) return clientSocket.emit("error_occurred", "Thread doesn't exist");
-                Thread.findById(threadId).populate('author').then(function(populatedThread){
-                    User.findById(populatedThread.author._id).then(function(user){
+                Thread.findById(threadId).populate('author').then(function (populatedThread) {
+                    User.findById(populatedThread.author._id).then(function (user) {
                         user.credits -= 1;
-                        user.save((err,savedUser)=>{
+                        user.save((err, savedUser) => {
                             console.log(savedUser);
                         })
                     })
@@ -124,42 +126,70 @@ const eventHandler = {
             });
         } else clientSocket.emit("error_occurred", "Please login to vote");
     },
-    new_question: function (clientSocket, question, images) {
+    new_question: function (clientSocket, question, images, choices) {
         //TODO Deze check wordt al uitgevoerd in "model/thread.js"
         if (clientSocket.request.user) {
+            let author = sanitizer.escape(clientSocket.request.user.uid);
             let questionObject = processQuestion(question);
             let thread = new Thread({
+                _id: new mongoose.Types.ObjectId(),
                 question: questionObject.question,
-                author: sanitizer.escape(clientSocket.request.user.uid),
+                author: author,
                 tags: questionObject.tags,
-                images: images
+                images: images,
             });
-            thread.save((err, savedThread) => {
-                if (err) clientSocket.emit("error_occurred", err);
-                else {
-                    let dataForAdmins = {
-                        threadHTML: pug.renderFile("views/partials/thread.pug", {
-                            thread: savedThread,
-                            isAdmin: true,
-                        }),
-                        tags: savedThread.tags
-                    };
-                    let dataForStudents = {
-                        threadHTML: pug.renderFile("views/partials/thread.pug", {
-                            thread: savedThread,
-                            isAdmin: false,
-                        }),
-                        tags: savedThread.tags
-                    };
-                    sendToAdmins("new_thread_available", dataForAdmins);
-                    sendToStudents("new_thread_available", dataForStudents);
+            if (choices) {
+                if (choices.length > 1) {
+                    thread.isPoll = true;
+                    let answerChoices = [];
+                    choices.forEach(choice => {
+                        answerChoices.push(
+                            new Answer({
+                                answer: choice,
+                                author: author,
+                                onThread: thread._id
+                            })
+                        );
+                    });
+                    Answer.insertMany(answerChoices).then(savedAnswersChoices => {
+                        savedAnswersChoices.forEach(answerChoice => {
+                            thread.answers.push(answerChoice._id);
+                        });
+                        thread.save().then(savedThread => {
+                            savedThread.populate("answers").execPopulate().then(populatedThread => {
+                                console.log(populatedThread);
+                                let dataForAdmins = {
+                                    threadHTML: pug.renderFile("views/partials/thread.pug", {
+                                        thread: populatedThread,
+                                        isAdmin: true,
+                                    }),
+                                    tags: populatedThread.tags
+                                };
+                                let dataForStudents = {
+                                    threadHTML: pug.renderFile("views/partials/thread.pug", {
+                                        thread: populatedThread,
+                                        isAdmin: false,
+                                    }),
+                                    tags: populatedThread.tags
+                                };
+                                sendToAdmins("new_thread_available", dataForAdmins);
+                                sendToStudents("new_thread_available", dataForStudents);
+                            }).catch(err => {return err});
+                        }).catch(err => {
+                            clientSocket.emit("error_occurred", err.message);
+                        });
+                    }).catch(err => {
+                        clientSocket.emit("error_occurred", "Failed to save information.");
+                    })
+                } else {
+                    clientSocket.emit("error_occurred", "A poll needs minimum 2 choices.");
                 }
-            });
+            }
         } else {
             clientSocket.emit("error_occurred", "Please login to ask a question.");
         }
     },
-    new_answer: function(clientSocket, data) {
+    new_answer: function (clientSocket, data) {
         if (clientSocket.request.user) {
             Thread.findOne({
                 _id: sanitizer.escape(data.threadId)
@@ -169,47 +199,50 @@ const eventHandler = {
                         "error_occurred",
                         "That thread doesn't exist or has been removed."
                     );
-                let answer = new Answer({
-                    answer: sanitizer.escape(data.answer),
-                    author: sanitizer.escape(clientSocket.request.user.uid),
-                    onThread: thread._id,
-                    images: data.images
-                });
-                answer.save((err, savedAnswer) => {
-                    Answer.findOne({_id:savedAnswer._id}).populate('author').then(function(populatedAnswer){
-                        if (err) clientSocket.emit("error_occurred", err);
-                        else {
-                            thread.answers.push(populatedAnswer._id);
-                            thread.save(err => {
-                                if (err) return console.error(err);
-
-                                let dataForAdmins = {
-                                    answerHTML: pug.renderFile("views/partials/answer.pug", {
-                                        answerObject: populatedAnswer,
-                                        isAdmin: true
-                                    }),
-                                    forThread: thread._id,
-                                    amountAnswersOnThread: thread.answers.length
-                                };
-                                let dataForStudents = {
-                                    answerHTML: pug.renderFile("views/partials/answer.pug", {
-                                        answerObject: populatedAnswer,
-                                        isAdmin: false
-                                    }),
-                                    forThread: thread._id,
-                                    amountAnswersOnThread: thread.answers.length
-                                };
-                                sendToAdmins("new_answer_available", dataForAdmins);
-                                sendToStudents("new_answer_available", dataForStudents);
-                            });
-                        }
+                if(!thread.isPoll){
+                    let answer = new Answer({
+                        answer: sanitizer.escape(data.answer),
+                        author: sanitizer.escape(clientSocket.request.user.uid),
+                        onThread: thread._id,
+                        images: data.images
                     });
+                    answer.save((err, savedAnswer) => {
+                        Answer.findOne({_id: savedAnswer._id}).populate('author').then(function (populatedAnswer) {
+                            if (err) clientSocket.emit("error_occurred", err);
+                            else {
+                                thread.answers.push(populatedAnswer._id);
+                                thread.save(err => {
+                                    if (err) return console.error(err);
 
-                });
+                                    let dataForAdmins = {
+                                        answerHTML: pug.renderFile("views/partials/answer.pug", {
+                                            answerObject: populatedAnswer,
+                                            isAdmin: true
+                                        }),
+                                        forThread: thread._id,
+                                        amountAnswersOnThread: thread.answers.length
+                                    };
+                                    let dataForStudents = {
+                                        answerHTML: pug.renderFile("views/partials/answer.pug", {
+                                            answerObject: populatedAnswer,
+                                            isAdmin: false
+                                        }),
+                                        forThread: thread._id,
+                                        amountAnswersOnThread: thread.answers.length
+                                    };
+                                    sendToAdmins("new_answer_available", dataForAdmins);
+                                    sendToStudents("new_answer_available", dataForStudents);
+                                });
+                            }
+                        });
+                    });
+                } else {
+                    clientSocket.emit("error_occurred", "Can't add answers to poll.");
+                }
             });
         } else clientSocket.emit("error_occurred", "Please login to vote");
     },
-    new_comment: function(namespace, clientSocket, data) {
+    new_comment: function (namespace, clientSocket, data) {
         if (clientSocket.request.user) {
             Thread.findOne({
                 _id: sanitizer.escape(data.threadId)
@@ -220,7 +253,7 @@ const eventHandler = {
                         "Thread doesn't exist or has been removed."
                     );
                 let answerId = sanitizer.escape(data.answerId);
-                Answer.findOne({ _id: answerId }).exec((err, returnedAnswer) => {
+                Answer.findOne({_id: answerId}).exec((err, returnedAnswer) => {
                     if (err)
                         return clientSocket.emit(
                             "error_occurred",
@@ -245,7 +278,7 @@ const eventHandler = {
                                     "error_occurred",
                                     "Failed to save comment."
                                 );
-                            Comment.findOne({_id:savedComment._id}).populate('author').then(function(populatedComment){
+                            Comment.findOne({_id: savedComment._id}).populate('author').then(function (populatedComment) {
                                 console.log(populatedComment);
                                 let html = pug.renderFile("views/partials/comment.pug", {
                                     commentObject: populatedComment
@@ -268,15 +301,15 @@ const eventHandler = {
     toggle_answer_approved: function (namespace, clientSocket, answerId) {
         if (clientSocket.request.user && clientSocket.request.user.isAdmin) {
             Answer.findOne({_id: sanitizer.escape(answerId)}).populate("onThread").then(answer => {
-                Answer.findById(answerId).populate('author').then(function(populatedAnswer){
-                    User.findById(populatedAnswer.author._id).then(function(user){
-                        if(populatedAnswer.isApproved){
+                Answer.findById(answerId).populate('author').then(function (populatedAnswer) {
+                    User.findById(populatedAnswer.author._id).then(function (user) {
+                        if (populatedAnswer.isApproved) {
                             user.credits -= 5;
                         }
-                        else{
+                        else {
                             user.credits += 5;
                         }
-                        user.save((err,savedUser)=>{
+                        user.save((err, savedUser) => {
                             console.log(savedUser);
                         })
                     })
@@ -343,10 +376,10 @@ const eventHandler = {
         if (clientSocket.request.user) {
             Answer.findOne({_id: sanitizer.escape(answerId)}).exec((err, answer) => {
                 if (err) return clientSocket.emit("error_occurred", "Answer doesn't exist or has been removed.");
-                Answer.findOne({_id:answerId}).populate('author').then(function(populatedAnswer){
-                    User.findById(populatedAnswer.author._id).then(function(user){
+                Answer.findOne({_id: answerId}).populate('author').then(function (populatedAnswer) {
+                    User.findById(populatedAnswer.author._id).then(function (user) {
                         user.credits += 1;
-                        user.save((err,savedUser)=>{
+                        user.save((err, savedUser) => {
                             console.log(savedUser);
                         })
                     });
@@ -359,10 +392,10 @@ const eventHandler = {
                             })
                         })
                     }).catch(err => clientSocket.emit("error_occurred", err));
-                }).catch(function(err){
+                }).catch(function (err) {
                     console.log(err);
                 })
-                
+
             });
         } else clientSocket.emit("error_occurred", "Please login to vote");
     },
@@ -370,10 +403,10 @@ const eventHandler = {
         if (clientSocket.request.user) {
             Answer.findOne({_id: sanitizer.escape(answerId)}).exec((err, answer) => {
                 if (err) return clientSocket.emit("error_occurred", "Answer doesn't exist or has been removed.");
-                Answer.findById(answerId).populate('author').then(function(populatedAnswer){
-                    User.findById(populatedAnswer.author._id).then(function(user){
+                Answer.findById(answerId).populate('author').then(function (populatedAnswer) {
+                    User.findById(populatedAnswer.author._id).then(function (user) {
                         user.credits -= 1;
-                        user.save((err,savedUser)=>{
+                        user.save((err, savedUser) => {
                             console.log(savedUser);
                         })
                     })
@@ -397,36 +430,36 @@ const eventHandler = {
  */
 const adminClients = [];
 const studentClients = [];
-const sendToAdmins = function(event, data) {
-  adminClients.forEach(adminClient => {
-    adminClient.emit(event, data);
-  });
+const sendToAdmins = function (event, data) {
+    adminClients.forEach(adminClient => {
+        adminClient.emit(event, data);
+    });
 };
-const sendToStudents = function(event, data) {
-  studentClients.forEach(studentClient => {
-    studentClient.emit(event, data);
-  });
+const sendToStudents = function (event, data) {
+    studentClients.forEach(studentClient => {
+        studentClient.emit(event, data);
+    });
 };
 
 /**
  * The server socket
  */
-const serverSocketInitiator = function(server, sessionStore) {
-  const io = require("socket.io")(server);
+const serverSocketInitiator = function (server, sessionStore) {
+    const io = require("socket.io")(server);
 
-  /**
+    /**
      * Access passport user information from a socket.io connection.
      */
-  io.use(
-    passportSocketIo.authorize({
-      cookieParser: cookieParser,
-      key: "connect.sid", // the name of the cookie where express/connect stores its session_id
-      secret: process.env.SESSION_KEY,
-      store: sessionStore
-      //success: onAuthorizeSuccess, //Optional
-      //fail: onAuthorizeFail //Optional
-    })
-  );
+    io.use(
+        passportSocketIo.authorize({
+            cookieParser: cookieParser,
+            key: "connect.sid", // the name of the cookie where express/connect stores its session_id
+            secret: process.env.SESSION_KEY,
+            store: sessionStore
+            //success: onAuthorizeSuccess, //Optional
+            //fail: onAuthorizeFail //Optional
+        })
+    );
 
     /**
 
@@ -443,8 +476,8 @@ const serverSocketInitiator = function(server, sessionStore) {
             }
             clientSocket.emit("connection_confirmation", "connected to socket in room 'questions-live'");
             clientSocket
-                .on("new_question", (question,images) => {
-                    eventHandler.new_question(clientSocket, question,images);
+                .on("new_question", (data) => {
+                    eventHandler.new_question(clientSocket, data.question, data.images, data.choices);
                 })
                 .on("new_answer", data => {
                     eventHandler.new_answer(clientSocket, data);

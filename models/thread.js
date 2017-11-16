@@ -28,7 +28,8 @@ const ThreadSchema = Schema({
     downVotedUIDs: [{type: Schema.ObjectId, ref: "User"}],
     answers: [{type: Schema.ObjectId, ref: "Answer"}],
     tags: [{type: String, lowercase: true}],
-    images: [{type: String}]
+    images: [{type: String}],
+    isPoll: {type: Boolean, default: false}
 });
 
 ThreadSchema.pre("remove", function (next) {

@@ -1,7 +1,7 @@
 include ./mixin_comment.pug
 
 mixin answer(answerObject, isAdmin)
-    li(class="answer list-group-item my-1 bg-light" data-answer-id=answerObject._id)
+    li(class="answer list-group-item my-0 bg-light border-bottom-0" data-answer-id=answerObject._id)
         div(class="row py-2 rounded " + (answerObject.isApproved ? "bg-success" : ""))
             div(class="col-1")
                 a(class="answerUpVoteBtn row btn-sm btn-outline-primary justify-content-center" href="#")

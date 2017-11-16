@@ -54,8 +54,8 @@ const socketModule = (function () {
         });
 
     return {
-        sendQuestion: function (question, images) {
-            socket.emit("new_question", question, images);
+        sendQuestion: function (question, images, choices) {
+            socket.emit("new_question", {question, images, choices});
         },
         sendAnswer: function (threadId, answer,images) {
             socket.emit("new_answer", {threadId, answer,images});

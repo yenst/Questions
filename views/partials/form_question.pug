@@ -3,15 +3,20 @@ form(class="form-inline my-2 justify-content-center" id="question_form")
         div(class="row")
             label(class="sr-only" for="question") Ask a question
             textarea(id="question" name='question' class="form-control w-100 formText pasteableTextArea" rows="3" placeholder="Ask a question")
-        if user && user.isAdmin
-            div(class="row form-check mt-2")
-                label(class="form-check-label")
-                    input(class="form-check-input" type="checkbox")
-                    | Create poll
-            div(class="row")
-                label(class="sr-only" for="choice") Add a choice
-                input(class="control" type="text" id="choice")
-
-        div(class="row mt-2")
-            button(class="btn btn-secondary" type="submit") Submit
         div(class="pasteImage row")
+        if user && user.isAdmin
+            div(class="container m-2")
+                div(class="row my-1 form-check")
+                    label(class="form-check-label")
+                        input(id='pollCheckBox' class="form-check-input" type="checkbox")
+                        | Create poll
+                div(id="pollSection" class="row my-1 text-center" style="display: none")
+                    div(class="row justify-content-center")
+                        small(class="form-text text-muted") Needs minimum 2 choices - Click a choice to remove it
+                        label(class="sr-only" for="choice") Add a choice
+                        input(class="form-control w-75" type="text" name="choice" id="choice" aria-describedby="choiceHelp" placeholder="Choice")
+                        a(id="addChoiceBtn" class="btn btn-secondary ml-1" href="#") +
+                    ul(id="pollChoices" class="row list-group mt-2 w-100")
+
+        div(class="row mt-2 justify-content-center")
+            button(class="btn btn-secondary" type="submit") Submit
