@@ -13,7 +13,7 @@ mixin answer(answerObject, isAdmin)
                     i(class="fa fa-2x fa-angle-down")
                     span(class="sr-only") up vote
             div(class="col")
-                span(class="answerText")!= answerObject.answer
+                span(class="answerText row")!= answerObject.answer
                 each image in answerObject.images
                     img(src=image class='img-fluid rounded img-thumbnail')
             div(class="col-1 text-center mr-2")

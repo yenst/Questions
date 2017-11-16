@@ -227,6 +227,14 @@ const gInterface = (function () {
             }).on('pasteText', function (ev, data){
                 console.log("text: " + data.text);
             });
+            $('img').on('click', function(event) {
+                let $image = $(this).attr('src');
+                console.log($image);
+                let $imageModal = $("#imageModal");
+                $imageModal.find("img").attr("src", $image);
+                $imageModal.modal("show");
+            });
+
 
         },
         showError: function (error) {

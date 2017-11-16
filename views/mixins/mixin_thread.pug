@@ -33,6 +33,7 @@ mixin thread(thread, isAdmin)
                 div(class="extraInfo col")
                     each image in thread.images
                         img(src=image class='img-fluid rounded img-thumbnail')
+
                 div(class="col-1 text-center mr-1")
                     if isAdmin
                         a(class="deleteThreadBtn row btn-sm btn-secondary justify-content-center" href="#" data-toggle="tooltip" data-placement="bottom" title="Delete this thread")
