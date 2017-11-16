@@ -138,6 +138,31 @@ const eventHandler = {
                 tags: questionObject.tags,
                 images: images,
             });
+            let sendResponse = function () {
+                thread.save().then(savedThread => {
+                    savedThread.populate("answers").execPopulate().then(populatedThread => {
+                        console.log(populatedThread);
+                        let dataForAdmins = {
+                            threadHTML: pug.renderFile("views/partials/thread.pug", {
+                                thread: populatedThread,
+                                isAdmin: true,
+                            }),
+                            tags: populatedThread.tags
+                        };
+                        let dataForStudents = {
+                            threadHTML: pug.renderFile("views/partials/thread.pug", {
+                                thread: populatedThread,
+                                isAdmin: false,
+                            }),
+                            tags: populatedThread.tags
+                        };
+                        sendToAdmins("new_thread_available", dataForAdmins);
+                        sendToStudents("new_thread_available", dataForStudents);
+                    }).catch(err => {return err});
+                }).catch(err => {
+                    clientSocket.emit("error_occurred", err.message);
+                });
+            };
             if (choices) {
                 if (choices.length > 1) {
                     thread.isPoll = true;
@@ -145,7 +170,7 @@ const eventHandler = {
                     choices.forEach(choice => {
                         answerChoices.push(
                             new Answer({
-                                answer: choice,
+                                answer: sanitizer.escape(choice),
                                 author: author,
                                 onThread: thread._id
                             })
@@ -155,36 +180,14 @@ const eventHandler = {
                         savedAnswersChoices.forEach(answerChoice => {
                             thread.answers.push(answerChoice._id);
                         });
-                        thread.save().then(savedThread => {
-                            savedThread.populate("answers").execPopulate().then(populatedThread => {
-                                console.log(populatedThread);
-                                let dataForAdmins = {
-                                    threadHTML: pug.renderFile("views/partials/thread.pug", {
-                                        thread: populatedThread,
-                                        isAdmin: true,
-                                    }),
-                                    tags: populatedThread.tags
-                                };
-                                let dataForStudents = {
-                                    threadHTML: pug.renderFile("views/partials/thread.pug", {
-                                        thread: populatedThread,
-                                        isAdmin: false,
-                                    }),
-                                    tags: populatedThread.tags
-                                };
-                                sendToAdmins("new_thread_available", dataForAdmins);
-                                sendToStudents("new_thread_available", dataForStudents);
-                            }).catch(err => {return err});
-                        }).catch(err => {
-                            clientSocket.emit("error_occurred", err.message);
-                        });
+                        sendResponse();
                     }).catch(err => {
                         clientSocket.emit("error_occurred", "Failed to save information.");
                     })
                 } else {
                     clientSocket.emit("error_occurred", "A poll needs minimum 2 choices.");
                 }
-            }
+            } else sendResponse();
         } else {
             clientSocket.emit("error_occurred", "Please login to ask a question.");
         }
