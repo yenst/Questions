@@ -10,6 +10,8 @@ const Answer = require("./models/answer");
 const Comment = require("./models/comment");
 const User = require("./models/user");
 
+const GLOBAL = require("./global-vars");
+
 /**
  * Passport and socket.io functions
  */
@@ -80,12 +82,9 @@ const eventHandler = {
         if (clientSocket.request.user) {
             Thread.findOne({_id: sanitizer.escape(threadId)}).exec((err, thread) => {
                 if (err) return clientSocket.emit("error_occurred", "Thread doesn't exist");
-                Thread.findById(threadId).populate('author').then(function (populatedThread) {
-                    User.findById(populatedThread.author._id).then(function (user) {
-                        user.credits += 1;
-                        user.save((err, savedUser) => {
-                            console.log(savedUser);
-                        })
+                Thread.findById(threadId).populate('author').then(function(populatedThread){
+                    User.findById(populatedThread.author._id).then(function(user){
+                        user.setCredits(user.credits+GLOBAL.SCORE_VOTE);
                     })
                 })
                 thread.upVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
@@ -104,12 +103,9 @@ const eventHandler = {
         if (clientSocket.request.user) {
             Thread.findOne({_id: sanitizer.escape(threadId)}).exec((err, thread) => {
                 if (err) return clientSocket.emit("error_occurred", "Thread doesn't exist");
-                Thread.findById(threadId).populate('author').then(function (populatedThread) {
-                    User.findById(populatedThread.author._id).then(function (user) {
-                        user.credits -= 1;
-                        user.save((err, savedUser) => {
-                            console.log(savedUser);
-                        })
+                Thread.findById(threadId).populate('author').then(function(populatedThread){
+                    User.findById(populatedThread.author._id).then(function(user){
+                        user.setCredits(user.credits-GLOBAL.SCORE_VOTE);
                     })
                 })
                 thread.downVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
@@ -286,8 +282,7 @@ const eventHandler = {
                                     "error_occurred",
                                     "Failed to save comment."
                                 );
-                            Comment.findOne({_id: savedComment._id}).populate('author').then(function (populatedComment) {
-                                console.log(populatedComment);
+                            Comment.findOne({_id:savedComment._id}).populate('author').then(function(populatedComment){
                                 let html = pug.renderFile("views/partials/comment.pug", {
                                     commentObject: populatedComment
                                 });
@@ -309,17 +304,16 @@ const eventHandler = {
     toggle_answer_approved: function (namespace, clientSocket, answerId) {
         if (clientSocket.request.user && clientSocket.request.user.isAdmin) {
             Answer.findOne({_id: sanitizer.escape(answerId)}).populate("onThread").then(answer => {
-                Answer.findById(answerId).populate('author').then(function (populatedAnswer) {
-                    User.findById(populatedAnswer.author._id).then(function (user) {
-                        if (populatedAnswer.isApproved) {
-                            user.credits -= 5;
+                Answer.findById(answerId).populate('author').then(function(populatedAnswer){
+                    User.findById(populatedAnswer.author._id).then(function(user){
+                        if(populatedAnswer.isApproved){
+                            user.setCredits(user.credits-GLOBAL.SCORE_APPROVE);
                         }
-                        else {
-                            user.credits += 5;
+                        else{
+                            user.setCredits(user.credits+GLOBAL.SCORE_APPROVE);
+
                         }
-                        user.save((err) => {
-                            if(err) return console.error(err)
-                        })
+
                     })
                 });
                 answer.toggleIsApprovedAndSave().then(resolveData => {
@@ -384,13 +378,11 @@ const eventHandler = {
         if (clientSocket.request.user) {
             Answer.findOne({_id: sanitizer.escape(answerId)}).exec((err, answer) => {
                 if (err) return clientSocket.emit("error_occurred", "Answer doesn't exist or has been removed.");
-                Answer.findOne({_id: answerId}).populate('author').then(function (populatedAnswer) {
-                    User.findById(populatedAnswer.author._id).then(function (user) {
-                        user.credits += 1;
-                        user.save((err, savedUser) => {
-                            console.log(savedUser);
-                        })
-                    });
+                Answer.findOne({_id:answerId}).populate('author').then(function(populatedAnswer){
+                    User.findById(populatedAnswer.author._id).then(function(user){
+                        user.setCredits(user.credits+GLOBAL.SCORE_VOTE);
+
+                    })
                     populatedAnswer.upVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
                         populatedAnswer.save((err, savedAnswer) => {
                             if (err) return console.error(err);
@@ -411,12 +403,9 @@ const eventHandler = {
         if (clientSocket.request.user) {
             Answer.findOne({_id: sanitizer.escape(answerId)}).exec((err, answer) => {
                 if (err) return clientSocket.emit("error_occurred", "Answer doesn't exist or has been removed.");
-                Answer.findById(answerId).populate('author').then(function (populatedAnswer) {
-                    User.findById(populatedAnswer.author._id).then(function (user) {
-                        user.credits -= 1;
-                        user.save((err, savedUser) => {
-                            console.log(savedUser);
-                        })
+                Answer.findById(answerId).populate('author').then(function(populatedAnswer){
+                    User.findById(populatedAnswer.author._id).then(function(user){
+                        user.setCredits(user.credits-GLOBAL.SCORE_VOTE);
                     })
                 });
                 answer.downVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
@@ -538,3 +527,11 @@ const serverSocketInitiator = function (server, sessionStore) {
 };
 
 module.exports = serverSocketInitiator;
+
+
+User.find({}).then(function(users){
+    users.forEach(function(user){
+        user.updateBadge();
+        user.save();
+    });
+});

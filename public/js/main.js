@@ -59,6 +59,18 @@ const gInterface = (function () {
                     $threadIdInput.val("");
                 } else askToLogin();
             });
+            $("#alias_form").on("submit",function(e){
+                $("#aliasFormModal").modal("hide");
+                e.preventDefault();
+                name = $(e.target).find("input[name='alias']").val();
+                $.post("/edit-alias",{
+                    new_name:name
+                },
+            function(data,status){})
+            .done(function(response){
+                window.location.href = response.redirect;
+            })
+            });
             $("#comment_form").on("submit", function (e) {
                 e.preventDefault();
                 if (socketModule.isConnected()) {
@@ -261,6 +273,12 @@ const gInterface = (function () {
             }).on('pasteText', function (ev, data) {
                 console.log("text: " + data.text);
             });
+            $('#btn-alias').on('click',function(e){
+                e.preventDefault();
+                if (socketModule.isConnected()) $("#aliasFormModal").modal("show");
+                else askToLogin();
+            });
+
         },
         showError: function (error) {
             let $errorModal = $("#errorModal");

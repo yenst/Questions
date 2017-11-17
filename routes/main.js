@@ -41,6 +41,19 @@ router
         });
     })
 
+    .get('/leaderboard',function(req,res){
+        User.find({}).sort("-credits").select('alias credits  badge').exec().then(users=>{
+            console.log(users);
+            res.render("leaderboard",{
+                title:'Leaderboard - Questions',
+                user: req.user,
+                users:users
+    
+            });
+        })
+       
+    })
+
     /**
      * logout
      */
@@ -61,9 +74,18 @@ router
         });
     })
     .get('/getcredits',function(req,res){
+
         User.findById(req.user.uid,function(err,user){
             res.json(user.credits);
         });
-});
+})
+    .post('/edit-alias',function(req,res){
+        User.findById(req.user.uid,function(err,foundUser){
+            req.user.alias=req.body.new_name;
+            foundUser.alias = req.body.new_name;
+            foundUser.save();
+            res.send({redirect:'/logout'});            
+        });
+    });
 
 module.exports = router;
