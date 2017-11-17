@@ -1,35 +1,43 @@
 include ./mixin_comment.pug
 
-mixin block(answerObject, isAdmin)
-    div(class="row")
-        span(class="answerText col")!= answerObject.answer
-        div(class="col-sm-2 col-md-3 text-right")
-            a(class="commentButton btn btn-primary text-light m-1" href="#")
-                span(class="fa fa-comment" aria-hidden="true")
-                span(class="sr-only") comment
-            if isAdmin
-                a(class="deleteAnswerBtn btn btn-secondary text-light m-1" href="#")
-                    span(class="fa fa-trash" aria-hidden="true")
-                    span(class="sr-only") delete answer
-                a(class="approveAnswerBtn btn btn-secondary text-light m-1" href="#")
-                    span(class="fa fa-check" aria-hidden="true")
-                    span(class="sr-only") approve answer
-    div(class="row")
-            div(class="col text-center")
-                a(class="commentsVisibilityToggler text-primary" href="#")
+mixin answer(answerObject, isAdmin)
+    li(class="answer list-group-item my-0 bg-light border-bottom-0" data-answer-id=answerObject._id)
+        div(class="row py-2 rounded " + (answerObject.isApproved ? "bg-success" : ""))
+            div(class="col-1")
+                a(class="answerUpVoteBtn row btn-sm btn-outline-primary justify-content-center" href="#")
+                    i(class="fa fa-2x fa-angle-up")
+                    span(class="sr-only") up vote
+                div(class="row justify-content-center")
+                    span(class="answerVotes text-dark")= answerObject.votes
+                a(class="answerDownVoteBtn row btn-sm btn-outline-primary justify-content-center" href="#")
+                    i(class="fa fa-2x fa-angle-down")
+                    span(class="sr-only") up vote
+            div(class="col")
+                span(class="answerText row")!= answerObject.answer
+                each image in answerObject.images
+                    img(src=image class='img-fluid rounded img-thumbnail')
+            div(class="col-1 text-center mr-2")
+                span(class="justify-content-center m-2 row text-secondary" disabled data-toggle="tooltip" data-placement="bottom" title="Current credits from user: "+answerObject.author.credits)
+                    i(class=answerObject.author.badge aria-hidden="true")
+                if answerObject.author.isAdmin
+                    span(class="justify-content-center m-2 row text-secondary" data-toggle="tooltip" data-placement="bottom" title="Answer by teacher")
+                        i(class="fa fa-graduation-cap" aria-hidden="true")
+                a(class="commentButton row my-1 btn-sm btn-primary text-light justify-content-center" href="#" data-toggle="tooltip" data-placement="bottom" title="Add a comment")
+                    span(class="fa fa-comment" aria-hidden="true")
+                    span(class="sr-only") comment
+                if isAdmin
+                    a(class="deleteAnswerBtn row my-1 btn-sm btn-secondary justify-content-center" href="#" data-toggle="tooltip" data-placement="bottom" title="Delete this answer")
+                        span(class="fa fa-trash" aria-hidden="true")
+                        span(class="sr-only") delete answer
+                    a(class="approveAnswerBtn row my-1 btn-sm btn-secondary justify-content-center" href="#" data-toggle="tooltip" data-placement="bottom" title="Approved this answer")
+                        span(class="fa fa-check" aria-hidden="true")
+                        span(class="sr-only") approve answer
+        div(class="row text-center my-2")
+            div(class="col")
+                a(class="col commentsVisibilityToggler text-primary" href="#")
                     i(class="fa fa-caret-down")
                     span(class="ml-2")
                         span(class="amountComments")=answerObject.comments.length
-                        |  comments
-    ul(class="comments fa-ul mt-2" style="display:none")
-        each comment in answerObject.comments
-            +comment(comment)
-
-mixin answer(answerObject, isAdmin)
-    if answerObject.isApproved
-        li(class="answer list-group-item bg-success m-1 rounded" data-answer-id=answerObject._id)
-            +block(answerObject, isAdmin)
-    else
-        li(class="answer list-group-item bg-light m-1 rounded" data-answer-id=answerObject._id)
-            +block(answerObject, isAdmin)
-
+        ul(class="comments fa-ul mt-2" style="display:none; font-size: 0.85rem;")
+            each comment in answerObject.comments
+                +comment(comment)

@@ -1,6 +1,7 @@
 "use strict";
 let tag = null;
 let newClass = false;
+let images = [];
 
 const gInterface = (function () {
     //TODO use this function with callbacks
@@ -11,25 +12,64 @@ const gInterface = (function () {
     return {
         bindEvents: function () {
             let self = this;
-            $("#question_form").on("submit", function (e) {
-                e.preventDefault();
-                if (socketModule.isConnected()) {
-                    let $questionInput = $(e.target).find("input[name='question']");
-                    socketModule.sendQuestion($questionInput.val());
-                    $("#questionFormModal").modal("hide");
-                    $questionInput.val("");
-                } else askToLogin();
+            $("body").tooltip({selector: '[data-toggle="tooltip"]'});
+            $("#question_form")
+                .on("submit", function (e) {
+                    e.preventDefault();
+                    if (socketModule.isConnected()) {
+                        let $questionInput = $(e.target).find("#question");
+                        let $pollChoiceList = $("#pollChoices");
+                        let question = $questionInput.val();
+                        if ($(e.target).find("#pollCheckBox").is(":checked")) {
+                            let choices = [];
+                            $pollChoiceList.find('a').each(function () {
+                                choices.push($(this).text());
+                            });
+                            if (choices.length < 2) {
+                                gInterface.showError("Need minimum 2 choices to create a poll.");
+                            } else {
+                                socketModule.sendQuestion(question, images, choices);
+                            }
+                        } else {
+                            socketModule.sendQuestion(question, images);
+                        }
+                        $("#questionFormModal").modal("hide");
+                        $questionInput.val("");
+                        $pollChoiceList.html("");
+                        $(this).find("input[name='choice']").val("");
+                    } else askToLogin();
+                })
+                .on("click", ".removeSelfOnClick", function (e) {
+                    e.preventDefault();
+                    $(e.target).remove();
+                });
+            $('.modal').on('hidden.bs.modal', function (e) {
+                $('.formText').val("");
+                $('.pasteImage').html("");
+                images = [];
             });
             $("#answer_form").on("submit", function (e) {
                 e.preventDefault();
                 if (socketModule.isConnected()) {
-                    let $answerInput = $(e.target).find("input[name='answer']");
+                    let $answerInput = $(e.target).find("#answer");
                     let $threadIdInput = $(e.target).find("input[name='threadId']");
-                    socketModule.sendAnswer($threadIdInput.val(), $answerInput.val());
+                    socketModule.sendAnswer($threadIdInput.val(), $answerInput.val(), images);
                     $("#answerFormModal").modal("hide");
                     $answerInput.val("");
                     $threadIdInput.val("");
                 } else askToLogin();
+            });
+            $("#alias_form").on("submit",function(e){
+                $("#aliasFormModal").modal("hide");
+                e.preventDefault();
+                name = $(e.target).find("input[name='alias']").val();
+                $.post("/edit-alias",{
+                    new_name:name
+                },
+            function(data,status){})
+            .done(function(response){
+                window.location.reload();
+            })
             });
             $("#comment_form").on("submit", function (e) {
                 e.preventDefault();
@@ -45,7 +85,21 @@ const gInterface = (function () {
                     $("#commentFormModal").modal("hide");
                     $commentInput.val("");
                     $threadIdInput.val("");
-                    $answerIdInput.va("");
+                    $answerIdInput.val("");
+                } else askToLogin();
+            });
+            $("#tag_form").on("submit", function (e) {
+                e.preventDefault();
+                if (socketModule.isConnected()) {
+                    let $tagInput = $(e.target).find("input[name='tag']");
+                    let $threadIdInput = $(e.target).find("input[name='threadId']");
+                    socketModule.addTag(
+                        $threadIdInput.val(),
+                        $tagInput.val()
+                    );
+                    $("#tagFormModal").modal("hide");
+                    $threadIdInput.val("");
+                    $tagInput.val("");
                 } else askToLogin();
             });
             $("#threads")
@@ -54,9 +108,9 @@ const gInterface = (function () {
                     if (socketModule.isConnected()) {
                         let $currentThread = $(e.target).closest(".thread");
                         let threadId = $currentThread.attr("data-thread-id");
-                        $("input[name='threadId']").attr("value", threadId);
                         let threadQuestion = $currentThread.find(".question").text();
                         let $answerFormModal = $("#answerFormModal");
+                        $answerFormModal.find("input[name='threadId']").attr("value", threadId);
                         $answerFormModal.find(".threadQuestion").text(threadQuestion);
                         $answerFormModal.modal("show");
                     } else askToLogin();
@@ -118,13 +172,35 @@ const gInterface = (function () {
                         socketModule.downVoteThread(threadId);
                     } else askToLogin();
                 })
+                .on("click", ".answerUpVoteBtn", function (e) {
+                    e.preventDefault();
+                    if (socketModule.isConnected()) {
+                        let answerId = $(e.target)
+                            .closest(".answer")
+                            .attr("data-answer-id");
+                        socketModule.upVoteAnswer(answerId);
+                    } else askToLogin();
+                })
+                .on("click", ".answerDownVoteBtn", function (e) {
+                    e.preventDefault();
+                    if (socketModule.isConnected()) {
+                        let answerId = $(e.target)
+                            .closest(".answer")
+                            .attr("data-answer-id");
+                        socketModule.downVoteAnswer(answerId);
+                    } else askToLogin();
+                })
                 .on("click", ".deleteThreadBtn", function (e) {
+                    e.preventDefault();
+                    $(e.target).closest("a").tooltip('dispose');
                     let threadId = $(e.target)
                         .closest(".thread")
                         .attr("data-thread-id");
                     socketModule.deleteThread(threadId);
                 })
                 .on("click", ".deleteAnswerBtn", function (e) {
+                    e.preventDefault();
+                    $(e.target).closest("a").tooltip('dispose');
                     let $answer = $(e.target).closest(".answer");
                     let answerId = $answer.attr("data-answer-id");
                     let threadId = $answer.closest(".thread").attr("data-thread-id");
@@ -136,8 +212,29 @@ const gInterface = (function () {
                         .closest(".answer")
                         .attr("data-answer-id");
                     socketModule.toggleAnswerApproved(answerId);
+                })
+                .on("click", ".addTagBtn", function (e) {
+                    e.preventDefault();
+                    if (socketModule.isConnected()) {
+                        let $currentThread = $(e.target).closest(".thread");
+                        let threadId = $currentThread.attr("data-thread-id");
+                        let threadQuestion = $currentThread.find(".question").text();
+                        let $tagFormModal = $("#tagFormModal");
+                        $tagFormModal.find("input[name='threadId']").attr("value", threadId);
+                        $tagFormModal.find(".threadQuestion").text(threadQuestion);
+                        $tagFormModal.modal("show");
+                    } else askToLogin();
+                })
+                .on('click','img', function(event) {
+                    let $image = $(this).attr('src');
+                    console.log($image);
+                    let $imageModal = $("#imageModal");
+                    $imageModal.find("img").html("");
+                    $imageModal.find("img").attr("src", $image);
+                    $imageModal.modal("show");
                 });
             $("#askbutton").on("click", function (e) {
+                e.preventDefault();
                 if (socketModule.isConnected()) $("#questionFormModal").modal("show");
                 else askToLogin();
             });
@@ -152,8 +249,36 @@ const gInterface = (function () {
                 let $tagInput = $(e.target).find('input[name="tag"]');
                 let tag = $tagInput.val();
                 let newClass = '/newclass/';
-                window.location.href= newClass+tag;
+                window.location.href = newClass + tag;
             });
+            $("#addChoiceBtn").on("click", function (e) {
+                e.preventDefault();
+                let $choice = $(e.target).parent().find("input[name='choice']");
+                $("#pollChoices").append('<a href="#" class="removeSelfOnClick list-group-item list-group-action">' + $choice.val() + '</a>');
+                $choice.val("");
+            });
+            $("#pollCheckBox").on("change", function () {
+                $("#pollSection").toggle();
+            });
+            $('.pasteableTextArea').pastableTextarea()
+                .on('pasteImage', function (ev, data) {
+                    $('.pasteImage').prepend('<img class="img-fluid" src="' + data.dataURL + '"></img>');
+                    let image = data.dataURL;
+                    images.push(image);
+                }).on('pasteImageError', function (ev, data) {
+                alert('Oops: ' + data.message);
+                if (data.url) {
+                    alert('But we got its url anyway:' + data.url)
+                }
+            }).on('pasteText', function (ev, data) {
+                console.log("text: " + data.text);
+            });
+            $('#btn-alias').on('click',function(e){
+                e.preventDefault();
+                if (socketModule.isConnected()) $("#aliasFormModal").modal("show");
+                else askToLogin();
+            });
+
         },
         showError: function (error) {
             let $errorModal = $("#errorModal");
@@ -186,7 +311,10 @@ const gInterface = (function () {
             $('#threads').html('');
         },
         updateThreadVotes: function (threadId, votes) {
-            $("#threads").find(".thread[data-thread-id='" + threadId + "']").find(".votes").text(votes);
+            $("#threads").find(".thread[data-thread-id='" + threadId + "']").find(".threadVotes").text(votes);
+        },
+        updateAnswerVotes: function (answerId, votes) {
+            $("#threads").find(".answer[data-answer-id='" + answerId + "']").find(".answerVotes").text(votes);
         },
         removeThread: function (threadId) {
             $("#threads").find(".thread[data-thread-id='" + threadId + "']").remove();
@@ -197,28 +325,32 @@ const gInterface = (function () {
             $amountAnswers.text($amountAnswers.text() - 1);
             $affectedThread.find(".answer[data-answer-id='" + answerId + "']").remove();
         },
-        setAnswerApproved: function (answerId, threadId) {
-            $("#threads")
-                .find(".thread[data-thread-id='" + threadId + "']")
-                .find(".answer[data-answer-id='" + answerId + "']")
-                .toggleClass("bg-light")
+        setAnswerApproved: function (answerId, threadId, isSolved) {
+            let $affectedThread = $("#threads").find(".thread[data-thread-id='" + threadId + "']");
+            let $solvedSpan = $affectedThread.find(".solvedText");
+            if (isSolved) $solvedSpan.show();
+            else $solvedSpan.hide();
+            $(".answer[data-answer-id='" + answerId + "'] > div:first-child")
                 .toggleClass("bg-success");
         },
-        autoComplete: function (data) {
-            $("#question").atwho({
-                at: "#",
-                data: data
-            });
-        },
         initAutoComplete: function () {
-            $.get("/gettags", function (data) {
-            })
+            $.get("/gettags")
                 .done(function (data) {
-                    gInterface.autoComplete(data);
+                    $("#question").atwho({
+                        at: "#",
+                        data: data
+                    });
                 })
                 .fail(function (error) {
                     console.log(error);
                 });
+        },
+        addTagToThread: function (threadId, tagHTML) {
+            let $tags = $("#threads").find(".thread[data-thread-id='" + threadId + "']").find(".tags");
+            let $addTagBtn = $tags.find(".addTagBtn");
+            $addTagBtn.remove();
+            $tags.append(tagHTML);
+            $tags.append($addTagBtn);
         }
     };
 })();

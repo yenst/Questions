@@ -1,0 +1,7 @@
+mixin user(user)
+    div(class="card border-dark")
+        div(class="card-header")
+            div(class="row")
+                span(class="col-lg-10 col-md-8")=user.alias
+                span(class='col-lg-1 col-md-2 mt-1 '+user.badge)
+                span(class="col-lg-1 col-md-2")=user.credits

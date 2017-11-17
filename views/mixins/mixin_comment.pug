@@ -1,4 +1,9 @@
 mixin comment(commentObject)
-    li(class="comment")
-        i(class="fa fa-li fa-commenting")
-        span!= commentObject.comment
+    li(class="comment bg-light list-group-item comment-text d-flex")
+        div(class="col")
+            span!= commentObject.comment
+        span(class="justify-content-center m-1 row text-secondary" disabled data-toggle="tooltip" data-placement="bottom" title="Current credits from user: "+commentObject.author.credits)
+            i(class=commentObject.author.badge aria-hidden="true")
+        if commentObject.author.isAdmin
+            span(class="justify-content-center m-1 row text-secondary" data-toggle="tooltip" data-placement="bottom" title="Answer by teacher")
+                i(class="fa fa-graduation-cap" aria-hidden="true")

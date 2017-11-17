@@ -12,6 +12,7 @@ const Schema = mongoose.Schema;
 let questionSetter = function (q) {
     if (q) {
         q = q.trim();
+        q = q.charAt(0).toUpperCase() + q.slice(1);
         if (!q.endsWith("?")) q = q + "?";
     }
     return q;
@@ -21,12 +22,15 @@ const ThreadSchema = Schema({
     author: {type: Schema.ObjectId, ref: "User", required: [true, 'Please login to ask a question.']},
     question: {type: String, set: questionSetter, required: [true, "Question can't be empty."]},
     creationDate: {type: Date, default: Date.now},
-    hasApprovedAnswer: {type: Boolean, default: false},
+    isSolved: {type: Boolean, default: false},
     votes: {type: Number, default: 0},
     upVotedUIDs: [{type: Schema.ObjectId, ref: "User"}],
     downVotedUIDs: [{type: Schema.ObjectId, ref: "User"}],
     answers: [{type: Schema.ObjectId, ref: "Answer"}],
-    tags: [{type: String}]
+    tags: [{type: String, lowercase: true}],
+    images: [{type: String}],
+    isPoll: {type: Boolean, default: false},
+    votedUIDs: [{type: Schema.ObjectId, ref: "User"}],
 });
 
 ThreadSchema.pre("remove", function (next) {
