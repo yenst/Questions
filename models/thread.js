@@ -87,4 +87,11 @@ ThreadSchema.methods.downVote = function (userId) {
     });
 };
 
+ThreadSchema.methods.hasVoted = function (userId) {
+    let u = this.votedUIDs.find(function (uid) {
+        return uid == userId;
+    });
+    return (u);
+};
+
 module.exports = mongoose.model('Thread', ThreadSchema);
