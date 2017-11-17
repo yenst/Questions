@@ -1,0 +1,27 @@
+include ../mixins/mixin_tag.pug
+
+
+mixin classThread(thread, isAdmin)
+    div(class="thread card bg-light mb-4 border-dark" data-thread-id=thread._id)
+        div(class="card-header")
+            div(class="row")
+                h6(class="col-sm-10 my-0 card-title")
+                    span(class="solvedText font-weight-bold text-uppercase mr-1 mb-1" style= thread.isSolved ? "display: block": "display: none") [SOLVED]
+                    span(class='question')!= thread.question
+                div(class='col-sm')
+                    small(class="row font-weight-light justify-content-end mx-auto")
+                        | #{thread.creationDate.getHours()}:#{thread.creationDate.getMinutes()}
+                    small(class="row font-weight-light justify-content-end mx-auto")
+                        | #{thread.creationDate.getDate()}/#{thread.creationDate.getMonth()}/#{thread.creationDate.getYear() - 100}
+            div(class="tags row mx-1 mt-md-1")
+                each tag in thread.tags
+                    +tag(tag)
+
+        div(class="card-body")
+            div(class="row text-light mx-sm-2")
+                div(class="col-1")
+                    div(class="row justify-content-center")
+
+                div(class="extraInfo col")
+                    each image in thread.images
+                        img(src=image class='img-fluid rounded img-thumbnail')

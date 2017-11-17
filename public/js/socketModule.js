@@ -19,7 +19,7 @@ const socketModule = (function () {
                 gInterface.addThread(data.threadHTML);
             } else if (data.tags.includes(tag)) {
                 new Notification("Nieuwe vraag: " + tag);
-                gInterface.addThread(data.threadHTML);
+                gInterface.addThread(data.classHTML);
             }
         })
         .on("new_answer_available", function (data) {

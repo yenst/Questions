@@ -195,6 +195,14 @@ const gInterface = (function () {
                         $tagFormModal.find(".threadQuestion").text(threadQuestion);
                         $tagFormModal.modal("show");
                     } else askToLogin();
+                })
+                .on('click','img', function(event) {
+                    let $image = $(this).attr('src');
+                    console.log($image);
+                    let $imageModal = $("#imageModal");
+                    $imageModal.find("img").html("");
+                    $imageModal.find("img").attr("src", $image);
+                    $imageModal.modal("show");
                 });
             $("#askbutton").on("click", function (e) {
                 e.preventDefault();
@@ -227,13 +235,7 @@ const gInterface = (function () {
             }).on('pasteText', function (ev, data){
                 console.log("text: " + data.text);
             });
-            $('img').on('click', function(event) {
-                let $image = $(this).attr('src');
-                console.log($image);
-                let $imageModal = $("#imageModal");
-                $imageModal.find("img").attr("src", $image);
-                $imageModal.modal("show");
-            });
+
 
 
         },

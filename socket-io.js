@@ -142,12 +142,20 @@ const eventHandler = {
                             thread: savedThread,
                             isAdmin: true,
                         }),
+                        classHTML: pug.renderFile("views/partials/classThread.pug",{
+                            thread: savedThread,
+                            isAdmin: true
+                        }),
                         tags: savedThread.tags
                     };
                     let dataForStudents = {
                         threadHTML: pug.renderFile("views/partials/thread.pug", {
                             thread: savedThread,
                             isAdmin: false,
+                        }),
+                        classHTML: pug.renderFile("views/partials/classThread.pug",{
+                            thread: savedThread,
+                            isAdmin: false
                         }),
                         tags: savedThread.tags
                     };
