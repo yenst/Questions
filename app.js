@@ -15,6 +15,7 @@ mongoose.Promise = global.Promise; //Solution for Mongoose Promise is deprecated
 const GoogleStrategy = require('passport-google-oauth2').Strategy;
 const passport = require('passport');
 
+
 /**
  * Load dev dependencies
  * TODO Setup different running modes.
@@ -78,6 +79,8 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+
+
 /**
  * Setup socket.io
  */
@@ -135,7 +138,7 @@ passport.use(new GoogleStrategy({
                 let dataForSession = {
                     uid: user._id,
                     isAdmin: user.isAdmin,
-                    alias: user.alias
+                    alias: user.alias,
                 };
                 done(null, dataForSession);
             });

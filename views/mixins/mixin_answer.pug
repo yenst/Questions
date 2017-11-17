@@ -18,14 +18,7 @@ mixin answer(answerObject, isAdmin)
                     img(src=image class='img-fluid rounded img-thumbnail')
             div(class="col-1 text-center mr-2")
                 span(class="justify-content-center m-2 row text-secondary" disabled data-toggle="tooltip" data-placement="bottom" title="Current credits from user: "+answerObject.author.credits)
-                    if answerObject.author.credits >= 300
-                        i(class="fa fa-trophy badge-gold 2x" aria-hidden="true")
-                    if 300 > answerObject.author.credits && answerObject.author.credits >= 150
-                        i(class="fa fa-trophy badge-silver 2x" aria-hidden="true")
-                    if 150 > answerObject.author.credits && answerObject.author.credits >= 50
-                        i(class="fa fa-trophy badge-bronze 2x" aria-hidden="true")
-                    if 50 > answerObject.author.credits
-                        i(class="fa fa-trophy badge-default 2x" aria-hidden="true")
+                    i(class=answerObject.author.badge aria-hidden="true")
                 if answerObject.author.isAdmin
                     span(class="justify-content-center m-2 row text-secondary" data-toggle="tooltip" data-placement="bottom" title="Answer by teacher")
                         i(class="fa fa-graduation-cap" aria-hidden="true")

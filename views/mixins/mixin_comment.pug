@@ -3,14 +3,7 @@ mixin comment(commentObject)
         div(class="col")
             span!= commentObject.comment
         span(class="justify-content-center m-1 row text-secondary" disabled data-toggle="tooltip" data-placement="bottom" title="Current credits from user: "+commentObject.author.credits)
-                if commentObject.author.credits >= 300
-                    i(class="fa fa-trophy badge-gold 2x" aria-hidden="true")
-                if 300 > commentObject.author.credits && commentObject.author.credits >= 150
-                    i(class="fa fa-trophy badge-silver 2x" aria-hidden="true")
-                if 150 > commentObject.author.credits && commentObject.author.credits >= 50
-                    i(class="fa fa-trophy badge-bronze 2x" aria-hidden="true")
-                if 50 > commentObject.author.credits
-                    i(class="fa fa-trophy badge-default 2x" aria-hidden="true")
+            i(class=commentObject.author.badge aria-hidden="true")
         if commentObject.author.isAdmin
             span(class="justify-content-center m-1 row text-secondary" data-toggle="tooltip" data-placement="bottom" title="Answer by teacher")
                 i(class="fa fa-graduation-cap" aria-hidden="true")

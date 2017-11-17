@@ -1,4 +1,6 @@
 include ./mixins/mixin_header.pug
+include ./mixins/mixin_user.pug
+
 
 doctype html
 html(lang="en")
@@ -17,6 +19,12 @@ html(lang="en")
     body(style="margin-top: 70px")
         //- Loads the header from another file
         +header(user)
+    
+    h1(class="text-center") Leaderboards
+    div(class="container my-4" id="users")
+        each user in users
+            +user(user)
+            
 
     
     block footer
