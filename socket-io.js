@@ -1,4 +1,5 @@
 const pug = require("pug");
+const path = require("path");
 const cookieParser = require("cookie-parser");
 const passportSocketIo = require("passport.socketio");
 const sanitizer = require("sanitizer");
@@ -143,12 +144,20 @@ const eventHandler = {
                                 thread: populatedThread,
                                 isAdmin: true,
                             }),
+                            classHTML: pug.renderFile("views/partials/classThread.pug",{
+                                thread: populatedThread,
+                                isAdmin: true
+                            }),
                             tags: populatedThread.tags
                         };
                         let dataForStudents = {
                             threadHTML: pug.renderFile("views/partials/thread.pug", {
                                 thread: populatedThread,
                                 isAdmin: false,
+                            }),
+                            classHTML: pug.renderFile("views/partials/classThread.pug",{
+                                thread: populatedThread,
+                                isAdmin: false
                             }),
                             tags: populatedThread.tags
                         };
@@ -461,8 +470,10 @@ const serverSocketInitiator = function (server, sessionStore) {
     );
 
     /**
+
      * Namespace /questions-live
      */
+
     const questions_live = io
         .of("/questions-live")
         .on("connection", function (clientSocket) {
