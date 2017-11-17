@@ -1,15 +1,12 @@
 const pug = require("pug");
-const path = require("path");
 const cookieParser = require("cookie-parser");
 const passportSocketIo = require("passport.socketio");
 const sanitizer = require("sanitizer");
 const mongoose = require("mongoose");
-const async = require("async");
 
 const Thread = require("./models/thread");
 const Answer = require("./models/answer");
 const Comment = require("./models/comment");
-const Tag = require("./models/tag");
 const User = require("./models/user");
 
 /**
@@ -141,7 +138,6 @@ const eventHandler = {
             let sendResponse = function () {
                 thread.save().then(savedThread => {
                     savedThread.populate("answers").execPopulate().then(populatedThread => {
-                        console.log(populatedThread);
                         let dataForAdmins = {
                             threadHTML: pug.renderFile("views/partials/thread.pug", {
                                 thread: populatedThread,
@@ -312,8 +308,8 @@ const eventHandler = {
                         else {
                             user.credits += 5;
                         }
-                        user.save((err, savedUser) => {
-                            console.log(savedUser);
+                        user.save((err) => {
+                            if(err) return console.error(err)
                         })
                     })
                 });
@@ -465,10 +461,8 @@ const serverSocketInitiator = function (server, sessionStore) {
     );
 
     /**
-
      * Namespace /questions-live
      */
-
     const questions_live = io
         .of("/questions-live")
         .on("connection", function (clientSocket) {
