@@ -68,7 +68,7 @@ const gInterface = (function () {
                 },
             function(data,status){})
             .done(function(response){
-                window.location.href = response.redirect;
+                window.location.reload();
             })
             });
             $("#comment_form").on("submit", function (e) {

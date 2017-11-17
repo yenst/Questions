@@ -84,7 +84,7 @@ router
             req.user.alias=req.body.new_name;
             foundUser.alias = req.body.new_name;
             foundUser.save();
-            res.send({redirect:'/logout'});            
+            res.send('relog for username change to take effect');
         });
     });
 

@@ -136,7 +136,8 @@ passport.use(new GoogleStrategy({
                     uid: user._id,
                     isAdmin: user.isAdmin,
                     alias: user.alias,
-                    credits: user.credits
+                    credits: user.credits,
+                    badge: user.badge
                 };
                 done(null, dataForSession);
             });

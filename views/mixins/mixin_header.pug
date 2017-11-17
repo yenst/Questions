@@ -26,6 +26,7 @@ mixin header(user)
                                 | (Admin mode)
                     if user
                         li(id="credits-header" class="nav-item nav-link")
+                                i(class=user.badge aria-hidden="true")
                         li(id="alias-header" class="nav-item")
                                 a(id="btn-alias" class="nav-link text-light" href="#")=user.alias
                 if user
