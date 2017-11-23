@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 let AnswerSchema = Schema({
-    answer: {type: String, required: true},
+    answer: {type: String, trim: true, required: [true, "Answer can't be empty."]},
     author: {type: Schema.ObjectId, ref: "User", required: true},
     onThread: {type: mongoose.Schema.ObjectId, ref: "Thread", required: true},
     votes: {type: Number, default: 0},

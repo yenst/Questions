@@ -130,7 +130,8 @@ passport.use(new GoogleStrategy({
                 email: profile.email,
                 domain: profile._json.domain,
                 isAdmin: (profile._json.domain === "student.howest.be"),
-                googleId: profile.id
+                googleId: profile.id,
+                alias: profile.name.givenName
             }, function (err, user) {
                 let dataForSession = {
                     uid: user._id,

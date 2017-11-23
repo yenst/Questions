@@ -213,6 +213,7 @@ const eventHandler = {
                         images: data.images
                     });
                     answer.save((err, savedAnswer) => {
+                        if (err) return clientSocket.emit("error_occurred", err.message);
                         Answer.findOne({_id: savedAnswer._id}).populate('author').then(function (populatedAnswer) {
                             if (err) clientSocket.emit("error_occurred", err);
                             else {
@@ -275,7 +276,7 @@ const eventHandler = {
                         if (err)
                             return clientSocket.emit(
                                 "error_occurred",
-                                "Failed to save comment."
+                                err.message
                             );
                         returnedAnswer.comments.push(savedComment._id);
                         returnedAnswer.save((err, savedAnswer) => {

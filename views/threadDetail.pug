@@ -1,0 +1,17 @@
+extends layout
+include ./mixins/mixin_thread
+
+//-
+    Thread en user
+
+block content
+    div(class="container")
+        if user
+            +thread(thread, user.isAdmin)
+        else
+            +thread(thread, false)
+
+block scripts
+    script(src="/js/lib/jquery.caret.min.js")
+    script(src="/js/lib/jquery.atwho.min.js")
+    script(src="/js/main.js")

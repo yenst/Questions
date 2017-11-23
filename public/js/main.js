@@ -37,6 +37,7 @@ const gInterface = (function () {
                         $questionInput.val("");
                         $pollChoiceList.html("");
                         $(this).find("input[name='choice']").val("");
+                        self.initAutoComplete();
                     } else askToLogin();
                 })
                 .on("click", ".removeSelfOnClick", function (e) {
@@ -100,6 +101,7 @@ const gInterface = (function () {
                     $("#tagFormModal").modal("hide");
                     $threadIdInput.val("");
                     $tagInput.val("");
+                    self.initAutoComplete();
                 } else askToLogin();
             });
             $("#threads")
@@ -338,6 +340,9 @@ const gInterface = (function () {
                 .done(function (data) {
                     $("#question").atwho({
                         at: "#",
+                        data: data
+                    });
+                    $("form#open_class").find("input[name='tag']").atwho({
                         data: data
                     });
                 })

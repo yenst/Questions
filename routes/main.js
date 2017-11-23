@@ -51,7 +51,15 @@ router
     
             });
         })
-       
+    })
+    .get("/thread/:id", function (req, res, next) {
+        Thread.findOne({_id: req.params.id}).then(thread => {
+            res.render("threadDetail",{
+                title:'Thread',
+                user: req.user,
+                thread: thread
+            });
+        }).catch(err => next(err));
     })
 
     /**

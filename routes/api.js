@@ -6,7 +6,7 @@ const pug = require("pug");
 
 const Thread = require("./../models/thread");
 
-const functions = {
+const routeHandlers = {
     getAllThreads: function (req, res, next) {
         Thread.find(function (err, threads) {
             if (err) return next(err); //Error wil get caught by error handler middleware
@@ -33,13 +33,20 @@ const functions = {
     }
 };
 
-router.get('/', function (req, res) {
+router.get('/', function (req, res, next) {
     res.json({message: 'API Initialized!'});
 });
 
+router.get("/thread/:id", function (req, res) {
+    Thread.findOne({_id: req.params.id}).then(thread => {
+        res.json(thread);
+    }).catch(err => {
+        next(err);
+    });
+});
 
 router.route('/threads')
-    .post(functions.postNewThread)
-    .get(functions.getAllThreads);
+    .post(routeHandlers.postNewThread)
+    .get(routeHandlers.getAllThreads);
 
 module.exports = router;

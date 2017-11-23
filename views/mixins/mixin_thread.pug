@@ -9,7 +9,7 @@ mixin thread(thread, isAdmin)
                     span(class="solvedText font-weight-bold text-uppercase mr-1 mb-1" style= thread.isSolved ? "display: block": "display: none") [SOLVED]
                     if thread.isPoll
                         span(class="font-weight-bold text-uppercase mr-1 mb-1") [POLL]
-                    span(class='question')!= thread.question
+                    a(class='question' href="thread/" + thread._id)!= thread.question
                 div(class='col-sm')
                     small(class="row font-weight-light justify-content-end mx-auto")
                         | #{thread.creationDate.getHours()}:#{thread.creationDate.getMinutes()}
