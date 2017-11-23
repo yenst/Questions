@@ -113,6 +113,7 @@ fabric.properties
 
 # env
 .env
+.env.*
 
 
 
