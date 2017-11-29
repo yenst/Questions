@@ -17,7 +17,8 @@ const UserSchema = Schema({
     approvedAnswers: {type: Number, default: 0},
     credits:{type:Number, default: 0},
     alias:{type:String,default:"username"},
-    badge:{type:String, default:'fa fa-trophy badge-default 2x'}
+    badge:{type:String, default:'fa fa-trophy badge-default 2x'},
+    subscriptions:[{type:String}]
 });
 UserSchema.plugin(findOneOrCreate);
 
@@ -32,6 +33,20 @@ UserSchema.methods.setCredits = function(new_credits){
     this.credits = new_credits;
     this.updateBadge();
     this.save();
+}
+
+UserSchema.methods.newSub = function(sub){
+    if(!this.subscriptions.includes(sub)){
+this.subscriptions.push(sub);
+this.save();
+    }
+    
+}
+
+UserSchema.methods.removeSub = function(sub){
+    this.subscriptions.splice(this.subscriptions.indexOf(sub),1);
+    this.save();
+     
 }
 
 module.exports = mongoose.model('User', UserSchema);
