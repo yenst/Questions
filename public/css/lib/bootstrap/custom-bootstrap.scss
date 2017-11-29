@@ -8,4 +8,8 @@ $theme-colors: (
         "success": rgb(147, 255, 156)
 );
 
+code {
+  font-size: 9px;
+}
+
 @import "./source_scss/bootstrap.scss";

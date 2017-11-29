@@ -2,8 +2,8 @@ form(class="form-inline my-2 justify-content-center" id="question_form")
     div(class="container")
         div(class="row")
             label(class="sr-only" for="title") Ask a question
-                input(type="text" id="title" name='title' class="form-control mr-sm-2 w-75 formText pasteableTextArea" placeholder="Title")
-                textarea(id="question" name='question' class="form-control mr-sm-2 w-75 formText pasteableTextArea" placeholder="Ask a question")
+            input(type="text" id="title" name='title' class="form-control mr-sm-2 w-75 formText pasteableTextArea" placeholder="Title")
+            textarea(id="question" name='question' class="form-control mr-sm-2 w-75 formText pasteableTextArea" placeholder="Ask a question")
             div(class="pasteImage row")
         if user && user.isAdmin
             div(class="container m-2")

@@ -53,7 +53,16 @@ router
         })
     })
     .get("/thread/:id", function (req, res, next) {
-        Thread.findOne({_id: req.params.id}).then(thread => {
+        Thread.findOne({_id: req.params.id}).populate({
+            path: "answers",
+            populate: {
+                path: "comments author",
+                populate: {
+                    path: "author",
+                },
+            }
+        }).then(thread => {
+            console.log(thread);
             res.render("threadDetail",{
                 title:'Thread',
                 user: req.user,
