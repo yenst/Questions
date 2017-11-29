@@ -13,6 +13,7 @@
     "mongoose": "^4.12.6",
     "mongoose-find-one-or-create": "^0.2.0",
     "morgan": "^1.9.0",
+    "nodemailer": "^4.4.0",
     "passport": "^0.4.0",
     "passport-google-oauth2": "^0.1.6",
     "passport.socketio": "^3.7.0",
