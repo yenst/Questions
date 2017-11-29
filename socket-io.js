@@ -3,6 +3,7 @@ const path = require("path");
 const cookieParser = require("cookie-parser");
 const passportSocketIo = require("passport.socketio");
 const sanitizer = require("sanitizer");
+const highlight = require("highlight.js");
 
 const Thread = require("./models/thread");
 const Answer = require("./models/answer");
@@ -29,17 +30,24 @@ const onAuthorizeFail = function(data, message, error, accept) {
 /**
  * Helper functions
  */
-const processQuestion = function(q) {
+const processTitle = function(t) {
   let object = {
-    question: "",
+    title: "",
     tags: []
   };
-  let splitQuestion = q.split("#");
-  object.question = sanitizer.escape(splitQuestion[0]);
+  let splitQuestion = t.split("#");
+  object.title = sanitizer.escape(splitQuestion[0]);
+
   for (let i = 1; i < splitQuestion.length; i++) {
     object.tags.push(sanitizer.escape(splitQuestion[i].trim()));
   }
   return object;
+};
+
+const processQuestion = function(q) {
+    question = q.replace("''","<pre><code>")
+     .replace("'''","</pre></code>");
+    return question;
 };
 
 /**
@@ -124,14 +132,16 @@ const eventHandler = {
             });
         } else clientSocket.emit("error_occurred", "Please login to vote");
     },
-    new_question: function (clientSocket, question, images) {
+    new_question: function (clientSocket, title, question, images) {
         //TODO Deze check wordt al uitgevoerd in "model/thread.js"
         if (clientSocket.request.user) {
-            let questionObject = processQuestion(question);
+            let titleObject = processTitle(title);
+            let processedQuestion = processQuestion(question);
             let thread = new Thread({
-                question: questionObject.question,
+                title: titleObject.title,
+                question: processedQuestion,
                 author: sanitizer.escape(clientSocket.request.user.uid),
-                tags: questionObject.tags,
+                tags: titleObject.tags,
                 images: images
             });
             thread.save((err, savedThread) => {
@@ -183,6 +193,8 @@ const eventHandler = {
                     onThread: thread._id,
                     images: data.images
                 });
+                answer.answer = answer.answer.replace("''","<pre><code>")
+                    .replace("'''","</pre></code>");
                 answer.save((err, savedAnswer) => {
                     Answer.findOne({_id:savedAnswer._id}).populate('author').then(function(populatedAnswer){
                         if (err) clientSocket.emit("error_occurred", err);
@@ -452,8 +464,8 @@ const serverSocketInitiator = function(server, sessionStore) {
             }
             clientSocket.emit("connection_confirmation", "connected to socket in room 'questions-live'");
             clientSocket
-                .on("new_question", (question,images) => {
-                    eventHandler.new_question(clientSocket, question,images);
+                .on("new_question", (title,question,images) => {
+                    eventHandler.new_question(clientSocket,title, question,images);
                 })
                 .on("new_answer", data => {
                     eventHandler.new_answer(clientSocket, data);

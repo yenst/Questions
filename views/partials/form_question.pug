@@ -1,5 +1,7 @@
 form(class="form-inline my-2 justify-content-center" id="question_form")
     label(class="sr-only" for="question") Ask a question
-    textarea(id="question" name='question' class="form-control mr-sm-2 w-75 formText pasteableTextArea" placeholder="Ask a question")
+    div(class="form-group ")
+        input(type="text" id="title" name='title' class="form-control mr-sm-2 w-75 formText pasteableTextArea" placeholder="Title")
+        textarea(id="question" name='question' class="form-control mr-sm-2 w-75 formText pasteableTextArea" placeholder="Ask a question")
     button(class="btn btn-secondary" type="submit") Ask
     div(class="pasteImage row")

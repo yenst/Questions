@@ -16,14 +16,19 @@ const gInterface = (function () {
             $("#question_form").on("submit", function (e) {
                 e.preventDefault();
                 if (socketModule.isConnected()) {
+                    let $titleInput = $(e.target).find("#title");
                     let $questionInput = $(e.target).find("#question");
+                    let $title = $titleInput.val();
                     let $question = $questionInput.val();
-                    console.log($questionInput.val());
                     if($question === ""){
                         $question=" ";
                     }
-                    socketModule.sendQuestion($question,images);
+                    if($title === ""){
+                        $title=" ";
+                    }
+                    socketModule.sendQuestion($title, $question,images);
                     $("#questionFormModal").modal("hide");
+                    $titleInput.val("");
                     $questionInput.val("");
                 } else askToLogin();
             });

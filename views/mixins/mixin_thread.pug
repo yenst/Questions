@@ -7,7 +7,7 @@ mixin thread(thread, isAdmin)
             div(class="row")
                 h6(class="col-sm-10 my-0 card-title")
                     span(class="solvedText font-weight-bold text-uppercase mr-1 mb-1" style= thread.isSolved ? "display: block": "display: none") [SOLVED]
-                    span(class='question')!= thread.question
+                    span(class='question')!= thread.title
                 div(class='col-sm')
                     small(class="row font-weight-light justify-content-end mx-auto")
                         | #{thread.creationDate.getHours()}:#{thread.creationDate.getMinutes()}
@@ -31,6 +31,7 @@ mixin thread(thread, isAdmin)
                         i(class="fa fa-2x fa-angle-down")
                         span(class="sr-only") up vote
                 div(class="extraInfo col")
+                    span(class='question')!= thread.question
                     each image in thread.images
                         img(src=image class='img-fluid rounded img-thumbnail')
 
