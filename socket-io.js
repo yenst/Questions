@@ -10,6 +10,7 @@ const Thread = require("./models/thread");
 const Answer = require("./models/answer");
 const Comment = require("./models/comment");
 const User = require("./models/user");
+const Spammer = require('./mail');
 
 const GLOBAL = require("./global-vars");
 
@@ -140,6 +141,7 @@ const eventHandler = {
                 tags: titleObject.tags,
                 images: images
             });
+            Spammer.sendMail(thread.tags);
             let sendResponse = function () {
                 thread.save().then(savedThread => {
                     savedThread.populate("answers").execPopulate().then(populatedThread => {

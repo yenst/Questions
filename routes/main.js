@@ -3,6 +3,7 @@
 const router = require("express").Router();
 const Thread = require("../models/thread");
 const User = require("../models/user");
+const Spammer = require("../mail");
 
 /**
  * TODO implement pagination
@@ -69,6 +70,26 @@ router
                 thread: thread
             });
         }).catch(err => next(err));
+    })
+    .get('/subscriptions',function(req,res){
+        User.findById(req.user.uid).then(user=>{
+            res.render("subscriptions",{
+                title:req.user.alias+ " - Subscriptions",
+                user:user})
+        })
+    })
+    .post('/subscribe',function(req,res){
+        User.findById(req.user.uid).then(user=>{
+            user.newSub(req.body.sub);
+            res.redirect('/subscriptions');
+            Spammer.transporter.sendMail();
+        })
+    })
+    .get('/removesub/:sub',function(req,res){
+        User.findById(req.user.uid).then(user=>{
+            user.removeSub(req.params.sub);
+            res.redirect('/subscriptions');
+        })
     })
 
     /**
