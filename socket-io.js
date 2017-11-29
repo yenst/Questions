@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 const passportSocketIo = require("passport.socketio");
 const sanitizer = require("sanitizer");
 const mongoose = require("mongoose");
+const highlight = require("highlight.js");
 
 const Thread = require("./models/thread");
 const Answer = require("./models/answer");
@@ -31,17 +32,23 @@ const onAuthorizeFail = function (data, message, error, accept) {
 /**
  * Helper functions
  */
-const processQuestion = function (q) {
-    let object = {
-        question: "",
-        tags: []
-    };
-    let splitQuestion = q.split("#");
-    object.question = sanitizer.escape(splitQuestion[0]);
-    for (let i = 1; i < splitQuestion.length; i++) {
-        object.tags.push(sanitizer.escape(splitQuestion[i].trim()));
-    }
-    return object;
+const processTitle = function(t) {
+  let object = {
+    title: "",
+    tags: []
+  };
+  let splitQuestion = t.split("#");
+  object.title = sanitizer.escape(splitQuestion[0]);
+
+  for (let i = 1; i < splitQuestion.length; i++) {
+    object.tags.push(sanitizer.escape(splitQuestion[i].trim()));
+  }
+  return object;
+};
+const processQuestion = function(q) {
+    question = q.replace("''","<pre><code>")
+     .replace("'''","</pre></code>");
+    return question;
 };
 
 /**
@@ -120,17 +127,18 @@ const eventHandler = {
             });
         } else clientSocket.emit("error_occurred", "Please login to vote");
     },
-    new_question: function (clientSocket, question, images, choices) {
+    new_question: function (clientSocket, title, question, images, choices) {
         //TODO Deze check wordt al uitgevoerd in "model/thread.js"
         if (clientSocket.request.user) {
             let author = sanitizer.escape(clientSocket.request.user.uid);
-            let questionObject = processQuestion(question);
+            let titleObject = processTitle(title);
+            let processedQuestion = processQuestion(question);
             let thread = new Thread({
-                _id: new mongoose.Types.ObjectId(),
-                question: questionObject.question,
+                title: titleObject.title,
+                question: processedQuestion,
                 author: author,
-                tags: questionObject.tags,
-                images: images,
+                tags: titleObject.tags,
+                images: images
             });
             let sendResponse = function () {
                 thread.save().then(savedThread => {
@@ -212,13 +220,15 @@ const eventHandler = {
                         onThread: thread._id,
                         images: data.images
                     });
+                    answer.answer = answer.answer.replace("''","<pre><code>")
+                        .replace("'''","</pre></code>");
                     answer.save((err, savedAnswer) => {
-                        if (err) return clientSocket.emit("error_occurred", err.message);
-                        Answer.findOne({_id: savedAnswer._id}).populate('author').then(function (populatedAnswer) {
-                            if (err) clientSocket.emit("error_occurred", err);
-                            else {
-                                thread.answers.push(populatedAnswer._id);
-                                thread.save(err => {
+                                    if (err) return clientSocket.emit("error_occurred", err.message);
+                                    Answer.findOne({_id: savedAnswer._id}).populate('author').then(function (populatedAnswer) {
+                                        if (err) clientSocket.emit("error_occurred", err);
+                                        else {
+                                            thread.answers.push(populatedAnswer._id);
+                                            thread.save(err => {
                                     if (err) return console.error(err);
 
                                     let dataForAdmins = {
@@ -523,7 +533,7 @@ const serverSocketInitiator = function (server, sessionStore) {
             clientSocket.emit("connection_confirmation", "connected to socket in room 'questions-live'");
             clientSocket
                 .on("new_question", (data) => {
-                    eventHandler.new_question(clientSocket, data.question, data.images, data.choices);
+                    eventHandler.new_question(clientSocket, data.title, data.question, data.images, data.choices);
                 })
                 .on("new_answer", data => {
                     eventHandler.new_answer(clientSocket, data);
@@ -576,11 +586,3 @@ const serverSocketInitiator = function (server, sessionStore) {
 };
 
 module.exports = serverSocketInitiator;
-
-
-User.find({}).then(function (users) {
-    users.forEach(function (user) {
-        user.updateBadge();
-        user.save();
-    });
-});

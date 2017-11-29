@@ -9,7 +9,7 @@ const Schema = mongoose.Schema;
  * trim:' word ' => 'word'
  * Checks if empty because question is required
  */
-let questionSetter = function (q) {
+let titleSetter = function (q) {
     if (q) {
         q = q.trim();
         q = q.charAt(0).toUpperCase() + q.slice(1);
@@ -20,7 +20,8 @@ let questionSetter = function (q) {
 
 const ThreadSchema = Schema({
     author: {type: Schema.ObjectId, ref: "User", required: [true, 'Please login to ask a question.']},
-    question: {type: String, set: questionSetter, required: [true, "Question can't be empty."]},
+    question: {type: String, required: [true, "Question can't be empty."]},
+    title: {type: String, set: titleSetter, required: [true, "Title can't be empty."]},
     creationDate: {type: Date, default: Date.now},
     isSolved: {type: Boolean, default: false},
     votes: {type: Number, default: 0},

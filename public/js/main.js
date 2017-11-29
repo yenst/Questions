@@ -23,8 +23,10 @@ const gInterface = (function () {
                 .on("submit", function (e) {
                     e.preventDefault();
                     isAuthenticated().then(() => {
+                        let $titleInput = $(e.target).find("#title");
                         let $questionInput = $(e.target).find("#question");
                         let $pollChoiceList = $("#pollChoices");
+                        let title = $titleInput.val();
                         let question = $questionInput.val();
                         if ($(e.target).find("#pollCheckBox").is(":checked")) {
                             let choices = [];
@@ -34,13 +36,14 @@ const gInterface = (function () {
                             if (choices.length < 2) {
                                 gInterface.showError("Need minimum 2 choices to create a poll.");
                             } else {
-                                socketModule.sendQuestion(question, images, choices);
+                                socketModule.sendQuestion(title, question, images, choices);
                             }
                         } else {
-                            socketModule.sendQuestion(question, images);
+                            socketModule.sendQuestion(title, question, images);
                         }
                         $("#questionFormModal").modal("hide");
                         $questionInput.val("");
+                        $titleInput.val("");
                         $pollChoiceList.html("");
                         $(this).find("input[name='choice']").val("");
                         self.initAutoComplete();
