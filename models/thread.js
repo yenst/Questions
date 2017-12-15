@@ -13,14 +13,13 @@ let titleSetter = function (q) {
     if (q) {
         q = q.trim();
         q = q.charAt(0).toUpperCase() + q.slice(1);
-        if (!q.endsWith("?")) q = q + "?";
     }
     return q;
 };
 
 const ThreadSchema = Schema({
     author: {type: Schema.ObjectId, ref: "User", required: [true, 'Please login to ask a question.']},
-    question: {type: String, required: [true, "Question can't be empty."]},
+    question: {type: String},
     title: {type: String, set: titleSetter, required: [true, "Title can't be empty."]},
     creationDate: {type: Date, default: Date.now},
     isSolved: {type: Boolean, default: false},

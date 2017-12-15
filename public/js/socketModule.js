@@ -18,7 +18,7 @@ const socketModule = (function () {
             if (tag === null) {
                 gInterface.addThread(data.threadHTML);
             } else if (data.tags.includes(tag)) {
-                new Notification("Nieuwe vraag: " + tag);
+                new Notification("New " + tag + " question");
                 gInterface.addThread(data.classHTML);
             }
         })

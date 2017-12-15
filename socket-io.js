@@ -46,11 +46,6 @@ const processTitle = function(t) {
   }
   return object;
 };
-const processQuestion = function(q) {
-    question = q.replace("''","<pre><code>")
-     .replace("'''","</pre></code>");
-    return question;
-};
 
 /**
  * Socket.io event handlers
@@ -133,10 +128,10 @@ const eventHandler = {
         if (clientSocket.request.user) {
             let author = sanitizer.escape(clientSocket.request.user.uid);
             let titleObject = processTitle(title);
-            let processedQuestion = processQuestion(question);
+            let processedQuestion = sanitizer.escape(question);
             let thread = new Thread({
                 title: titleObject.title,
-                question: processedQuestion,
+                question: processedQuestion.replace("''","<pre><code>").replace("'''","</pre></code>"),
                 author: author,
                 tags: titleObject.tags,
                 images: images
@@ -222,8 +217,7 @@ const eventHandler = {
                         onThread: thread._id,
                         images: data.images
                     });
-                    answer.answer = answer.answer.replace("''","<pre><code>")
-                        .replace("'''","</pre></code>");
+                    answer.answer = answer.answer.replace("''","<pre><code>").replace("'''","</pre></code>");
                     answer.save((err, savedAnswer) => {
                                     if (err) return clientSocket.emit("error_occurred", err.message);
                                     Answer.findOne({_id: savedAnswer._id}).populate('author').then(function (populatedAnswer) {

@@ -1,9 +1,13 @@
 form(class="form-inline my-2 justify-content-center" id="question_form")
     div(class="container")
         div(class="row")
+            small(class="form-text text-muted") Add tags at the end of your title, example:
+            small(class="form-text text-muted") How do Javascript closures work? #javascript #closures
             label(class="sr-only" for="title") Ask a question
-            input(type="text" id="title" name='title' class="form-control mr-sm-2 w-75 formText pasteableTextArea" placeholder="Title")
-            textarea(id="question" name='question' class="form-control mr-sm-2 w-75 formText pasteableTextArea" placeholder="Ask a question")
+            input(type="text" id="title" name='title' class="form-control my-2 w-100 formText pasteableTextArea" placeholder="Title")
+            small(class="form-text text-muted") Paste code and images into underlying input field
+            small(class="form-text text-muted") Surround code with single quotes: ''&lt;div&gt;I'm a container!&lt;/div&gt;'''
+            textarea(id="question" name='question' class="form-control my-2 w-100 formText pasteableTextArea" placeholder="Your question")
             div(class="pasteImage row")
         if user && user.isAdmin
             div(class="container m-2")
@@ -16,8 +20,8 @@ form(class="form-inline my-2 justify-content-center" id="question_form")
                         small(class="form-text text-muted") Needs minimum 2 choices - Click a choice to remove it
                         label(class="sr-only" for="choice") Add a choice
                         input(class="form-control w-75" type="text" name="choice" id="choice" aria-describedby="choiceHelp" placeholder="Choice")
-                        a(id="addChoiceBtn" class="btn btn-secondary ml-1" href="#") +
+                        a(id="addChoiceBtn" class="btn btn-primary text-light ml-1" href="#")
+                            i(class="fa fa-plus-circle")
                     ul(id="pollChoices" class="row list-group mt-2 w-100")
-
         div(class="row mt-2 justify-content-center")
-            button(class="btn btn-secondary" type="submit") Submit
+            button(class="btn btn-primary text-light" type="submit") Submit

@@ -1,7 +1,15 @@
 extends ./layouts/layout
+include ./mixins/mixin_thread.pug
 
 block content
+    div(class="text-center my-3")
+        button(class="btn btn-primary text-light mx-auto" id="askbutton") Ask new #{tag} question
     div(class="container my-4" id="threads")
+        each thread in threads
+            if user
+                +thread(thread, user.isAdmin)
+            else
+                +thread(thread, false)
 
 block scripts
     script(src="/socket.io/socket.io.js")

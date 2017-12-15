@@ -53,11 +53,15 @@ const gInterface = (function () {
                     e.preventDefault();
                     $(e.target).remove();
                 });
-            $('.modal').on('hidden.bs.modal', function (e) {
+            $('.modal')
+                .on('hidden.bs.modal', function (e) {
                 $('.formText').val("");
                 $('.pasteImage').html("");
                 images = [];
-            });
+            })
+                .on("shown.bs.modal", function (e) {
+                    $(this).find("input")[0].focus();
+                });
             $("#answer_form").on("submit", function (e) {
                 e.preventDefault();
                 isAuthenticated().then(() => {
@@ -66,7 +70,7 @@ const gInterface = (function () {
                     socketModule.sendAnswer($threadIdInput.val(), $answerInput.val(), images);
                     $("#answerFormModal").modal("hide");
                     let $answers = $("#threads").find(".thread[data-thread-id='" + $threadIdInput.val() + "']").find(".answers");
-                    if ( !$answers.is(":visible") ) $answers.toggle();
+                    if (!$answers.is(":visible")) $answers.toggle();
                     $answerInput.val("");
                     $threadIdInput.val("");
                 });
@@ -249,21 +253,15 @@ const gInterface = (function () {
             $("#askbutton").on("click", function (e) {
                 e.preventDefault();
                 isAuthenticated().then(() => {
-                    $("#questionFormModal").modal("show");
+                    let $questionFormModal = $("#questionFormModal");
+                    let $input = $questionFormModal.find("input[name='title']");
+                    if(tag) $input.val("#" + tag);
+                    $questionFormModal.modal("show");
                 });
             });
             $("#search_threads_on_tag_form").on("submit", function (e) {
                 e.preventDefault();
-                let $tagInput = $(e.target).find('input[name="tag"]');
-                socketModule.findThreadsWithTag($tagInput.val());
-                $tagInput.val("");
-            });
-            $('#open_class').on('submit', function (e) {
-                e.preventDefault();
-                let $tagInput = $(e.target).find('input[name="tag"]');
-                let tag = $tagInput.val();
-                let newClass = '/newclass/';
-                window.location.href = newClass + tag;
+                window.location.href = "/tag/" + $(e.target).find('input[name="tag"]').val();
             });
             $("#addChoiceBtn").on("click", function (e) {
                 e.preventDefault();

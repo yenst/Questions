@@ -1,6 +1,8 @@
-form(class="form-inline my-2 d-flex justify-content-center" id="answer_form")
+form(class="form-inline my-2" id="answer_form")
     label(class="sr-only" for="answer") Answer question
-    textarea(id="answer" name='answer' class="form-control my-2 mr-sm-2 w-75 formText pasteableTextArea" placeholder="Your answer" rows="3")
+    small(class="form-text text-muted") Paste code and images into underlying input field
+    small(class="form-text text-muted") Surround code with single quotes: ''&lt;div&gt;I'm a container!&lt;/div&gt;'''
+    textarea(id="answer" name='answer' class="form-control my-2 w-100 formText pasteableTextArea" placeholder="Your answer" rows="3")
     input(type="hidden" name="threadId")
     button(class="btn btn-primary text-light" type="submit") Submit
     div(class="pasteImage row")

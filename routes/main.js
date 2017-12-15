@@ -27,7 +27,7 @@ router
             }
         }).sort("-creationDate").then(threads => {
             res.render("index", {
-                title: "Home - Questions",
+                title: "Home",
                 user: req.user,
                 threads: threads,
             });
@@ -98,10 +98,27 @@ router
         });
 
     })
-    .get('/newClass/:tag', function (req, res) {
-        res.render("class", {
-            title: "Class " + req.params.tag,
-            user: req.user
+    .get('/tag/:tag', function (req, res) {
+        Thread.find({ tags: req.params.tag }).populate({
+            path: "answers",
+            populate: {
+                path: "comments author",
+                populate: {
+                    path: "author",
+                },
+            }
+        }).sort("-creationDate").then(threads => {
+            res.render("class", {
+                title: "Tag " + req.params.tag,
+                tag: req.params.tag,
+                user: req.user,
+                threads: threads,
+            });
+        }).catch(err => {
+            res.render('error', {
+                title: err,
+                errorMsg: "Unable to load threads."
+            })
         });
     })
     .get('/getcredits', function (req, res) {
