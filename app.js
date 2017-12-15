@@ -125,12 +125,14 @@ passport.use(new GoogleStrategy({
         passReqToCallback: true
     }, function (request, accessToken, refreshToken, profile, done) {
         if (profile._json.domain && profile._json.domain.includes("howest.be")) {
+            console.log(profile);
             User.findOneOrCreate({email: profile.email}, {
                 displayName: profile.displayName,
                 email: profile.email,
                 domain: profile._json.domain,
                 isAdmin: (profile._json.domain === "student.howest.be"),
-                googleId: profile.id
+                googleId: profile.id,
+                alias: profile.name.givenName
             }, function (err, user) {
                 let dataForSession = {
                     uid: user._id,
