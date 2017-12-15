@@ -290,7 +290,6 @@ const gInterface = (function () {
                 if (socketModule.isConnected()) $("#aliasFormModal").modal("show");
                 else askToLogin();
             });
-
         },
         showError: function (error) {
             let $errorModal = $("#errorModal");

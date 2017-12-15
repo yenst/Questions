@@ -142,20 +142,12 @@ const eventHandler = {
                                 thread: populatedThread,
                                 isAdmin: true,
                             }),
-                            classHTML: pug.renderFile("views/partials/classThread.pug", {
-                                thread: populatedThread,
-                                isAdmin: true
-                            }),
                             tags: populatedThread.tags
                         };
                         let dataForStudents = {
                             threadHTML: pug.renderFile("views/partials/thread.pug", {
                                 thread: populatedThread,
                                 isAdmin: false,
-                            }),
-                            classHTML: pug.renderFile("views/partials/classThread.pug", {
-                                thread: populatedThread,
-                                isAdmin: false
                             }),
                             tags: populatedThread.tags
                         };
@@ -364,11 +356,25 @@ const eventHandler = {
                 if (!thread.tags.includes(tag)) {
                     thread.tags.push(tag);
                     thread.save().then(savedThread => {
-                        let tagHTML = pug.renderFile("views/partials/tag.pug", {tag: tag});
-                        namespace.emit("tag_added_to_thread", {
+                        let newTagHTML = pug.renderFile("views/partials/tag.pug", {tag: tag});
+                        let dataForAdmins = {
                             threadId: savedThread._id,
-                            tagHTML: tagHTML
-                        })
+                            threadHTML: pug.renderFile("views/partials/thread.pug", {
+                                thread: savedThread,
+                                isAdmin: true,
+                            }),
+                            newTagHTML: newTagHTML,
+                        };
+                        let dataForStudents = {
+                            threadId: savedThread._id,
+                            threadHTML: pug.renderFile("views/partials/thread.pug", {
+                                thread: savedThread,
+                                isAdmin: false,
+                            }),
+                            newTagHTML: newTagHTML,
+                        };
+                        sendToAdmins("tag_added_to_thread", dataForAdmins);
+                        sendToStudents("tag_added_to_thread", dataForStudents);
                     }).catch(err => {
                         clientSocket.emit("error_occurred", "Failed to save changes.");
                     })

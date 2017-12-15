@@ -14,12 +14,8 @@ const socketModule = (function () {
             gInterface.showError(error);
         })
         .on("new_thread_available", function (data) {
-            if (tag === null) {
-                gInterface.addThread(data.threadHTML);
-            } else if (data.tags.includes(tag)) {
-                new Notification("New " + tag + " question");
-                gInterface.addThread(data.classHTML);
-            }
+            if (data.tags.includes(tag)) new Notification("New " + tag + " question");
+            gInterface.addThread(data.threadHTML);
         })
         .on("new_answer_available", function (data) {
             gInterface.addAnswerForThread(data.forThread, data.answerHTML, data.amountAnswersOnThread);
@@ -49,7 +45,11 @@ const socketModule = (function () {
             gInterface.setAnswerApproved(data.answerId, data.threadId, data.isSolved);
         })
         .on("tag_added_to_thread", function (data) {
-            gInterface.addTagToThread(data.threadId, data.tagHTML);
+            if($(data.newTagHTML).text() === tag){
+                gInterface.addThread(data.threadHTML);
+            } else {
+                gInterface.addTagToThread(data.threadId, data.newTagHTML);
+            }
         });
 
     return {
