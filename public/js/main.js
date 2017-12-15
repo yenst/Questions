@@ -65,6 +65,8 @@ const gInterface = (function () {
                     let $threadIdInput = $(e.target).find("input[name='threadId']");
                     socketModule.sendAnswer($threadIdInput.val(), $answerInput.val(), images);
                     $("#answerFormModal").modal("hide");
+                    let $answers = $("#threads").find(".thread[data-thread-id='" + $threadIdInput.val() + "']").find(".answers");
+                    if ( !$answers.is(":visible") ) $answers.toggle();
                     $answerInput.val("");
                     $threadIdInput.val("");
                 });
@@ -307,7 +309,6 @@ const gInterface = (function () {
             $affectedThread.find(".amountAnswers").text(amountAnswersOnThread);
             let $answers = $affectedThread.find(".answers");
             $answers.prepend(answerHTML);
-            if (!$answers.is(":visible")) $answers.toggle();
             if ($affectedThread.find(".answerButton").text() !== "Answer")
                 $affectedThread.find(".answerButton").text("Answer");
         },

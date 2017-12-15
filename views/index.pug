@@ -1,7 +1,6 @@
 extends ./layouts/layout
 include ./mixins/mixin_thread.pug
 
-
 //-
     index.pug variables
     ********************
@@ -19,7 +18,6 @@ block content
                 +thread(thread, user.isAdmin)
             else
                 +thread(thread, false)
-
 
 block scripts
     script(src="/socket.io/socket.io.js")
