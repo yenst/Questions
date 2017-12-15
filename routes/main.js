@@ -63,7 +63,6 @@ router
                 },
             }
         }).then(thread => {
-            console.log(thread);
             res.render("threadDetail",{
                 title:'Thread',
                 user: req.user,

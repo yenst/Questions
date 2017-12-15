@@ -4,7 +4,7 @@
     @title {String} title of current page
     @header.isAuthenticated {Boolean} shows login/logout button
 
-include ./mixins/mixin_header.pug
+include ../mixins/mixin_header.pug
 
 doctype html
 html(lang="en")
@@ -27,13 +27,13 @@ html(lang="en")
         //- Blocks can be owerwritten/appended/prepended by extending this file, more info @ https://pugjs.org/language/inheritance.html
         block content
 
-        include ./partials/popup_alias.pug
-        include ./partials/popup_error.pug
-        include ./partials/popup_answer.pug
-        include ./partials/popup_comment.pug
-        include ./partials/popup_question.pug
-        include ./partials/popup_tag.pug
-        include ./partials/popup_image.pug
+        include ../partials/popup_alias.pug
+        include ../partials/popup_error.pug
+        include ../partials/popup_answer.pug
+        include ../partials/popup_comment.pug
+        include ../partials/popup_question.pug
+        include ../partials/popup_tag.pug
+        include ../partials/popup_image.pug
 
         //- Load scripts in this order, else fail.
         script(src="/js/lib/jquery-3.2.1.min.js")

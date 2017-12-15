@@ -125,7 +125,6 @@ passport.use(new GoogleStrategy({
         passReqToCallback: true
     }, function (request, accessToken, refreshToken, profile, done) {
         if (profile._json.domain && profile._json.domain.includes("howest.be")) {
-            console.log(profile);
             User.findOneOrCreate({email: profile.email}, {
                 displayName: profile.displayName,
                 email: profile.email,
