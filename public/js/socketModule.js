@@ -11,7 +11,6 @@ const socketModule = (function () {
             console.log(msg);
         })
         .on("error_occurred", function (error) {
-            console.log(error);
             gInterface.showError(error);
         })
         .on("new_thread_available", function (data) {

@@ -40,7 +40,6 @@ router
     })
     .get('/leaderboard', function (req, res) {
         User.find({}).sort("-credits").select('alias credits  badge').exec().then(users => {
-            console.log(users);
             res.render("leaderboard", {
                 title: 'Leaderboard - Questions',
                 user: req.user,

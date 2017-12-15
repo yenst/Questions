@@ -1,10 +1,7 @@
 const pug = require("pug");
-const path = require("path");
 const cookieParser = require("cookie-parser");
 const passportSocketIo = require("passport.socketio");
 const sanitizer = require("sanitizer");
-const mongoose = require("mongoose");
-const highlight = require("highlight.js");
 
 const Thread = require("./models/thread");
 const Answer = require("./models/answer");

@@ -1,8 +1,7 @@
-var nodemailer = require('nodemailer');
+const nodemailer = require('nodemailer');
 const User = require("./models/user");
 
-
-var transporter = nodemailer.createTransport({
+const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: 'questions.howest@gmail.com',
@@ -10,14 +9,12 @@ var transporter = nodemailer.createTransport({
     }
 });
 
-
 module.exports = {
     sendMail: function (tags) {
         tags.forEach(tag => {
             User.find({'subscriptions': tag}).then(users => {
                 users.forEach(user => {
-
-                    var mailOptions = {
+                    let mailOptions = {
                         from: 'questions.howest@gmail.com',
                         to: user.email,
                         subject: "Questions: new Question!",
@@ -34,9 +31,7 @@ module.exports = {
                 })
             })
         })
-
-
     }
-}
+};
 
 
