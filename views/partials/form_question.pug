@@ -1,23 +1,26 @@
 form(class="form-inline my-2 justify-content-center" id="question_form")
     div(class="container")
         div(class="row")
-            small(class="form-text text-muted") Add tags at the end of your title, example:
-            small(class="form-text text-muted") How do Javascript closures work? #javascript #closures
+            div(class="container")
+                small(class="form-text text-muted row") Add tags at the end of your title, example:
+                small(class="form-text text-muted row") How do Javascript closures work? #javascript #closures
             label(class="sr-only" for="title") Ask a question
             input(type="text" id="title" name='title' class="form-control my-2 w-100 formText pasteableTextArea" placeholder="Title")
-            small(class="form-text text-muted") Paste code and images into underlying input field
-            small(class="form-text text-muted") Surround code with single quotes: ''&lt;div&gt;I'm a container!&lt;/div&gt;'''
+            div(class="container")
+                small(class="form-text text-muted row") Paste code and images into underlying input field
+                small(class="form-text text-muted row") Surround code with single quotes: ''&lt;div&gt;I'm a container!&lt;/div&gt;'''
             textarea(id="question" name='question' class="form-control my-2 w-100 formText pasteableTextArea" placeholder="Your question")
             div(class="pasteImage row")
         if user && user.isAdmin
             div(class="row my-1 form-check")
                 label(class="form-check-label")
-                    input(id='pollCheckBox' class="form-check-input" type="checkbox" )
+                    input(id='pollCheckBox' class="form-check-input" type="checkbox")
                     | Create poll
             div(class="row pollSection" style="display: none")
-                small(class="form-text text-muted") Minimum 2 choices required
-                small(class="form-text text-muted") Also paste code and images here
-            div(class="row pollSection" style="display: none")
+                div(class="container")
+                    small(class="form-text text-muted row") Minimum 2 choices required
+                    small(class="form-text text-muted row") Also paste code and images here
+            div(class="row pollSection mt-2" style="display: none")
                 label(class="sr-only" for="choice") Add a choice
                 textarea(class="form-control col" name="choice" id="choice" aria-describedby="choiceHelp" placeholder="Choice")
                 div(class="col-2")

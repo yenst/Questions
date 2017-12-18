@@ -46,7 +46,8 @@ const gInterface = (function () {
                         $questionInput.val("");
                         $titleInput.val("");
                         $pollChoiceList.html("");
-                        $(this).find("input[name='choice']").val("");
+                        $(this).find("input[type='checkbox']").prop('checked', false);
+                        $(".pollSection").toggle();
                         self.initAutoComplete();
                     });
                 })

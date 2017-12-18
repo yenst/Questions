@@ -121,7 +121,6 @@ const eventHandler = {
         } else clientSocket.emit("error_occurred", "Please login to vote");
     },
     new_question: function (clientSocket, title, question, images, choices) {
-        //TODO Deze check wordt al uitgevoerd in "model/thread.js"
         if (clientSocket.request.user) {
             let author = sanitizer.escape(clientSocket.request.user.uid);
             let titleObject = processTitle(title);
