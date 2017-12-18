@@ -2,6 +2,7 @@
 
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
+const trimAndCheckUrls = require("./../helper/trimAndCheckUrls");
 
 /**
  * @param {String} q = question
@@ -9,7 +10,7 @@ const Schema = mongoose.Schema;
  * trim:' word ' => 'word'
  * Checks if empty because question is required
  */
-let titleSetter = function (q) {
+const titleSetter = function (q) {
     if (q) {
         q = q.trim();
         q = q.charAt(0).toUpperCase() + q.slice(1);
@@ -19,7 +20,7 @@ let titleSetter = function (q) {
 
 const ThreadSchema = Schema({
     author: {type: Schema.ObjectId, ref: "User", required: [true, 'Please login to ask a question.']},
-    question: {type: String},
+    question: {type: String, set: trimAndCheckUrls},
     title: {type: String, set: titleSetter, required: [true, "Title can't be empty."]},
     creationDate: {type: Date, default: Date.now},
     isSolved: {type: Boolean, default: false},

@@ -2,9 +2,10 @@
 
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const trimAndCheckUrls = require("./../helper/trimAndCheckUrls");
 
 let AnswerSchema = Schema({
-    answer: {type: String, trim: true}, // answer: {type: String, trim: true, required: [true, "Answer can't be empty."]},
+    answer: {type: String, trim: true, set: trimAndCheckUrls}, // answer: {type: String, trim: true, required: [true, "Answer can't be empty."]},
     author: {type: Schema.ObjectId, ref: "User", required: true},
     onThread: {type: mongoose.Schema.ObjectId, ref: "Thread", required: true},
     votes: {type: Number, default: 0},
