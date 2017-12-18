@@ -4,7 +4,6 @@ let newClass = false;
 let images = [];
 
 const gInterface = (function () {
-
     let isAuthenticated = function () {
         return new Promise(function (resolve) {
             if (socketModule.isConnected()) {
@@ -14,7 +13,9 @@ const gInterface = (function () {
             }
         })
     };
-
+    let htmlEntities = function(str) {
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    };
     return {
         bindEvents: function () {
             let self = this;
@@ -49,18 +50,18 @@ const gInterface = (function () {
                         self.initAutoComplete();
                     });
                 })
-                .on("click", ".removeSelfOnClick", function (e) {
+                .on("click", ".removeChoiceButton", function (e) {
                     e.preventDefault();
-                    $(e.target).remove();
+                    $(e.target).closest(".list-group-item").remove();
                 });
             $('.modal')
                 .on('hidden.bs.modal', function (e) {
-                $('.formText').val("");
-                $('.pasteImage').html("");
-                images = [];
-            })
+                    $('.formText').val("");
+                    $('.pasteImage').html("");
+                    images = [];
+                })
                 .on("shown.bs.modal", function (e) {
-                    $(this).find("input")[0].focus();
+                    $(this).find("input").first().focus();
                 });
             $("#answer_form").on("submit", function (e) {
                 e.preventDefault();
@@ -255,7 +256,7 @@ const gInterface = (function () {
                 isAuthenticated().then(() => {
                     let $questionFormModal = $("#questionFormModal");
                     let $input = $questionFormModal.find("input[name='title']");
-                    if(tag) $input.val("#" + tag);
+                    if (tag) $input.val("#" + tag);
                     $questionFormModal.modal("show");
                 });
             });
@@ -265,26 +266,31 @@ const gInterface = (function () {
             });
             $("#addChoiceBtn").on("click", function (e) {
                 e.preventDefault();
-                let $choice = $(e.target).parent().find("input[name='choice']");
-                $("#pollChoices").append('<a href="#" class="removeSelfOnClick list-group-item list-group-action">' + $choice.val() + '</a>');
+                let $choice = $(e.target).closest(".pollSection").find("textarea[name='choice']");
+                $("#pollChoices").append('<li class="list-group-item list-group-action"><div class="row"><div class="col">' + htmlEntities($choice.val()).replace("''","<pre><code>").replace("'''","</pre></code>") + '</div>' +
+                    '<div class="col-1"><a href="#" class="removeChoiceButton"><i class="fa fa-times"></i></a></div></div></li>');
                 $choice.val("");
             });
+            $("textarea[name='choice']").pastableTextarea()
+                .on("pasteImage", function (e, data) {
+                    $("#pollChoices").append('<li class="list-group-item list-group-action"><div class="row"><div class="col"><img class="img-fluid" src="' + data.dataURL + '"></div>' +
+                        '<div class="col-1"><a href="#" class="removeChoiceButton"><i class="fa fa-times"></i></a></div></div></li>');
+                })
+                .on('pasteImageError', function (ev, data) {
+                    gInterface.showError("Failed to paste image");
+                });
             $("#pollCheckBox").on("change", function () {
-                $("#pollSection").toggle();
+                $(".pollSection").toggle();
             });
             $('.pasteableTextArea').pastableTextarea()
                 .on('pasteImage', function (ev, data) {
-                    $('.pasteImage').prepend('<img class="img-fluid" src="' + data.dataURL + '"></img>');
+                    $('.pasteImage').prepend('<img class="img-fluid" src="' + data.dataURL + '">');
                     let image = data.dataURL;
                     images.push(image);
-                }).on('pasteImageError', function (ev, data) {
-                alert('Oops: ' + data.message);
-                if (data.url) {
-                    alert('But we got its url anyway:' + data.url)
-                }
-            }).on('pasteText', function (ev, data) {
-                console.log("text: " + data.text);
-            });
+                })
+                .on('pasteImageError', function (ev, data) {
+                    gInterface.showError("Failed to paste image");
+                });
             $('#btn-alias').on('click', function (e) {
                 e.preventDefault();
                 if (socketModule.isConnected()) $("#aliasFormModal").modal("show");

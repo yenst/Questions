@@ -14,8 +14,12 @@ const socketModule = (function () {
             gInterface.showError(error);
         })
         .on("new_thread_available", function (data) {
-            if (data.tags.includes(tag)) new Notification("New " + tag + " question");
-            gInterface.addThread(data.threadHTML);
+            if (!tag){
+                gInterface.addThread(data.threadHTML);
+            } else if (data.tags.includes(tag)){
+                new Notification("New " + tag + " question");
+                gInterface.addThread(data.threadHTML);
+            }
         })
         .on("new_answer_available", function (data) {
             gInterface.addAnswerForThread(data.forThread, data.answerHTML, data.amountAnswersOnThread);

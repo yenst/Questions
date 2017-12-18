@@ -160,6 +160,7 @@ const eventHandler = {
                     clientSocket.emit("error_occurred", err.message);
                 });
             };
+            console.log(choices);
             if (choices) {
                 if (choices.length > 1) {
                     thread.isPoll = true;
@@ -179,6 +180,7 @@ const eventHandler = {
                         });
                         sendResponse();
                     }).catch(err => {
+                        console.error(err);
                         clientSocket.emit("error_occurred", "Failed to save information.");
                     })
                 } else {
