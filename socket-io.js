@@ -30,18 +30,45 @@ const onAuthorizeFail = function (data, message, error, accept) {
 /**
  * Helper functions
  */
-const processTitle = function(t) {
-  let object = {
-    title: "",
-    tags: []
-  };
-  let splitQuestion = t.split("#");
-  object.title = sanitizer.escape(splitQuestion[0]);
+const processTitle = function (t) {
+    let object = {
+        title: "",
+        tags: []
+    };
+    let splitQuestion = t.split("#");
+    object.title = sanitizer.escape(splitQuestion[0]);
 
-  for (let i = 1; i < splitQuestion.length; i++) {
-    object.tags.push(sanitizer.escape(splitQuestion[i].trim()));
-  }
-  return object;
+    for (let i = 1; i < splitQuestion.length; i++) {
+        object.tags.push(sanitizer.escape(splitQuestion[i].trim()));
+    }
+    return object;
+};
+const isAuthenticated = function (socket) {
+    return new Promise(function (resolve, reject) {
+        if (socket.request.user) resolve();
+        else socket.emit("error_occurred", "Please login to ask a question.");
+        reject();
+    });
+};
+const isAuthenticatedAdmin = function (socket) {
+    return new Promise(function (resolve, reject) {
+        if (socket.request.user && socket.request.user.isAdmin) resolve();
+        else socket.emit("error_occurred", "You are not logged in or don't have permission.");
+        reject();
+    });
+};
+const voteAndSendResponse = function (populatedAnswer) {
+    populatedAnswer.upVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
+        populatedAnswer.save((err, savedAnswer) => {
+            if (err) return console.error(err);
+            namespace.emit("answer_voted", {
+                answerId: savedAnswer._id,
+                votes: savedAnswer.votes
+            })
+        })
+    }).catch(err => {
+        return err;
+    });
 };
 
 /**
@@ -49,7 +76,7 @@ const processTitle = function(t) {
  */
 const eventHandler = {
     delete_thread: function (namespace, clientSocket, threadId) {
-        if (clientSocket.request.user && clientSocket.request.user.isAdmin) {
+        isAuthenticatedAdmin(clientSocket).then(
             Thread.findOne({_id: sanitizer.escape(threadId)}).then((thread) => {
                 thread.remove().then(() => {
                     namespace.emit("deleted_thread", thread._id);
@@ -58,13 +85,10 @@ const eventHandler = {
                 });
             }).catch(err => {
                 clientSocket.emit("error_occurred", "Thread doens't exist.");
-            });
-        } else {
-            clientSocket.emit("error_occurred", "You are not logged in or don't have permission.")
-        }
+            }));
     },
     delete_answer_on_thread: function (namespace, clientSocket, data) {
-        if (clientSocket.request.user && clientSocket.request.user.isAdmin) {
+        isAuthenticatedAdmin(clientSocket).then(
             Answer.findOne({_id: sanitizer.escape(data.answerId)}).then(answer => {
                 answer.remove();
                 namespace.emit("deleted_answer", {
@@ -73,13 +97,11 @@ const eventHandler = {
                 })
             }).catch(err => {
                 clientSocket.emit("error_occurred", "Answer doesn't exist.");
-            });
-        } else {
-            clientSocket.emit("error_occurred", "You are not logged in or don't have permission.")
-        }
+            })
+        );
     },
     up_vote_thread: function (namespace, clientSocket, threadId) {
-        if (clientSocket.request.user) {
+        isAuthenticated(clientSocket).then(
             Thread.findOne({_id: sanitizer.escape(threadId)}).exec((err, thread) => {
                 if (err) return clientSocket.emit("error_occurred", "Thread doesn't exist");
                 Thread.findById(threadId).populate('author').then(function (populatedThread) {
@@ -96,11 +118,11 @@ const eventHandler = {
                         })
                     })
                 }).catch(err => clientSocket.emit("error_occurred", err));
-            });
-        } else clientSocket.emit("error_occurred", "Please login to vote");
+            })
+        );
     },
     down_vote_thread: function (namespace, clientSocket, threadId) {
-        if (clientSocket.request.user) {
+        isAuthenticated(clientSocket).then(
             Thread.findOne({_id: sanitizer.escape(threadId)}).exec((err, thread) => {
                 if (err) return clientSocket.emit("error_occurred", "Thread doesn't exist");
                 Thread.findById(threadId).populate('author').then(function (populatedThread) {
@@ -117,17 +139,17 @@ const eventHandler = {
                         })
                     })
                 }).catch(err => clientSocket.emit("error_occurred", err));
-            });
-        } else clientSocket.emit("error_occurred", "Please login to vote");
+            })
+        );
     },
     new_question: function (clientSocket, title, question, images, choices) {
-        if (clientSocket.request.user) {
+        isAuthenticated(clientSocket).then(function () {
             let author = sanitizer.escape(clientSocket.request.user.uid);
             let titleObject = processTitle(title);
             let processedQuestion = sanitizer.escape(question);
             let thread = new Thread({
                 title: titleObject.title,
-                question: processedQuestion.replace("''","<pre><code>").replace("'''","</pre></code>"),
+                question: processedQuestion.replace("''", "<pre><code>").replace("'''", "</pre></code>"),
                 author: author,
                 tags: titleObject.tags,
                 images: images
@@ -186,12 +208,10 @@ const eventHandler = {
                     clientSocket.emit("error_occurred", "A poll needs minimum 2 choices.");
                 }
             } else sendResponse();
-        } else {
-            clientSocket.emit("error_occurred", "Please login to ask a question.");
-        }
+        });
     },
     new_answer: function (clientSocket, data) {
-        if (clientSocket.request.user) {
+        isAuthenticated(clientSocket).then(function () {
             Thread.findOne({
                 _id: sanitizer.escape(data.threadId)
             }).exec((err, thread) => {
@@ -207,14 +227,14 @@ const eventHandler = {
                         onThread: thread._id,
                         images: data.images
                     });
-                    answer.answer = answer.answer.replace("''","<pre><code>").replace("'''","</pre></code>");
+                    answer.answer = answer.answer.replace("''", "<pre><code>").replace("'''", "</pre></code>");
                     answer.save((err, savedAnswer) => {
-                                    if (err) return clientSocket.emit("error_occurred", err.message);
-                                    Answer.findOne({_id: savedAnswer._id}).populate('author').then(function (populatedAnswer) {
-                                        if (err) clientSocket.emit("error_occurred", err);
-                                        else {
-                                            thread.answers.push(populatedAnswer._id);
-                                            thread.save(err => {
+                        if (err) return clientSocket.emit("error_occurred", err.message);
+                        Answer.findOne({_id: savedAnswer._id}).populate('author').then(function (populatedAnswer) {
+                            if (err) clientSocket.emit("error_occurred", err);
+                            else {
+                                thread.answers.push(populatedAnswer._id);
+                                thread.save(err => {
                                     if (err) return console.error(err);
 
                                     let dataForAdmins = {
@@ -243,10 +263,10 @@ const eventHandler = {
                     clientSocket.emit("error_occurred", "Can't add answers to poll.");
                 }
             });
-        } else clientSocket.emit("error_occurred", "Please login to vote");
+        });
     },
     new_comment: function (namespace, clientSocket, data) {
-        if (clientSocket.request.user) {
+        isAuthenticated(clientSocket).then(function () {
             Thread.findOne({
                 _id: sanitizer.escape(data.threadId)
             }).exec((err, returnedThread) => {
@@ -298,10 +318,10 @@ const eventHandler = {
                     });
                 });
             });
-        } else clientSocket.emit("error_occurred", "Please login to vote");
+        });
     },
     toggle_answer_approved: function (namespace, clientSocket, answerId) {
-        if (clientSocket.request.user && clientSocket.request.user.isAdmin) {
+        isAuthenticatedAdmin(clientSocket).then(function () {
             Answer.findOne({_id: sanitizer.escape(answerId)}).populate("onThread").then(answer => {
                 Answer.findById(answerId).populate('author').then(function (populatedAnswer) {
                     User.findById(populatedAnswer.author._id).then(function (user) {
@@ -327,9 +347,7 @@ const eventHandler = {
             }).catch(err => {
                 clientSocket.emit("error_occurred", "Answer doesn't exist.");
             })
-        } else {
-            clientSocket.emit("error_occurred", "You are not logged in or don't have permission.")
-        }
+        });
     },
     find_threads_with_tag: function (clientSocket, tag) {
         Thread.find({tags: tag}).populate({
@@ -351,7 +369,7 @@ const eventHandler = {
         });
     },
     add_tag_to_thread: function (namespace, clientSocket, data) {
-        if (clientSocket.request.user) {
+        isAuthenticated(clientSocket).then(function () {
             Thread.findOne({_id: sanitizer.escape(data.threadId)}).then(thread => {
                 let tag = sanitizer.escape(data.tag);
                 if (!thread.tags.includes(tag)) {
@@ -385,23 +403,10 @@ const eventHandler = {
             }).catch(err => {
                 clientSocket.emit("error_occurred", "Thread doesn't exist.");
             })
-        } else clientSocket.emit("error_occurred", "Please login to vote");
+        });
     },
     up_vote_answer: function (namespace, clientSocket, answerId) {
-        let voteAndSendResponse = function (populatedAnswer) {
-            populatedAnswer.upVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
-                populatedAnswer.save((err, savedAnswer) => {
-                    if (err) return console.error(err);
-                    namespace.emit("answer_voted", {
-                        answerId: savedAnswer._id,
-                        votes: savedAnswer.votes
-                    })
-                })
-            }).catch(err => {
-                return err;
-            });
-        };
-        if (clientSocket.request.user) {
+        isAuthenticated(clientSocket).then(function () {
             Answer.findOne({_id: sanitizer.escape(answerId)}).exec((err, answer) => {
                 if (err) return clientSocket.emit("error_occurred", "Answer doesn't exist or has been removed.");
                 Answer.findOne({_id: answerId}).populate('author').then(function (populatedAnswer) {
@@ -431,23 +436,10 @@ const eventHandler = {
                     clientSocket.emit("error_occurred", "internal server error.");
                 })
             });
-        } else clientSocket.emit("error_occurred", "Please login to vote");
+        });
     },
     down_vote_answer: function (namespace, clientSocket, answerId) {
-        let voteAndSendResponse = function (populatedAnswer) {
-            populatedAnswer.downVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
-                populatedAnswer.save((err, savedAnswer) => {
-                    if (err) return console.error(err);
-                    namespace.emit("answer_voted", {
-                        answerId: savedAnswer._id,
-                        votes: savedAnswer.votes
-                    })
-                })
-            }).catch(err => {
-                return err;
-            });
-        };
-        if (clientSocket.request.user) {
+        isAuthenticated(clientSocket).then(function () {
             Answer.findOne({_id: sanitizer.escape(answerId)}).exec((err, answer) => {
                 if (err) return clientSocket.emit("error_occurred", "Answer doesn't exist or has been removed.");
                 Answer.findOne({_id: answerId}).populate('author').then(function (populatedAnswer) {
@@ -477,7 +469,7 @@ const eventHandler = {
                     clientSocket.emit("error_occurred", "internal server error.");
                 })
             });
-        } else clientSocket.emit("error_occurred", "Please login to vote");
+        } );
     }
 };
 
