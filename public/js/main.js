@@ -13,7 +13,7 @@ const gInterface = (function () {
             }
         })
     };
-    let htmlEntities = function(str) {
+    let htmlEntities = function (str) {
         return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     };
     return {
@@ -47,7 +47,9 @@ const gInterface = (function () {
                         $titleInput.val("");
                         $pollChoiceList.html("");
                         $(this).find("input[type='checkbox']").prop('checked', false);
-                        $(".pollSection").toggle();
+                        let $pollSection = $(".pollSection");
+                        if (!$pollSection.is(":visible")) $pollSection.toggle();
+                        $pollSection.toggle();
                         self.initAutoComplete();
                     });
                 })
@@ -268,7 +270,7 @@ const gInterface = (function () {
             $("#addChoiceBtn").on("click", function (e) {
                 e.preventDefault();
                 let $choice = $(e.target).closest(".pollSection").find("textarea[name='choice']");
-                $("#pollChoices").append('<li class="list-group-item list-group-action"><div class="row"><div class="col choiceContent">' + htmlEntities($choice.val()).replace("''","<pre><code>").replace("'''","</pre></code>") + '</div>' +
+                $("#pollChoices").append('<li class="list-group-item list-group-action"><div class="row"><div class="col choiceContent">' + htmlEntities($choice.val()).replace("''", "<pre><code>").replace("'''", "</pre></code>") + '</div>' +
                     '<div class="col-1"><a href="#" class="removeChoiceButton"><i class="fa fa-times"></i></a></div></div></li>');
                 $choice.val("");
             });
