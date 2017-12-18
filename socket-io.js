@@ -159,7 +159,6 @@ const eventHandler = {
                     clientSocket.emit("error_occurred", err.message);
                 });
             };
-            console.log(choices);
             if (choices) {
                 if (choices.length > 1) {
                     thread.isPoll = true;
@@ -167,9 +166,10 @@ const eventHandler = {
                     choices.forEach(choice => {
                         answerChoices.push(
                             new Answer({
-                                answer: sanitizer.escape(choice),
+                                answer: sanitizer.escape(choice.text),
                                 author: author,
-                                onThread: thread._id
+                                onThread: thread._id,
+                                images: sanitizer.escape(choice.images)
                             })
                         );
                     });

@@ -31,8 +31,8 @@ const gInterface = (function () {
                         let question = $questionInput.val();
                         if ($(e.target).find("#pollCheckBox").is(":checked")) {
                             let choices = [];
-                            $pollChoiceList.find('a').each(function () {
-                                choices.push($(this).text());
+                            $pollChoiceList.find('.choiceContent').each(function () {
+                                choices.push({text: $(this).text(), images: $(this).find("img").attr("src")});
                             });
                             if (choices.length < 2) {
                                 gInterface.showError("Need minimum 2 choices to create a poll.");
@@ -268,13 +268,13 @@ const gInterface = (function () {
             $("#addChoiceBtn").on("click", function (e) {
                 e.preventDefault();
                 let $choice = $(e.target).closest(".pollSection").find("textarea[name='choice']");
-                $("#pollChoices").append('<li class="list-group-item list-group-action"><div class="row"><div class="col">' + htmlEntities($choice.val()).replace("''","<pre><code>").replace("'''","</pre></code>") + '</div>' +
+                $("#pollChoices").append('<li class="list-group-item list-group-action"><div class="row"><div class="col choiceContent">' + htmlEntities($choice.val()).replace("''","<pre><code>").replace("'''","</pre></code>") + '</div>' +
                     '<div class="col-1"><a href="#" class="removeChoiceButton"><i class="fa fa-times"></i></a></div></div></li>');
                 $choice.val("");
             });
             $("textarea[name='choice']").pastableTextarea()
                 .on("pasteImage", function (e, data) {
-                    $("#pollChoices").append('<li class="list-group-item list-group-action"><div class="row"><div class="col"><img class="img-fluid" src="' + data.dataURL + '"></div>' +
+                    $("#pollChoices").append('<li class="list-group-item list-group-action"><div class="row"><div class="col choiceContent"><img class="img-fluid" src="' + data.dataURL + '"></div>' +
                         '<div class="col-1"><a href="#" class="removeChoiceButton"><i class="fa fa-times"></i></a></div></div></li>');
                 })
                 .on('pasteImageError', function (ev, data) {
