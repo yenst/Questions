@@ -37,7 +37,7 @@ AnswerSchema.methods.toggleIsApprovedAndSave = function () {
                     }
                 }
                 thread.isSolved = isThreadSolved;
-                thread.save().then((affectedThread) => resolve({savedAnswer, affectedThread})).catch(err => {return err});
+                thread.save().then(() => resolve(savedAnswer)).catch(err => {return err});
             }).catch(err => {return err})
         }).catch(err => reject(err));
     });
@@ -45,9 +45,11 @@ AnswerSchema.methods.toggleIsApprovedAndSave = function () {
 
 AnswerSchema.pre("remove", function (next) {
     mongoose.model("Thread").findOne({_id: this.onThread}).then(thread => {
-        let index = thread.answers.indexOf(this._id);
-        thread.answers.splice(index, 1);
-        thread.save();
+        if(thread){
+            let index = thread.answers.indexOf(this._id);
+            thread.answers.splice(index, 1);
+            thread.save();
+        }
     }).catch(err => console.error(err));
     mongoose.model("Comment").remove({onAnswer: this._id}).catch(err => console.error(err));
     next();

@@ -7,6 +7,7 @@ const Thread = require("./models/thread");
 const Answer = require("./models/answer");
 const Comment = require("./models/comment");
 const User = require("./models/user");
+const repository = require("./models/repository");
 const Spammer = require('./mail');
 
 const GLOBAL = require("./global-vars");
@@ -30,19 +31,6 @@ const onAuthorizeFail = function (data, message, error, accept) {
 /**
  * Helper functions
  */
-const processTitle = function (t) {
-    let object = {
-        title: "",
-        tags: []
-    };
-    let splitQuestion = t.split("#");
-    object.title = sanitizer.escape(splitQuestion[0]);
-
-    for (let i = 1; i < splitQuestion.length; i++) {
-        object.tags.push(sanitizer.escape(splitQuestion[i].trim()));
-    }
-    return object;
-};
 const isAuthenticated = function (socket) {
     return new Promise(function (resolve, reject) {
         if (socket.request.user) resolve();
@@ -77,191 +65,96 @@ const voteAndSendResponse = function (populatedAnswer) {
 const eventHandler = {
     delete_thread: function (namespace, clientSocket, threadId) {
         isAuthenticatedAdmin(clientSocket).then(
-            Thread.findOne({_id: sanitizer.escape(threadId)}).then((thread) => {
-                thread.remove().then(() => {
-                    namespace.emit("deleted_thread", thread._id);
-                }).catch(err => {
-                    clientSocket.emit("error_occurred", "Failed to remove thread.");
-                });
+            repository.deleteThreadById(sanitizer.escape(threadId)).then(removedThread => {
+                namespace.emit("deleted_thread", removedThread._id);
             }).catch(err => {
-                clientSocket.emit("error_occurred", "Thread doens't exist.");
-            }));
+                clientSocket.emit("error_occurred", err);
+            })
+        );
     },
     delete_answer_on_thread: function (namespace, clientSocket, data) {
         isAuthenticatedAdmin(clientSocket).then(
-            Answer.findOne({_id: sanitizer.escape(data.answerId)}).then(answer => {
-                answer.remove();
+            repository.deleteAnswerById(sanitizer.escape(data.answerId)).then(removedAnswer => {
                 namespace.emit("deleted_answer", {
-                    answerId: answer._id,
-                    threadId: sanitizer.escape(data.threadId)
+                    answerId: removedAnswer._id,
+                    threadId: removedAnswer.onThread
                 })
             }).catch(err => {
-                clientSocket.emit("error_occurred", "Answer doesn't exist.");
+                clientSocket.emit("error_occurred", err);
             })
         );
     },
     up_vote_thread: function (namespace, clientSocket, threadId) {
         isAuthenticated(clientSocket).then(
-            Thread.findOne({_id: sanitizer.escape(threadId)}).exec((err, thread) => {
-                if (err) return clientSocket.emit("error_occurred", "Thread doesn't exist");
-                Thread.findById(threadId).populate('author').then(function (populatedThread) {
-                    User.findById(populatedThread.author._id).then(function (user) {
-                        user.setCredits(user.credits + GLOBAL.SCORE_VOTE);
-                    })
+            repository.upVoteThreadById(sanitizer.escape(threadId), sanitizer.escape(clientSocket.request.user.uid)).then(upVotedThread => {
+                namespace.emit("thread_voted", {
+                    threadId: upVotedThread._id,
+                    votes: upVotedThread.votes
                 })
-                thread.upVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
-                    thread.save((err, savedThread) => {
-                        if (err) return console.error(err);
-                        namespace.emit("thread_voted", {
-                            threadId: savedThread._id,
-                            votes: savedThread.votes
-                        })
-                    })
-                }).catch(err => clientSocket.emit("error_occurred", err));
+            }).catch(err => {
+                clientSocket.emit("error_occurred", err);
             })
         );
     },
     down_vote_thread: function (namespace, clientSocket, threadId) {
         isAuthenticated(clientSocket).then(
-            Thread.findOne({_id: sanitizer.escape(threadId)}).exec((err, thread) => {
-                if (err) return clientSocket.emit("error_occurred", "Thread doesn't exist");
-                Thread.findById(threadId).populate('author').then(function (populatedThread) {
-                    User.findById(populatedThread.author._id).then(function (user) {
-                        user.setCredits(user.credits - GLOBAL.SCORE_VOTE);
-                    })
+            repository.downVoteThreadById(sanitizer.escape(threadId), sanitizer.escape(clientSocket.request.user.uid)).then(downVotedThread => {
+                namespace.emit("thread_voted", {
+                    threadId: downVotedThread._id,
+                    votes: downVotedThread.votes
                 })
-                thread.downVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
-                    thread.save((err, savedThread) => {
-                        if (err) return console.error(err);
-                        namespace.emit("thread_voted", {
-                            threadId: savedThread._id,
-                            votes: savedThread.votes
-                        })
-                    })
-                }).catch(err => clientSocket.emit("error_occurred", err));
+            }).catch(err => {
+                clientSocket.emit("error_occurred", err);
             })
         );
     },
     new_question: function (clientSocket, title, question, images, choices) {
         isAuthenticated(clientSocket).then(function () {
-            let author = sanitizer.escape(clientSocket.request.user.uid);
-            let titleObject = processTitle(title);
-            let processedQuestion = sanitizer.escape(question);
-            let thread = new Thread({
-                title: titleObject.title,
-                question: processedQuestion.replace("''", "<pre><code>").replace("'''", "</pre></code>"),
-                author: author,
-                tags: titleObject.tags,
-                images: images
+            repository.addThreadOrPoll(title, sanitizer.escape(question), sanitizer.escape(clientSocket.request.user.uid), images, choices).then(addedThread => {
+                let dataForAdmins = {
+                    threadHTML: pug.renderFile("views/partials/thread.pug", {
+                        thread: addedThread,
+                        isAdmin: true,
+                    }),
+                    tags: addedThread.tags
+                };
+                let dataForStudents = {
+                    threadHTML: pug.renderFile("views/partials/thread.pug", {
+                        thread: addedThread,
+                        isAdmin: false,
+                    }),
+                    tags: addedThread.tags
+                };
+                sendToAdmins("new_thread_available", dataForAdmins);
+                sendToStudents("new_thread_available", dataForStudents);
+            }).catch(err => {
+                clientSocket.emit("error_occurred", err);
             });
-            Spammer.sendMail(thread.tags);
-            let sendResponse = function () {
-                thread.save().then(savedThread => {
-                    savedThread.populate("answers").execPopulate().then(populatedThread => {
-                        let dataForAdmins = {
-                            threadHTML: pug.renderFile("views/partials/thread.pug", {
-                                thread: populatedThread,
-                                isAdmin: true,
-                            }),
-                            tags: populatedThread.tags
-                        };
-                        let dataForStudents = {
-                            threadHTML: pug.renderFile("views/partials/thread.pug", {
-                                thread: populatedThread,
-                                isAdmin: false,
-                            }),
-                            tags: populatedThread.tags
-                        };
-                        sendToAdmins("new_thread_available", dataForAdmins);
-                        sendToStudents("new_thread_available", dataForStudents);
-                    }).catch(err => {
-                        return err
-                    });
-                }).catch(err => {
-                    clientSocket.emit("error_occurred", err.message);
-                });
-            };
-            if (choices) {
-                if (choices.length > 1) {
-                    thread.isPoll = true;
-                    let answerChoices = [];
-                    choices.forEach(choice => {
-                        answerChoices.push(
-                            new Answer({
-                                answer: sanitizer.escape(choice.text),
-                                author: author,
-                                onThread: thread._id,
-                                images: sanitizer.escape(choice.images)
-                            })
-                        );
-                    });
-                    Answer.insertMany(answerChoices).then(savedAnswersChoices => {
-                        savedAnswersChoices.forEach(answerChoice => {
-                            thread.answers.push(answerChoice._id);
-                        });
-                        sendResponse();
-                    }).catch(err => {
-                        console.error(err);
-                        clientSocket.emit("error_occurred", "Failed to save information.");
-                    })
-                } else {
-                    clientSocket.emit("error_occurred", "A poll needs minimum 2 choices.");
-                }
-            } else sendResponse();
         });
     },
-    new_answer: function (clientSocket, data) {
+    new_answer: function (clientSocket, threadId, answer, images) {
         isAuthenticated(clientSocket).then(function () {
-            Thread.findOne({
-                _id: sanitizer.escape(data.threadId)
-            }).exec((err, thread) => {
-                if (err)
-                    return clientSocket.emit(
-                        "error_occurred",
-                        "That thread doesn't exist or has been removed."
-                    );
-                if (!thread.isPoll) {
-                    let answer = new Answer({
-                        answer: sanitizer.escape(data.answer),
-                        author: sanitizer.escape(clientSocket.request.user.uid),
-                        onThread: thread._id,
-                        images: data.images
-                    });
-                    answer.answer = answer.answer.replace("''", "<pre><code>").replace("'''", "</pre></code>");
-                    answer.save((err, savedAnswer) => {
-                        if (err) return clientSocket.emit("error_occurred", err.message);
-                        Answer.findOne({_id: savedAnswer._id}).populate('author').then(function (populatedAnswer) {
-                            if (err) clientSocket.emit("error_occurred", err);
-                            else {
-                                thread.answers.push(populatedAnswer._id);
-                                thread.save(err => {
-                                    if (err) return console.error(err);
-
-                                    let dataForAdmins = {
-                                        answerHTML: pug.renderFile("views/partials/answer.pug", {
-                                            answerObject: populatedAnswer,
-                                            isAdmin: true
-                                        }),
-                                        forThread: thread._id,
-                                        amountAnswersOnThread: thread.answers.length
-                                    };
-                                    let dataForStudents = {
-                                        answerHTML: pug.renderFile("views/partials/answer.pug", {
-                                            answerObject: populatedAnswer,
-                                            isAdmin: false
-                                        }),
-                                        forThread: thread._id,
-                                        amountAnswersOnThread: thread.answers.length
-                                    };
-                                    sendToAdmins("new_answer_available", dataForAdmins);
-                                    sendToStudents("new_answer_available", dataForStudents);
-                                });
-                            }
-                        });
-                    });
-                } else {
-                    clientSocket.emit("error_occurred", "Can't add answers to poll.");
-                }
+            repository.addAnswer(sanitizer.escape(threadId), sanitizer.escape(answer), sanitizer.escape(clientSocket.request.user.uid), images).then(addedAnswer => {
+                let dataForAdmins = {
+                    answerHTML: pug.renderFile("views/partials/answer.pug", {
+                        answerObject: addedAnswer,
+                        isAdmin: true
+                    }),
+                    forThread: addedAnswer.onThread._id,
+                    amountAnswersOnThread: addedAnswer.onThread.answers.length
+                };
+                let dataForStudents = {
+                    answerHTML: pug.renderFile("views/partials/answer.pug", {
+                        answerObject: addedAnswer,
+                        isAdmin: false
+                    }),
+                    forThread: addedAnswer.onThread._id,
+                    amountAnswersOnThread: addedAnswer.onThread.answers.length
+                };
+                sendToAdmins("new_answer_available", dataForAdmins);
+                sendToStudents("new_answer_available", dataForStudents);
+            }).catch(err => {
+                clientSocket.emit("error_occurred", err);
             });
         });
     },
@@ -322,41 +215,19 @@ const eventHandler = {
     },
     toggle_answer_approved: function (namespace, clientSocket, answerId) {
         isAuthenticatedAdmin(clientSocket).then(function () {
-            Answer.findOne({_id: sanitizer.escape(answerId)}).populate("onThread").then(answer => {
-                Answer.findById(answerId).populate('author').then(function (populatedAnswer) {
-                    User.findById(populatedAnswer.author._id).then(function (user) {
-                        if (populatedAnswer.isApproved) {
-                            user.setCredits(user.credits - GLOBAL.SCORE_APPROVE);
-                        }
-                        else {
-                            user.setCredits(user.credits + GLOBAL.SCORE_APPROVE);
-
-                        }
-
-                    })
-                });
-                answer.toggleIsApprovedAndSave().then(resolveData => {
-                    namespace.emit("answer_approved_changed", {
-                        answerId: resolveData.savedAnswer._id,
-                        threadId: resolveData.affectedThread._id,
-                        isSolved: resolveData.affectedThread.isSolved
-                    });
-                }).catch(err => {
-                    clientSocket.emit("error_occurred", "Failed to edit.");
+            repository.toggleAnswerApproved(sanitizer.escape(answerId)).then(answer => {
+                namespace.emit("answer_approved_changed", {
+                    answerId: answer._id,
+                    threadId: answer.onThread._id,
+                    isSolved: answer.onThread.isSolved
                 });
             }).catch(err => {
-                clientSocket.emit("error_occurred", "Answer doesn't exist.");
-            })
+                clientSocket.emit("error_occurred", err);
+            });
         });
     },
     find_threads_with_tag: function (clientSocket, tag) {
-        Thread.find({tags: tag}).populate({
-            path: "answers",
-            populate: {
-                path: "comments",
-                model: "Comment"
-            }
-        }).then(threads => {
+        repository.findThreadsByTag(sanitizer.escape(tag)).then(threads => {
             let renderedThreads = [];
             threads.forEach(function (thread) {
                 renderedThreads.push(
@@ -365,111 +236,59 @@ const eventHandler = {
             });
             clientSocket.emit("threads", renderedThreads);
         }).catch(err => {
-            clientSocket.emit("error_occurred", "Failed to get threads.");
+            clientSocket.emit("error_occurred", err);
         });
     },
-    add_tag_to_thread: function (namespace, clientSocket, data) {
+    add_tag_to_thread: function (namespace, clientSocket, threadId, tag) {
         isAuthenticated(clientSocket).then(function () {
-            Thread.findOne({_id: sanitizer.escape(data.threadId)}).then(thread => {
-                let tag = sanitizer.escape(data.tag);
-                if (!thread.tags.includes(tag)) {
-                    thread.tags.push(tag);
-                    thread.save().then(savedThread => {
-                        let newTagHTML = pug.renderFile("views/partials/tag.pug", {tag: tag});
-                        let dataForAdmins = {
-                            threadId: savedThread._id,
-                            threadHTML: pug.renderFile("views/partials/thread.pug", {
-                                thread: savedThread,
-                                isAdmin: true,
-                            }),
-                            newTagHTML: newTagHTML,
-                        };
-                        let dataForStudents = {
-                            threadId: savedThread._id,
-                            threadHTML: pug.renderFile("views/partials/thread.pug", {
-                                thread: savedThread,
-                                isAdmin: false,
-                            }),
-                            newTagHTML: newTagHTML,
-                        };
-                        sendToAdmins("tag_added_to_thread", dataForAdmins);
-                        sendToStudents("tag_added_to_thread", dataForStudents);
-                    }).catch(err => {
-                        clientSocket.emit("error_occurred", "Failed to save changes.");
-                    })
-                } else {
-                    clientSocket.emit("error_occurred", "Tag already added.");
-                }
+            repository.addTag(sanitizer.escape(threadId), sanitizer.escape(tag)).then(thread => {
+                let newTagHTML = pug.renderFile("views/partials/tag.pug", {tag: tag});
+                let dataForAdmins = {
+                    threadId: thread._id,
+                    threadHTML: pug.renderFile("views/partials/thread.pug", {
+                        thread: thread,
+                        isAdmin: true,
+                    }),
+                    newTagHTML: newTagHTML,
+                };
+                let dataForStudents = {
+                    threadId: thread._id,
+                    threadHTML: pug.renderFile("views/partials/thread.pug", {
+                        thread: thread,
+                        isAdmin: false,
+                    }),
+                    newTagHTML: newTagHTML,
+                };
+                sendToAdmins("tag_added_to_thread", dataForAdmins);
+                sendToStudents("tag_added_to_thread", dataForStudents);
             }).catch(err => {
-                clientSocket.emit("error_occurred", "Thread doesn't exist.");
-            })
+                clientSocket.emit("error_occurred", err);
+            });
         });
     },
     up_vote_answer: function (namespace, clientSocket, answerId) {
         isAuthenticated(clientSocket).then(function () {
-            Answer.findOne({_id: sanitizer.escape(answerId)}).exec((err, answer) => {
-                if (err) return clientSocket.emit("error_occurred", "Answer doesn't exist or has been removed.");
-                Answer.findOne({_id: answerId}).populate('author').then(function (populatedAnswer) {
-                    Thread.findOne({_id: populatedAnswer.onThread}).then(thread => {
-                        if (thread.isPoll) {
-                            if (thread.hasVoted(sanitizer.escape(clientSocket.request.user.uid))) {
-                                clientSocket.emit("error_occurred", "You have already voted on this poll.")
-                            } else {
-                                User.findById(populatedAnswer.author._id).then(function (user) {
-                                    user.setCredits(user.credits + GLOBAL.SCORE_VOTE);
-                                    thread.votedUIDs.push(user);
-                                    thread.save();
-                                    voteAndSendResponse(populatedAnswer);
-                                });
-                            }
-                        } else {
-                            User.findById(populatedAnswer.author._id).then(function (user) {
-                                user.setCredits(user.credits + GLOBAL.SCORE_VOTE);
-                                voteAndSendResponse(populatedAnswer);
-                            });
-                        }
-                    }).catch(err => {
-                        return err;
-                    });
-                }).catch(function (err) {
-                    console.error(err);
-                    clientSocket.emit("error_occurred", "internal server error.");
+            repository.upVoteAnswerById(sanitizer.escape(answerId), sanitizer.escape(clientSocket.request.user.uid)).then(answer => {
+                namespace.emit("answer_voted", {
+                    answerId: answer._id,
+                    votes: answer.votes
                 })
+            }).catch(err => {
+                clientSocket.emit("error_occurred", err);
             });
         });
     },
     down_vote_answer: function (namespace, clientSocket, answerId) {
         isAuthenticated(clientSocket).then(function () {
-            Answer.findOne({_id: sanitizer.escape(answerId)}).exec((err, answer) => {
-                if (err) return clientSocket.emit("error_occurred", "Answer doesn't exist or has been removed.");
-                Answer.findOne({_id: answerId}).populate('author').then(function (populatedAnswer) {
-                    Thread.findOne({_id: populatedAnswer.onThread}).then(thread => {
-                        if (thread.isPoll) {
-                            if (thread.hasVoted(sanitizer.escape(clientSocket.request.user.uid))) {
-                                clientSocket.emit("error_occurred", "You have already voted on this poll.")
-                            } else {
-                                User.findById(populatedAnswer.author._id).then(function (user) {
-                                    user.setCredits(user.credits - GLOBAL.SCORE_VOTE);
-                                    thread.votedUIDs.push(user);
-                                    thread.save();
-                                    voteAndSendResponse(populatedAnswer);
-                                });
-                            }
-                        } else {
-                            User.findById(populatedAnswer.author._id).then(function (user) {
-                                user.setCredits(user.credits - GLOBAL.SCORE_VOTE);
-                                voteAndSendResponse(populatedAnswer);
-                            });
-                        }
-                    }).catch(err => {
-                        return err;
-                    });
-                }).catch(function (err) {
-                    console.error(err);
-                    clientSocket.emit("error_occurred", "internal server error.");
+            repository.downVoteAnswerById(sanitizer.escape(answerId), sanitizer.escape(clientSocket.request.user.uid)).then(answer => {
+                namespace.emit("answer_voted", {
+                    answerId: answer._id,
+                    votes: answer.votes
                 })
+            }).catch(err => {
+                clientSocket.emit("error_occurred", err);
             });
-        } );
+        });
     }
 };
 
@@ -528,7 +347,7 @@ const serverSocketInitiator = function (server, sessionStore) {
                     eventHandler.new_question(clientSocket, data.title, data.question, data.images, data.choices);
                 })
                 .on("new_answer", data => {
-                    eventHandler.new_answer(clientSocket, data);
+                    eventHandler.new_answer(clientSocket, data.threadId, data.answer, data.images);
                 })
                 .on("new_comment", (data) => {
                     eventHandler.new_comment(questions_live, clientSocket, data);
@@ -555,7 +374,7 @@ const serverSocketInitiator = function (server, sessionStore) {
                     eventHandler.toggle_answer_approved(questions_live, clientSocket, answerId)
                 })
                 .on("add_tag_to_thread", data => {
-                    eventHandler.add_tag_to_thread(questions_live, clientSocket, data)
+                    eventHandler.add_tag_to_thread(questions_live, clientSocket, data.threadId, data.tag)
                 })
                 .on("up_vote_answer", answerId => {
                     eventHandler.up_vote_answer(questions_live, clientSocket, answerId)

@@ -61,7 +61,7 @@ const socketModule = (function () {
             socket.emit("new_question", {title, question, images, choices});
         },
         sendAnswer: function (threadId, answer,images) {
-            socket.emit("new_answer", {threadId, answer,images});
+            socket.emit("new_answer", {threadId, answer, images});
         },
         sendComment: function (threadId, answerId, comment) {
             socket.emit("new_comment", {threadId, answerId, comment});
