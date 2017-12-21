@@ -12,11 +12,11 @@ mixin answer(answerObject, isAdmin)
                 a(class="answerDownVoteBtn row btn-sm btn-outline-primary justify-content-center" href="#")
                     i(class="fa fa-2x fa-angle-down")
                     span(class="sr-only") up vote
-            div(class="col")
-                span(class="answerText row")!= answerObject.answer
+            div(class="col-10")
+                span(class="answerText")!= answerObject.answer
                 each image in answerObject.images
                     img(src=image class='img-fluid rounded img-thumbnail')
-            div(class="col-1 text-center mr-2")
+            div(class="col-1 text-center")
                 span(class="justify-content-center m-2 row text-secondary" disabled data-toggle="tooltip" data-placement="bottom" title="Current credits from user: "+answerObject.author.credits)
                     i(class=answerObject.author.badge aria-hidden="true")
                 if answerObject.author.isAdmin

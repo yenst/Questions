@@ -172,7 +172,6 @@ const gInterface = (function () {
                         $("input[name='answerId']").attr("value", answerId);
                         let answer = $currentAnswer.find(".answerText").text();
                         let $commentFormModal = $("#commentFormModal");
-                        $commentFormModal.find(".threadAnswer").text(answer);
                         $commentFormModal.modal("show");
                     });
                 })

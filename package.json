@@ -29,6 +29,7 @@
   },
   "scripts": {
     "start": "node app.js",
+    "seed-db-examples": "node models/seedDatabase.js",
     "test": "mocha"
   },
   "author": "",
