@@ -85,8 +85,11 @@ const eventHandler = {
                 Thread.findById(threadId).populate('author').then(function (populatedThread) {
                     User.findById(populatedThread.author._id).then(function (user) {
                         user.setCredits(user.credits + GLOBAL.SCORE_VOTE);
+                        if(populatedThread.votes == 15){
+                            Spammer.sendMailForvotes(user,populatedThread._id);
+                        }
                     })
-                })
+                });
                 thread.upVote(sanitizer.escape(clientSocket.request.user.uid)).then(() => {
                     thread.save((err, savedThread) => {
                         if (err) return console.error(err);

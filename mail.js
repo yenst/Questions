@@ -31,6 +31,21 @@ module.exports = {
                 })
             })
         })
+    },
+    sendMailForvotes: function(user,threadId){
+        let mailOptions = {
+            from: 'questions.howest@gmail.com',
+            to: user.email,
+            subject: "Your question is popular",
+            text: 'Greetings ' + user.alias + ',\n \n Your thread has now over 15 upvotes, http://questions.dev:3000/thread/'+threadId
+        };
+        transporter.sendMail(mailOptions, function (error, info) {
+            if (error) {
+                console.log(error);
+            } else {
+                console.log('Email sent: ' + info.response);
+            }
+        });
     }
 };
 
