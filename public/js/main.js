@@ -354,11 +354,12 @@ const gInterface = (function () {
         initAutoComplete: function () {
             $.get("/gettags")
                 .done(function (data) {
-                    $("#question").atwho({
+                    $("form#question_form").find("input[name='title']").atwho({
                         at: "#",
                         data: data
                     });
-                    $("form#open_class").find("input[name='tag']").atwho({
+                    $("form#search_threads_on_tag_form").find("input[name='tag']").atwho({
+                        at: "",
                         data: data
                     });
                 })
