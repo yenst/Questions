@@ -90,7 +90,10 @@ const eventHandler = {
                 namespace.emit("thread_voted", {
                     threadId: upVotedThread._id,
                     votes: upVotedThread.votes
-                })
+                });
+                if(upVotedThread.votes > 15){
+                    Spammer.sendMailForvotes(upVotedThread.author,upVotedThread._id);
+                }
             }).catch(err => {
                 clientSocket.emit("error_occurred", err);
             })
