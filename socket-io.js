@@ -160,56 +160,23 @@ const eventHandler = {
     },
     new_comment: function (namespace, clientSocket, data) {
         isAuthenticated(clientSocket).then(function () {
-            Thread.findOne({
-                _id: sanitizer.escape(data.threadId)
-            }).exec((err, returnedThread) => {
-                if (err)
-                    return clientSocket.emit(
-                        "error_occurred",
-                        "Thread doesn't exist or has been removed."
-                    );
-                let answerId = sanitizer.escape(data.answerId);
-                Answer.findOne({_id: answerId}).exec((err, returnedAnswer) => {
-                    if (err)
-                        return clientSocket.emit(
-                            "error_occurred",
-                            "Answer doesn't exist or has been removed."
-                        );
-                    let comment = new Comment({
-                        comment: sanitizer.escape(data.comment),
-                        author: sanitizer.escape(clientSocket.request.user.uid),
-                        onAnswer: answerId
+            let answerId = sanitizer.escape(data.answerId);
+            repository.addComment(sanitizer.escape(data.threadId), answerId, sanitizer.escape(data.comment), sanitizer.escape(clientSocket.request.user.uid)).then(addedComment => {
+                Answer.findOne({_id: answerId}).then(answer => {
+                    let html = pug.renderFile("views/partials/comment.pug", {
+                        commentObject: addedComment
                     });
-
-                    comment.save((err, savedComment) => {
-                        if (err)
-                            return clientSocket.emit(
-                                "error_occurred",
-                                err.message
-                            );
-                        returnedAnswer.comments.push(savedComment._id);
-                        returnedAnswer.save((err, savedAnswer) => {
-                            if (err)
-                                return clientSocket.emit(
-                                    "error_occurred",
-                                    "Failed to save comment."
-                                );
-                            Comment.findOne({_id: savedComment._id}).populate('author').then(function (populatedComment) {
-                                let html = pug.renderFile("views/partials/comment.pug", {
-                                    commentObject: populatedComment
-                                });
-
-                                namespace.emit("new_comment_available", {
-                                    commentHTML: html,
-                                    forAnswer: savedAnswer._id,
-                                    amountComments: savedAnswer.comments.length,
-                                    user: comment.author
-                                });
-                            })
-
-                        });
+                    namespace.emit("new_comment_available", {
+                        commentHTML: html,
+                        forAnswer: answerId,
+                        amountComments: answer.comments.length,
+                        user: comment.author
                     });
+                }).catch(err => {
+                    return err;
                 });
+            }).catch(err => {
+                clientSocket.emit("error_occurred", err);
             });
         });
     },
